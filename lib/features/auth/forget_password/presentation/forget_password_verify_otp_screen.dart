@@ -9,14 +9,18 @@ class ForgetPasswordVerifyOtpScreen extends StatefulWidget {
   const ForgetPasswordVerifyOtpScreen({super.key});
 
   @override
-  State<ForgetPasswordVerifyOtpScreen> createState() => _ForgetPasswordVerifyOtpScreenState();
+  State<ForgetPasswordVerifyOtpScreen> createState() =>
+      _ForgetPasswordVerifyOtpScreenState();
 }
 
-class _ForgetPasswordVerifyOtpScreenState extends State<ForgetPasswordVerifyOtpScreen>
+class _ForgetPasswordVerifyOtpScreenState
+    extends State<ForgetPasswordVerifyOtpScreen>
     with SingleTickerProviderStateMixin {
   // --------------- Controllers ---------------
-  final List<TextEditingController> _otpControllers =
-      List.generate(4, (_) => TextEditingController());
+  final List<TextEditingController> _otpControllers = List.generate(
+    4,
+    (_) => TextEditingController(),
+  );
   final List<FocusNode> _focusNodes = List.generate(4, (_) => FocusNode());
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -36,14 +40,14 @@ class _ForgetPasswordVerifyOtpScreenState extends State<ForgetPasswordVerifyOtpS
     _timer = Stream.periodic(const Duration(seconds: 1), (x) => x)
         .take(59)
         .listen((_) {
-      if (mounted) {
-        setState(() {
-          if (_secondsRemaining > 0) {
-            _secondsRemaining--;
+          if (mounted) {
+            setState(() {
+              if (_secondsRemaining > 0) {
+                _secondsRemaining--;
+              }
+            });
           }
         });
-      }
-    });
   }
 
   @override
@@ -152,8 +156,10 @@ class _ForgetPasswordVerifyOtpScreenState extends State<ForgetPasswordVerifyOtpS
                               ),
                             ),
                             focusedBorder: const UnderlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Color(0xFF8B7AE8), width: 3),
+                              borderSide: BorderSide(
+                                color: Color(0xFF8B7AE8),
+                                width: 3,
+                              ),
                             ),
                           ),
                           onChanged: (value) {
@@ -181,8 +187,9 @@ class _ForgetPasswordVerifyOtpScreenState extends State<ForgetPasswordVerifyOtpS
                       onPressed: _isLoading ? null : _onVerify,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF8B7AE8),
-                        disabledBackgroundColor:
-                            const Color(0xFF8B7AE8).withOpacity(0.6),
+                        disabledBackgroundColor: const Color(
+                          0xFF8B7AE8,
+                        ).withOpacity(0.6),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30.r),
