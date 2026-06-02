@@ -17,12 +17,16 @@ class NavigationMenu extends StatefulWidget {
 class _NavigationMenuState extends State<NavigationMenu> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    const HomeScreen(),
-    const JournalScreen(),
-    const InsightsScreen(),
-    const ProfileScreen(),
-  ];
+  void _goHome() {
+    setState(() => _selectedIndex = 0);
+  }
+
+  List<Widget> get _screens => [
+        const HomeScreen(),
+        const JournalScreen(),
+        InsightsScreen(onGoHome: _goHome),
+        ProfileScreen(onGoHome: _goHome),
+      ];
 
   @override
   Widget build(BuildContext context) {
