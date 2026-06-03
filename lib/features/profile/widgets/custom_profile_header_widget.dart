@@ -13,7 +13,6 @@ class CustomProfileHeaderWidget extends StatelessWidget {
   final String status;
   final File? imageFile;
   final String? imageUrl;
-  final VoidCallback? onEditTap;
 
   const CustomProfileHeaderWidget({
     super.key,
@@ -24,7 +23,6 @@ class CustomProfileHeaderWidget extends StatelessWidget {
     required this.status,
     this.imageFile,
     this.imageUrl,
-    this.onEditTap,
   });
 
   static const Color _bg = Color(0xFF0B0F14);
@@ -36,11 +34,10 @@ class CustomProfileHeaderWidget extends StatelessWidget {
     return Column(
       children: [
         SizedBox(height: 10.h),
-        
+
         // ── Glowing Profile Avatar ──
         Center(
           child: GestureDetector(
-            onTap: onEditTap,
             child: Container(
               padding: EdgeInsets.all(4.w),
               decoration: BoxDecoration(
@@ -68,7 +65,7 @@ class CustomProfileHeaderWidget extends StatelessWidget {
             ),
           ),
         ),
-        
+
         SizedBox(height: 18.h),
 
         // ── Name ──
@@ -105,7 +102,7 @@ class CustomProfileHeaderWidget extends StatelessWidget {
             fontWeight: FontWeight.w500,
           ),
         ),
-        
+
         SizedBox(height: 16.h),
       ],
     );

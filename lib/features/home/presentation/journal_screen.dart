@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 class JournalScreen extends StatefulWidget {
-  const JournalScreen({super.key});
+  final VoidCallback? onGoHome;
+
+  const JournalScreen({super.key, this.onGoHome});
 
   @override
   State<JournalScreen> createState() => _JournalScreenState();
@@ -127,7 +129,13 @@ class _JournalScreenState extends State<JournalScreen> {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => Navigator.maybePop(context),
+          onTap: () {
+            if (widget.onGoHome != null) {
+              widget.onGoHome!();
+            } else if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            }
+          },
           child: Container(
             width: 34,
             height: 34,

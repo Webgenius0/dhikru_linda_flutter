@@ -1,4 +1,3 @@
-
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
 import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,12 +24,16 @@ class _NavigationMenuState extends State<NavigationMenu> {
   static const Color activeColor = Color(0xFF9D87F5);
   static const Color inactiveColor = Color(0xFF9DB2CE);
 
-  final pages = [
+  List<Widget> get _pages => [
     const HomeScreen(),
-    const JournalScreen(),
-    const InsightsScreen(),
-    const ProfileScreen(),
+    JournalScreen(onGoHome: _goHome),
+    InsightsScreen(onGoHome: _goHome),
+    ProfileScreen(onGoHome: _goHome),
   ];
+
+  void _goHome() {
+    setState(() => _currentIndex = 0);
+  }
 
   Future<bool> _onWillPop() async {
     final result = await showCupertinoDialog<bool>(
@@ -75,22 +78,22 @@ class _NavigationMenuState extends State<NavigationMenu> {
       },
       child: SafeArea(
         child: Scaffold(
-          body: pages[_currentIndex],
+          body: _pages[_currentIndex],
 
           bottomNavigationBar: CurvedNavigationBar(
             index: _currentIndex,
             height: 65,
             backgroundColor: Color(0xFF0A0B1A),
 
-             color: const Color(0xFF191A28),
+            color: const Color(0xFF191A28),
 
-             buttonBackgroundColor: const Color(0xFF39345A),
+            buttonBackgroundColor: const Color(0xFF39345A),
             animationDuration: const Duration(milliseconds: 300),
 
             items: [
               _buildNavItem("Home", "assets/icons/home.png", 0),
-              _buildNavItem("Scan", "assets/icons/Icon.png", 1),
-              _buildNavItem("Portfolio", "assets/icons/Button.png", 2),
+              _buildNavItem("Journal", "assets/icons/Icon.png", 1),
+              _buildNavItem("Insights", "assets/icons/Button.png", 2),
               _buildNavItem("Profile", "assets/icons/user.png", 3),
             ],
 
@@ -106,7 +109,10 @@ class _NavigationMenuState extends State<NavigationMenu> {
   }
 
   CurvedNavigationBarItem _buildNavItem(
-      String label, String iconPath, int index) {
+    String label,
+    String iconPath,
+    int index,
+  ) {
     final bool isSelected = _currentIndex == index;
 
     return CurvedNavigationBarItem(

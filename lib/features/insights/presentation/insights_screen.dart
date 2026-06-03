@@ -14,6 +14,8 @@ class InsightsScreen extends StatefulWidget {
 
 class _InsightsScreenState extends State<InsightsScreen> {
   // ── Colors ──
+  static const Color _white = Colors.white;
+  static const Color _borderColor = Color(0xFF252545);
   static const _bg = Color(0xFF0B0F14);
   static const _cardBg = Color(0xFF111720);
   static const _dividerColor = Color(0xFF1E2730);
@@ -31,20 +33,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           physics: const BouncingScrollPhysics(),
           slivers: [
             // ── App Bar ──
-            SliverToBoxAdapter(
-              child: CustomProfileAppBar(
-                title: 'Insights',
-                onBackTap: () {
-                  if (widget.onGoHome != null) {
-                    widget.onGoHome!();
-                  } else if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                },
-                showBackButton: true,
-                showActionButton: false,
-              ),
-            ),
+            SliverToBoxAdapter(child: _buildAppBar(context)),
 
             // ── Mood Trend Card ──
             SliverToBoxAdapter(
@@ -109,6 +98,51 @@ class _InsightsScreenState extends State<InsightsScreen> {
             SliverToBoxAdapter(child: SizedBox(height: 10.h)),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── App Bar ─────────────────────────────────────────────────────────────────
+
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              if (widget.onGoHome != null) {
+                widget.onGoHome!();
+              } else if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+            },
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: _cardBg,
+                shape: BoxShape.circle,
+                border: Border.all(color: _borderColor, width: 1),
+              ),
+              child: const Icon(
+                Icons.chevron_left_rounded,
+                color: _white,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          const Text(
+            'Insights',
+            style: TextStyle(
+              color: _white,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+            ),
+          ),
+        ],
       ),
     );
   }
