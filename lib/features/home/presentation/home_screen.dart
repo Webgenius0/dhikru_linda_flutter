@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:dhikru_linda_flutter/features/home/presentation/new_drime_enter_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onGoProfile;
@@ -254,7 +255,14 @@ class _HomeScreenState extends State<HomeScreen> {
       width: double.infinity,
       height: 52,
       child: ElevatedButton(
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const NewDrimeEnterScreen(),
+            ),
+          );
+        },
         style: ElevatedButton.styleFrom(
           backgroundColor: _buttonPurple,
           foregroundColor: _white,
