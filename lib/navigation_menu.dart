@@ -1,11 +1,16 @@
-import 'package:dhikru_linda_flutter/assets_helper/app_icons.dart';
-import 'package:dhikru_linda_flutter/features/home/presentation/home_screen.dart';
-import 'package:dhikru_linda_flutter/features/journal/journal_screen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/profile_screen.dart';
-import 'package:dhikru_linda_flutter/features/insights/presentation/insights_screen.dart';
+
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar.dart';
+import 'package:curved_labeled_navigation_bar/curved_navigation_bar_item.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:flutter/services.dart';
+
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'features/home/presentation/home_screen.dart';
+import 'features/home/presentation/journal_screen.dart';
+import 'features/insights/presentation/insights_screen.dart';
+import 'features/profile/presentation/profile_screen.dart';
 
 class NavigationMenu extends StatefulWidget {
   const NavigationMenu({super.key});
@@ -15,127 +20,106 @@ class NavigationMenu extends StatefulWidget {
 }
 
 class _NavigationMenuState extends State<NavigationMenu> {
-  int _selectedIndex = 0;
+  int _currentIndex = 0;
 
-  void _goHome() {
-    setState(() => _selectedIndex = 0);
+  static const Color activeColor = Color(0xFF9D87F5);
+  static const Color inactiveColor = Color(0xFF9DB2CE);
+
+  final pages = [
+    const HomeScreen(),
+    const JournalScreen(),
+    const InsightsScreen(),
+    const ProfileScreen(),
+  ];
+
+  Future<bool> _onWillPop() async {
+    final result = await showCupertinoDialog<bool>(
+      context: context,
+      builder: (context) {
+        return CupertinoAlertDialog(
+          title: const Text("Exit App"),
+          content: const Text("Are you sure you want to leave the app?"),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () {
+                Navigator.of(context).pop(false);
+              },
+              child: const Text("Cancel"),
+            ),
+            CupertinoDialogAction(
+              isDestructiveAction: true,
+              onPressed: () {
+                Navigator.of(context).pop(true);
+              },
+              child: const Text("Exit"),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result == true) {
+      SystemNavigator.pop(); // close app
+    }
+
+    return false;
   }
-
-  List<Widget> get _screens => [
-        const HomeScreen(),
-        const JournalScreen(),
-        InsightsScreen(onGoHome: _goHome),
-        ProfileScreen(onGoHome: _goHome),
-      ];
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      body: _screens[_selectedIndex],
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        await _onWillPop();
+      },
+      child: SafeArea(
+        child: Scaffold(
+          body: pages[_currentIndex],
 
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0D1216), // Dark background color from design
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: BottomAppBar(
-          padding: EdgeInsets.zero,
-          color: Colors.transparent,
-          elevation: 0,
-          child: SizedBox(
-            height: 70.h,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildNavItem(
-                  index: 0,
-                  icon: AppIcons.home,
-                  activeIcon: AppIcons.home_selected,
-                  label: 'Home'.tr,
-                ),
-                _buildNavItem(
-                  index: 1,
-                  icon: AppIcons.route,
-                  activeIcon: AppIcons.route_selected,
-                  label: 'Journal'.tr,
-                ),
+          bottomNavigationBar: CurvedNavigationBar(
+            index: _currentIndex,
+            height: 65,
+            backgroundColor: Color(0xFF0A0B1A),
 
-                _buildNavItem(
-                  index: 2,
-                  icon: AppIcons.social,
-                  activeIcon: AppIcons.social_selected,
-                  label: 'Insights'.tr,
-                ),
-                _buildNavItem(
-                  index: 3,
-                  icon: AppIcons.shop,
-                  activeIcon: AppIcons.shop_selected,
-                  label: 'Profile'.tr,
-                ),
-              ],
-            ),
+             color: const Color(0xFF191A28),
+
+             buttonBackgroundColor: const Color(0xFF39345A),
+            animationDuration: const Duration(milliseconds: 300),
+
+            items: [
+              _buildNavItem("Home", "assets/icons/home.png", 0),
+              _buildNavItem("Scan", "assets/icons/Icon.png", 1),
+              _buildNavItem("Portfolio", "assets/icons/Button.png", 2),
+              _buildNavItem("Profile", "assets/icons/user.png", 3),
+            ],
+
+            onTap: (index) {
+              setState(() {
+                _currentIndex = index;
+              });
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildNavItem({
-    required int index,
-    required String icon,
-    required String activeIcon,
-    required String label,
-  }) {
-    final isSelected = _selectedIndex == index;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _selectedIndex = index;
-        });
-      },
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 60.w,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset(
-              isSelected ? activeIcon : icon,
-              color: isSelected
-                  ? const Color(0xFF266FEF)
-                  : const Color(0xFF8993A4),
-              height: 24.h,
-              width: 24.w,
-              errorBuilder: (context, error, stackTrace) {
-                return Icon(
-                  Icons.image_not_supported,
-                  color: isSelected
-                      ? const Color(0xFF266FEF)
-                      : const Color(0xFF8993A4),
-                  size: 24.sp,
-                );
-              },
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                color: isSelected
-                    ? const Color(0xFF266FEF)
-                    : const Color(0xFF8993A4),
-              ),
-            ),
-          ],
-        ),
+  CurvedNavigationBarItem _buildNavItem(
+      String label, String iconPath, int index) {
+    final bool isSelected = _currentIndex == index;
+
+    return CurvedNavigationBarItem(
+      child: Image.asset(
+        iconPath,
+        height: 24.h,
+        color: isSelected ? activeColor : inactiveColor,
+      ),
+      label: label,
+      labelStyle: TextStyle(
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w500,
+        color: isSelected ? activeColor : inactiveColor,
       ),
     );
   }
