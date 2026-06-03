@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final VoidCallback? onGoProfile;
+  const HomeScreen({super.key, this.onGoProfile});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -30,7 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': 'The Endless Ocean',
       'time': 'LAST NIGHT',
       'description':
-      'Floating in vast dark water, a lighthouse in the distance calling me forward.',
+          'Floating in vast dark water, a lighthouse in the distance calling me forward.',
       'tags': ['#water', '#freedom', '#longing'],
       'emojiColor': Color(0xFF4ECFB5),
     },
@@ -39,7 +40,7 @@ class _HomeScreenState extends State<HomeScreen> {
       'title': 'Forest of Whispers',
       'time': '2 DAYS AGO',
       'description':
-      'Ancient trees speaking in a language I almost understood, leaves forming words.',
+          'Ancient trees speaking in a language I almost understood, leaves forming words.',
       'tags': ['#nature', '#mystery', '#communication'],
       'emojiColor': Color(0xFF6FCF6F),
     },
@@ -57,7 +58,13 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   final List<String> _weekDays = const [
-    'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
+    'Mon',
+    'Tue',
+    'Wed',
+    'Thu',
+    'Fri',
+    'Sat',
+    'Sun',
   ];
 
   @override
@@ -148,18 +155,28 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildAvatar() {
-    return Container(
-      width: 38,
-      height: 38,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(color: _accentPurple, width: 2),
-        color: const Color(0xFF3A2060),
-      ),
-      child: ClipOval(
-        child: Container(
-          color: const Color(0xFF5A3A80),
-          child: const Icon(Icons.person, color: Colors.white70, size: 22),
+    return GestureDetector(
+      onTap: widget.onGoProfile,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: _accentPurple, width: 2),
+          color: const Color(0xFF3A2060),
+        ),
+        child: ClipOval(
+          child: Container(
+            color: const Color(0xFF5A3A80),
+            child: Image.asset(
+              'assets/images/person_img.png',
+              height: 22,
+              width: 22,
+              fit: BoxFit.cover,
+              // color: Colors.white70,
+            ),
+          ),
         ),
       ),
     );
@@ -328,13 +345,13 @@ class _HomeScreenState extends State<HomeScreen> {
           isEmoji
               ? Text(icon, style: const TextStyle(fontSize: 22))
               : Text(
-            icon,
-            style: TextStyle(
-              color: iconColor,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+                  icon,
+                  style: TextStyle(
+                    color: iconColor,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
           const SizedBox(height: 8),
           Text(
             value,
@@ -458,8 +475,10 @@ class _HomeScreenState extends State<HomeScreen> {
             runSpacing: 6,
             children: (dream['tags'] as List<String>).map((tag) {
               return Container(
-                padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: _tagBg,
                   borderRadius: BorderRadius.circular(20),
@@ -538,10 +557,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   show: true,
                   drawVerticalLine: false,
                   horizontalInterval: 25,
-                  getDrawingHorizontalLine: (value) => FlLine(
-                    color: const Color(0xFF252540),
-                    strokeWidth: 1,
-                  ),
+                  getDrawingHorizontalLine: (value) =>
+                      FlLine(color: const Color(0xFF252540), strokeWidth: 1),
                 ),
                 borderData: FlBorderData(show: false),
                 titlesData: FlTitlesData(
@@ -557,8 +574,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       reservedSize: 36,
                       interval: 25,
                       getTitlesWidget: (value, meta) {
-                        if (value == 0 || value == 25 || value == 50 ||
-                            value == 75 || value == 100) {
+                        if (value == 0 ||
+                            value == 25 ||
+                            value == 50 ||
+                            value == 75 ||
+                            value == 100) {
                           return Text(
                             value.toInt().toString(),
                             style: const TextStyle(

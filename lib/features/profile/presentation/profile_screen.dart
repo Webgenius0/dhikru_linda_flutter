@@ -41,6 +41,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const _accentPurple = Color(0xFF7C5CF6);
   static const _accentPurpleLight = Color(0xFF9D7FF7);
   static const _redAccent = Color(0xFFFF4B4B);
+  static const Color _white = Colors.white;
+  static const Color _borderColor = Color(0xFF252545);
 
   Future<void> _navigateToEditProfile() async {
     final result = await Navigator.push(
@@ -75,23 +77,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // ── App Bar ──
-            SliverToBoxAdapter(
-              child: CustomProfileAppBar(
-                title: 'Profile',
-                onBackTap: () {
-                  if (widget.onGoHome != null) {
-                    widget.onGoHome!();
-                  } else if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                },
-                onActionTap: _navigateToEditProfile,
-                actionIcon: Icons.edit_outlined,
-                showBackButton: true,
-                showActionButton: true,
-              ),
-            ),
+            // // ── App Bar ──
+            SliverToBoxAdapter(child: _buildAppBar(context)),
+            // SliverToBoxAdapter(
+            //   child: CustomProfileAppBar(
+            //     title: 'Profile',
+            //     onBackTap: () {
+            //       if (widget.onGoHome != null) {
+            //         widget.onGoHome!();
+            //       } else if (Navigator.canPop(context)) {
+            //         Navigator.pop(context);
+            //       }
+            //     },
+            //     onActionTap: _navigateToEditProfile,
+            //     actionIcon: Icons.edit_outlined,
+            //     showBackButton: true,
+            //     showActionButton: true,
+            //   ),
+            // ),
 
             // ── Avatar + User Info ──
             SliverToBoxAdapter(
@@ -103,7 +106,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 status: _status,
                 imageFile: _imageFile,
                 imageUrl: _imageUrl,
-                onEditTap: _navigateToEditProfile,
               ),
             ),
 
@@ -136,6 +138,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
             SliverToBoxAdapter(child: SizedBox(height: 15.h)),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── App Bar ─────────────────────────────────────────────────────────────────
+
+  Widget _buildAppBar(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: () {
+              if (widget.onGoHome != null) {
+                widget.onGoHome!();
+              } else if (Navigator.canPop(context)) {
+                Navigator.pop(context);
+              }
+            },
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: _cardBg,
+                shape: BoxShape.circle,
+                border: Border.all(color: _borderColor, width: 1),
+              ),
+              child: const Icon(
+                Icons.chevron_left_rounded,
+                color: _white,
+                size: 22,
+              ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Text(
+            'Profile',
+              style: TextStyle(
+            color: _white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+          ),
+          ),
+          Spacer(),
+          GestureDetector(
+            onTap: _navigateToEditProfile,
+            child: Container(
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: _cardBg,
+                shape: BoxShape.circle,
+                border: Border.all(color: _borderColor, width: 1),
+              ),
+              child: const Icon(Icons.edit_outlined, color: _white, size: 15),
+            ),
+          ),
+        ],
       ),
     );
   }

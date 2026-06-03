@@ -51,7 +51,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isSaving = false;
 
   // ── Dropdown options ──
-  final List<String> _genderOptions = ['Male', 'Female', 'Non-binary', 'Prefer not to say'];
+  final List<String> _genderOptions = [
+    'Male',
+    'Female',
+    'Non-binary',
+    'Prefer not to say',
+  ];
   final List<int> _ageOptions = List.generate(83, (i) => i + 18); // 18–100
   final List<String> _statusOptions = [
     'Single',
@@ -67,9 +72,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
-    _selectedGender = _genderOptions.contains(widget.gender) ? widget.gender : _genderOptions.first;
-    _selectedAge = _ageOptions.contains(widget.age) ? widget.age : _ageOptions.first;
-    _selectedStatus = _statusOptions.contains(widget.status) ? widget.status : _statusOptions.first;
+    _selectedGender = _genderOptions.contains(widget.gender)
+        ? widget.gender
+        : _genderOptions.first;
+    _selectedAge = _ageOptions.contains(widget.age)
+        ? widget.age
+        : _ageOptions.first;
+    _selectedStatus = _statusOptions.contains(widget.status)
+        ? widget.status
+        : _statusOptions.first;
   }
 
   @override
@@ -118,7 +129,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: _accentPurple.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.camera_alt_rounded, color: _accentPurpleLight, size: 20.sp),
+                  child: Icon(
+                    Icons.camera_alt_rounded,
+                    color: _accentPurpleLight,
+                    size: 20.sp,
+                  ),
                 ),
                 title: Text(
                   'Take Photo',
@@ -130,7 +145,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
-              Divider(color: _dividerColor, height: 1, indent: 16.w, endIndent: 16.w),
+              Divider(
+                color: _dividerColor,
+                height: 1,
+                indent: 16.w,
+                endIndent: 16.w,
+              ),
               ListTile(
                 leading: Container(
                   padding: EdgeInsets.all(8.w),
@@ -138,7 +158,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     color: _accentPurple.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(Icons.photo_library_rounded, color: _accentPurpleLight, size: 20.sp),
+                  child: Icon(
+                    Icons.photo_library_rounded,
+                    color: _accentPurpleLight,
+                    size: 20.sp,
+                  ),
                 ),
                 title: Text(
                   'Choose from Gallery',
@@ -161,10 +185,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     try {
       final picker = ImagePicker();
-      final picked = await picker.pickImage(
-        source: source,
-        imageQuality: 85,
-      );
+      final picked = await picker.pickImage(source: source, imageQuality: 85);
       if (picked != null && mounted) {
         setState(() => _pickedImage = File(picked.path));
       }
@@ -179,7 +200,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (name.isEmpty) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(const Duration(milliseconds: 600)); // TODO: replace with real API call
+    await Future.delayed(
+      const Duration(milliseconds: 600),
+    ); // TODO: replace with real API call
     if (mounted) {
       setState(() => _isSaving = false);
       ToastUtil.showShortToast('Profile edited successfully.');
@@ -238,7 +261,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 value: _selectedGender,
                                 items: _genderOptions,
                                 displayText: (v) => v,
-                                onChanged: (v) => setState(() => _selectedGender = v!),
+                                onChanged: (v) =>
+                                    setState(() => _selectedGender = v!),
                               ),
                             ],
                           ),
@@ -254,7 +278,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 value: _selectedAge,
                                 items: _ageOptions,
                                 displayText: (v) => '$v',
-                                onChanged: (v) => setState(() => _selectedAge = v!),
+                                onChanged: (v) =>
+                                    setState(() => _selectedAge = v!),
                               ),
                             ],
                           ),
@@ -299,35 +324,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               if (Navigator.canPop(context)) Navigator.pop(context);
             },
             child: Container(
-              width: 40.w,
-              height: 40.h,
+              width: 34,
+              height: 34,
               decoration: BoxDecoration(
                 color: _cardBg,
-                borderRadius: BorderRadius.circular(12.r),
-                border: Border.all(color: _dividerColor, width: 1),
+                shape: BoxShape.circle,
+                border: Border.all(color: _borderColor, width: 1),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.chevron_left_rounded,
                 color: Colors.white,
-                size: 24.sp,
+                size: 22,
               ),
             ),
           ),
-
-          // Title
-          Expanded(
-            child: Center(
-              child: Text(
-                'Edit Profile',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 18.sp,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+          const SizedBox(width: 14),
+          Text(
+            'Edit Profile',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
             ),
           ),
-
+          Spacer(),
           // Save button
           GestureDetector(
             onTap: _isSaving ? null : _save,
@@ -362,6 +383,65 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
+
+  // ─── App Bar ─────────────────────────────────────────────────────────────────
+
+  // Widget _buildAppBar(BuildContext context) {
+  //   return Padding(
+  //     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+  //     child: Row(
+  //       children: [
+  //         GestureDetector(
+  //           onTap: () {
+  //             if (widget.onGoHome != null) {
+  //               widget.onGoHome!();
+  //             } else if (Navigator.canPop(context)) {
+  //               Navigator.pop(context);
+  //             }
+  //           },
+  //           child: Container(
+  //             width: 34,
+  //             height: 34,
+  //             decoration: BoxDecoration(
+  //               color: _cardBg,
+  //               shape: BoxShape.circle,
+  //               border: Border.all(color: _borderColor, width: 1),
+  //             ),
+  //             child: const Icon(
+  //               Icons.chevron_left_rounded,
+  //               color: _white,
+  //               size: 22,
+  //             ),
+  //           ),
+  //         ),
+  //         const SizedBox(width: 14),
+  //         Text(
+  //           'Profile',
+  //           style: TextStyle(
+  //             color: _white,
+  //             fontSize: 22,
+  //             fontWeight: FontWeight.w700,
+  //             letterSpacing: -0.3,
+  //           ),
+  //         ),
+  //         Spacer(),
+  //         GestureDetector(
+  //           onTap: _navigateToEditProfile,
+  //           child: Container(
+  //             width: 34,
+  //             height: 34,
+  //             decoration: BoxDecoration(
+  //               color: _cardBg,
+  //               shape: BoxShape.circle,
+  //               border: Border.all(color: _borderColor, width: 1),
+  //             ),
+  //             child: const Icon(Icons.edit_outlined, color: _white, size: 15),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   // ────────────────────────────────────────────────
   //  Avatar Picker
@@ -465,12 +545,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         cursorColor: _accentPurpleLight,
         decoration: InputDecoration(
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-          hintText: 'Enter your full name',
-          hintStyle: GoogleFonts.inter(
-            color: _mutedText,
-            fontSize: 15.sp,
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 16.w,
+            vertical: 16.h,
           ),
+          hintText: 'Enter your full name',
+          hintStyle: GoogleFonts.inter(color: _mutedText, fontSize: 15.sp),
         ),
       ),
     );

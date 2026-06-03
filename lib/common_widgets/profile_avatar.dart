@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dhikru_linda_flutter/networks/endpoints.dart' as endpoints;
 import 'package:flutter/material.dart';
@@ -96,7 +95,7 @@ class ProfileAvatar extends StatelessWidget {
 
   Widget _buildPlaceholder(double size) {
     return Image.asset(
-      'assets/images/placeholder.jpg',
+      'assets/images/person_img.png',
       width: size,
       height: size,
       fit: BoxFit.cover,

@@ -1,48 +1,30 @@
 import 'package:flutter/material.dart';
 
-class InterpretationScren extends StatefulWidget {
-  const InterpretationScren({super.key});
+class JournalDetailScreen extends StatefulWidget {
+  final Map<String, dynamic> dream;
+
+  const JournalDetailScreen({super.key, required this.dream});
 
   @override
-  State<InterpretationScren> createState() => _InterpretationScrenState();
+  State<JournalDetailScreen> createState() => _JournalDetailScreenState();
 }
 
-class _InterpretationScrenState extends State<InterpretationScren> {
+class _JournalDetailScreenState extends State<JournalDetailScreen> {
   // ─── Colors ─────────────────────────────────────────────────────────────────
-  static const Color _bgColor      = Color(0xFF0D0D1A);
-  static const Color _cardBg       = Color(0xFF131325);
-  static const Color _borderColor  = Color(0xFF252545);
+  static const Color _bgColor = Color(0xFF0D0D1A);
+  static const Color _cardBg = Color(0xFF131325);
+  static const Color _borderColor = Color(0xFF252545);
   static const Color _accentPurple = Color(0xFF7B6EF6);
-  static const Color _white        = Colors.white;
-  static const Color _subtleText   = Color(0xFF8888AA);
-  static const Color _labelText    = Color(0xFF6666AA);
-  static const Color _tagBg        = Color(0xFF121226);
-  static const Color _tagBorder    = Color(0xFF252549);
-  static const Color _tagText      = Color(0xFF8888EE);
+  static const Color _white = Colors.white;
+  static const Color _subtleText = Color(0xFF8888AA);
+  static const Color _labelText = Color(0xFF6666AA);
+  static const Color _tagBg = Color(0xFF121226);
+  static const Color _tagBorder = Color(0xFF252549);
+  static const Color _tagText = Color(0xFF8888EE);
 
   final TextEditingController _respondController = TextEditingController();
 
-  final List<Map<String, dynamic>> _emotions = [
-    {
-      'label': 'Anxiety',
-      'percent': 75,
-      'color': Color(0xFFEE4444),
-      'trackColor': Color(0xFF3A1A1A),
-    },
-    {
-      'label': 'Confusion',
-      'percent': 45,
-      'color': Color(0xFF4466EE),
-      'trackColor': Color(0xFF1A1A3A),
-    },
-    {
-      'label': 'Awe',
-      'percent': 30,
-      'color': Color(0xFF22CC88),
-      'trackColor': Color(0xFF0A2A1A),
-    },
-  ];
-
+  // Care items mapping
   final List<Map<String, dynamic>> _careItems = [
     {
       'icon': Icons.favorite_border_rounded,
@@ -74,10 +56,6 @@ class _InterpretationScrenState extends State<InterpretationScren> {
     },
   ];
 
-  final List<String> _symbolTags = [
-    'Water', 'Lost', 'Empty City', 'Purple Sky',
-  ];
-
   @override
   void dispose() {
     _respondController.dispose();
@@ -86,6 +64,61 @@ class _InterpretationScrenState extends State<InterpretationScren> {
 
   @override
   Widget build(BuildContext context) {
+    // Dynamically retrieve values from dream, or use beautiful defaults matching the mockup
+    final String title = widget.dream['title'] ?? 'The Endless Ocean';
+    final String date = widget.dream['date'] ?? 'Oct 25';
+
+    // Derive a clean list of emotions from the badge or default
+    final String badge =
+        (widget.dream['badge'] as String? ?? 'Anxiety, Overwhelm')
+            .toLowerCase();
+    final String capitalizedBadge = badge
+        .split(', ')
+        .map((word) => word.substring(0, 1).toUpperCase() + word.substring(1))
+        .join(', ');
+    final String subtitleText = '$date • $capitalizedBadge';
+
+    // Summary & Meaning contents
+    final String summary =
+        widget.dream['summary'] ??
+        'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters...';
+
+    final String meaning =
+        widget.dream['meaning'] ??
+        'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted';
+
+    // Emotions configuration
+    final List<Map<String, dynamic>> emotions =
+        widget.dream['emotions'] ??
+        [
+          {
+            'label': 'Anxiety',
+            'percent': 75,
+            'color': const Color(0xFFEE4444),
+            'trackColor': const Color(0xFF3A1A1A),
+          },
+          {
+            'label': 'Confusion',
+            'percent': 45,
+            'color': const Color(0xFF7B6EF6),
+            'trackColor': const Color(0xFF221A3A),
+          },
+          {
+            'label': 'Awe',
+            'percent': 30,
+            'color': const Color(0xFF00CFFF),
+            'trackColor': const Color(0xFF0A253A),
+          },
+        ];
+
+    // Symbol Tags configuration
+    final List<String> symbolTags = const [
+      'Water',
+      'Lost',
+      'Empty City',
+      'Purple Sky',
+    ];
+
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
@@ -93,44 +126,47 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           children: [
             Expanded(
               child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16),
-                    Center(child: _buildAppBar(context)),
+                    _buildAppBar(context),
                     const SizedBox(height: 28),
 
-                    // ── NEW: Hero header ──
-                    Center(child: _buildHeroHeader()),
+                    // Hero Header with glowing icon and title
+                    Center(child: _buildHeroHeader(title, subtitleText)),
                     const SizedBox(height: 28),
 
-                    // ── NEW: Summary card ──
+                    // Summary glassmorphism card
                     _buildTextCard(
-                      icon: Icons.list_rounded,
+                      icon: Icons.notes_rounded,
                       iconColor: _accentPurple,
                       title: 'Summary',
-                      body:
-                      'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....',
+                      body: summary,
                     ),
                     const SizedBox(height: 14),
 
-                    // ── NEW: Meaning card ──
-                    _buildTextCard(
-                      title: 'Meaning',
-                      body:
-                      'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted',
-                    ),
+                    // Meaning glassmorphism card
+                    _buildTextCard(title: 'Meaning', body: meaning),
                     const SizedBox(height: 28),
 
+                    // Response input section
                     _buildYourRespondSection(),
                     const SizedBox(height: 28),
+
+                    // Care & Reflection cards
                     _buildCareReflectionSection(),
                     const SizedBox(height: 28),
-                    _buildEmotionalLandscapeSection(),
+
+                    // Emotional landscape progress bars
+                    _buildEmotionalLandscapeSection(emotions),
                     const SizedBox(height: 28),
-                    _buildSymbolTagsSection(),
-                    const SizedBox(height: 100),
+
+                    // Symbol tags section
+                    _buildSymbolTagsSection(symbolTags),
+                    const SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -138,7 +174,6 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildSaveButton(),
     );
   }
 
@@ -169,7 +204,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             ),
             const SizedBox(width: 14),
             const Text(
-              'Interpretation',
+              'Journal details',
               style: TextStyle(
                 color: _white,
                 fontSize: 20,
@@ -179,7 +214,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             ),
           ],
         ),
-        // Share button
+        // Share/iOS share button
         Container(
           width: 34,
           height: 34,
@@ -188,11 +223,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             shape: BoxShape.circle,
             border: Border.all(color: _borderColor, width: 1),
           ),
-          child: const Icon(
-            Icons.ios_share_rounded,
-            color: _white,
-            size: 16,
-          ),
+          child: const Icon(Icons.share, color: _white, size: 16),
         ),
       ],
     );
@@ -200,34 +231,43 @@ class _InterpretationScrenState extends State<InterpretationScren> {
 
   // ─── Hero Header ─────────────────────────────────────────────────────────────
 
-  Widget _buildHeroHeader() {
+  Widget _buildHeroHeader(String title, String subtitleText) {
     return Column(
       children: [
-        // Purple circle icon
+        // Glimmering custom icon with glow shadow
         Container(
-          width: 60,
-          height: 60,
-          decoration: const BoxDecoration(
-            color: _accentPurple,
+          width: 72,
+          height: 72,
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
+            gradient: const LinearGradient(
+              colors: [Color(0xFF9E85F5), Color(0xFF634DF2)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF7B6EF6).withOpacity(0.35),
+                blurRadius: 18,
+                spreadRadius: 1,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: const Center(
-            child: Text(
-              '✦',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 26,
-                fontWeight: FontWeight.w700,
-              ),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: Colors.white,
+              size: 32,
             ),
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         // Dream title
-        const Text(
-          'The Endless Ocean',
+        Text(
+          title,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: _white,
             fontSize: 26,
             fontWeight: FontWeight.w700,
@@ -237,10 +277,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         ),
         const SizedBox(height: 8),
         // Date + tags
-        const Text(
-          'Oct 25 • Anxiety, Overwhelm',
+        Text(
+          subtitleText,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: _subtleText,
             fontSize: 13,
             letterSpacing: 0.1,
@@ -262,7 +302,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 18, 18, 18),
       decoration: BoxDecoration(
-        color: _cardBg,
+        color: _cardBg.withOpacity(0.85),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _borderColor, width: 1),
       ),
@@ -329,10 +369,12 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             maxLines: 3,
             style: const TextStyle(color: _white, fontSize: 14, height: 1.5),
             decoration: const InputDecoration(
-              hintText: 'Write your respond ...',
+              hintText: 'Write your respond ..',
               hintStyle: TextStyle(color: _subtleText, fontSize: 14),
-              contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: InputBorder.none,
             ),
           ),
@@ -412,10 +454,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                   ),
                   Text(
                     item['subtitle'] as String,
-                    style: const TextStyle(
-                      color: _subtleText,
-                      fontSize: 11,
-                    ),
+                    style: const TextStyle(color: _subtleText, fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -429,7 +468,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
 
   // ─── Emotional Landscape ─────────────────────────────────────────────────────
 
-  Widget _buildEmotionalLandscapeSection() {
+  Widget _buildEmotionalLandscapeSection(List<Map<String, dynamic>> emotions) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -451,11 +490,12 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             border: Border.all(color: _borderColor, width: 1),
           ),
           child: Column(
-            children: List.generate(_emotions.length, (index) {
-              final item = _emotions[index];
+            children: List.generate(emotions.length, (index) {
+              final item = emotions[index];
               return Padding(
                 padding: EdgeInsets.only(
-                    bottom: index < _emotions.length - 1 ? 18 : 0),
+                  bottom: index < emotions.length - 1 ? 18 : 0,
+                ),
                 child: _buildEmotionBar(item),
               );
             }),
@@ -527,7 +567,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
 
   // ─── Symbol Tags ─────────────────────────────────────────────────────────────
 
-  Widget _buildSymbolTagsSection() {
+  Widget _buildSymbolTagsSection(List<String> symbolTags) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -544,10 +584,9 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: _symbolTags.map((tag) {
+          children: symbolTags.map((tag) {
             return Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               decoration: BoxDecoration(
                 color: _tagBg,
                 borderRadius: BorderRadius.circular(22),
@@ -565,46 +604,6 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           }).toList(),
         ),
       ],
-    );
-  }
-
-  // ─── Save to Journal Button ───────────────────────────────────────────────────
-
-  Widget _buildSaveButton() {
-    return Container(
-      color: _bgColor,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-      child: SizedBox(
-        width: double.infinity,
-        height: 54,
-        child: ElevatedButton(
-          onPressed: () {},
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _accentPurple,
-            foregroundColor: _white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(Icons.bookmark_border_rounded,
-                  size: 20, color: Colors.white),
-              SizedBox(width: 8),
-              Text(
-                'Save to Journal',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
