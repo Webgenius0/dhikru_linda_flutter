@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dhikru_linda_flutter/features/home/presentation/journal_detail_screen.dart';
 
 class JournalScreen extends StatefulWidget {
   final VoidCallback? onGoHome;
@@ -235,142 +236,152 @@ class _JournalScreenState extends State<JournalScreen> {
   Widget _buildDreamCard(Map<String, dynamic> dream) {
     final Color accent = dream['leftAccent'] as Color;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: _borderColor, width: 1),
-      ),
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Left color accent bar
-            Container(
-              width: 3.5,
-              decoration: BoxDecoration(
-                color: accent,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JournalDetailScreen(dream: dream),
+          ),
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _borderColor, width: 1),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Left color accent bar
+              Container(
+                width: 3.5,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
                 ),
               ),
-            ),
-            // Card content
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 16, 16, 14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Title row
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Emoji bubble
-                        Container(
-                          width: 32,
-                          height: 32,
-                          decoration: BoxDecoration(
-                            color: (dream['emojiColor'] as Color)
-                                .withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
+              // Card content
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(14, 16, 16, 14),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Title row
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Emoji bubble
+                          Container(
+                            width: 32,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              color: (dream['emojiColor'] as Color)
+                                  .withOpacity(0.12),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Center(
+                              child: Text(
+                                dream['emoji'] as String,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
                           ),
-                          child: Center(
+                          const SizedBox(width: 10),
+                          // Title + date
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  dream['title'] as String,
+                                  style: const TextStyle(
+                                    color: _white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -0.2,
+                                    height: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  dream['date'] as String,
+                                  style: const TextStyle(
+                                    color: _subtleText,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          // Badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: dream['badgeColor'] as Color,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
                             child: Text(
-                              dream['emoji'] as String,
-                              style: const TextStyle(fontSize: 16),
+                              dream['badge'] as String,
+                              style: TextStyle(
+                                color: dream['badgeTextColor'] as Color,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        // Title + date
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                dream['title'] as String,
-                                style: const TextStyle(
-                                  color: _white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.2,
-                                  height: 1.2,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                dream['date'] as String,
-                                style: const TextStyle(
-                                  color: _subtleText,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        // Badge
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: dream['badgeColor'] as Color,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            dream['badge'] as String,
-                            style: TextStyle(
-                              color: dream['badgeTextColor'] as Color,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    // Description
-                    Text(
-                      dream['description'] as String,
-                      style: const TextStyle(
-                        color: Color(0xFFAAAAAC),
-                        fontSize: 13,
-                        height: 1.5,
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 10),
-                    // Tags
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 6,
-                      children:
-                      (dream['tags'] as List<String>).map((tag) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _tagBg,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Text(
-                            tag,
-                            style: const TextStyle(
-                              color: _tagText,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
+                      const SizedBox(height: 10),
+                      // Description
+                      Text(
+                        dream['description'] as String,
+                        style: const TextStyle(
+                          color: Color(0xFFAAAAAC),
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      // Tags
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        children:
+                        (dream['tags'] as List<String>).map((tag) {
+                          return Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: _tagBg,
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
+                            child: Text(
+                              tag,
+                              style: const TextStyle(
+                                color: _tagText,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

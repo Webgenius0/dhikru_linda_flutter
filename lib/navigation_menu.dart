@@ -25,7 +25,7 @@ class _NavigationMenuState extends State<NavigationMenu> {
   static const Color inactiveColor = Color(0xFF9DB2CE);
 
   List<Widget> get _pages => [
-    const HomeScreen(),
+    HomeScreen(onGoProfile: _goProfile),
     JournalScreen(onGoHome: _goHome),
     InsightsScreen(onGoHome: _goHome),
     ProfileScreen(onGoHome: _goHome),
@@ -33,6 +33,10 @@ class _NavigationMenuState extends State<NavigationMenu> {
 
   void _goHome() {
     setState(() => _currentIndex = 0);
+  }
+
+  void _goProfile() {
+    setState(() => _currentIndex = 3);
   }
 
   Future<bool> _onWillPop() async {
