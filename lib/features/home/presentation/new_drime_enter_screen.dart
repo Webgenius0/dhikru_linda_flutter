@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:dhikru_linda_flutter/features/home/presentation/Interpretation_scren.dart';
 
 class NewDrimeEnterScreen extends StatefulWidget {
   const NewDrimeEnterScreen({super.key});
@@ -9,29 +10,34 @@ class NewDrimeEnterScreen extends StatefulWidget {
 
 class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
   // ─── Colors ─────────────────────────────────────────────────────────────────
-  static const Color _bgColor      = Color(0xFF0D0D1A);
-  static const Color _cardBg       = Color(0xFF131325);
-  static const Color _inputBg      = Color(0xFF131325);
-  static const Color _borderColor  = Color(0xFF252545);
+  static const Color _bgColor = Color(0xFF0D0D1A);
+  static const Color _cardBg = Color(0xFF131325);
+  static const Color _inputBg = Color(0xFF131325);
+  static const Color _borderColor = Color(0xFF252545);
   static const Color _accentPurple = Color(0xFF7B6EF6);
-  static const Color _white        = Colors.white;
-  static const Color _subtleText   = Color(0xFF8888AA);
-  static const Color _labelText    = Color(0xFF6666AA);
-  static const Color _tagBg        = Color(0xFF1A1A35);
-  static const Color _tagBorder    = Color(0xFF2A2A55);
-  static const Color _tagText      = Color(0xFF9999CC);
-  static const Color _voiceBg      = Color(0xFF1E1A45);
-  static const Color _dateBg       = Color(0xFF131325);
+  static const Color _white = Colors.white;
+  static const Color _subtleText = Color(0xFF8888AA);
+  static const Color _labelText = Color(0xFF6666AA);
+  static const Color _tagBg = Color(0xFF1A1A35);
+  static const Color _tagBorder = Color(0xFF2A2A55);
+  static const Color _tagText = Color(0xFF9999CC);
+  static const Color _voiceBg = Color(0xFF1E1A45);
+  static const Color _dateBg = Color(0xFF131325);
 
-  final TextEditingController _titleController    = TextEditingController();
-  final TextEditingController _descController     = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descController = TextEditingController();
 
   final Set<String> _selectedTags = {'#Water'};
 
   final List<String> _quickTags = [
-    '#Water', '#flying', '#chased',
-    '#falling', '#people', '#work',
-    '#past', '#surreal',
+    '#Water',
+    '#flying',
+    '#chased',
+    '#falling',
+    '#people',
+    '#work',
+    '#past',
+    '#surreal',
   ];
 
   @override
@@ -74,7 +80,10 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
         ),
       ),
       // ── Floating bottom button ──
-      bottomNavigationBar: _buildInterpretButton(),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 45),
+        child: _buildInterpretButton(),
+      ),
     );
   }
 
@@ -145,11 +154,7 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
         ),
         child: Row(
           children: const [
-            Icon(
-              Icons.calendar_today_rounded,
-              color: _accentPurple,
-              size: 16,
-            ),
+            Icon(Icons.calendar_today_rounded, color: _accentPurple, size: 16),
             SizedBox(width: 10),
             Text(
               'Tuesday, April 28, 2026',
@@ -189,18 +194,14 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
           ),
           child: TextField(
             controller: _titleController,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 14,
-            ),
+            style: const TextStyle(color: _white, fontSize: 14),
             decoration: const InputDecoration(
               hintText: 'Give your dream a name...',
-              hintStyle: TextStyle(
-                color: _subtleText,
-                fontSize: 14,
+              hintStyle: TextStyle(color: _subtleText, fontSize: 14),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
               ),
-              contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: InputBorder.none,
             ),
           ),
@@ -241,20 +242,19 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
           child: TextField(
             controller: _descController,
             maxLines: 6,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 14,
-              height: 1.55,
-            ),
+            style: const TextStyle(color: _white, fontSize: 14, height: 1.55),
             decoration: const InputDecoration(
-              hintText: 'I was flying over a vast violet ocean, when suddenly...',
+              hintText:
+                  'I was flying over a vast violet ocean, when suddenly...',
               hintStyle: TextStyle(
                 color: _subtleText,
                 fontSize: 14,
                 height: 1.55,
               ),
-              contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: InputBorder.none,
             ),
           ),
@@ -323,11 +323,11 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 150),
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 8),
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: selected
-                      ? _accentPurple.withOpacity(0.18)
-                      : _tagBg,
+                  color: selected ? _accentPurple.withOpacity(0.18) : _tagBg,
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: selected ? _accentPurple : _tagBorder,
@@ -339,9 +339,7 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                   style: TextStyle(
                     color: selected ? _accentPurple : _tagText,
                     fontSize: 13,
-                    fontWeight: selected
-                        ? FontWeight.w600
-                        : FontWeight.w400,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
                   ),
                 ),
               ),
@@ -362,7 +360,14 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
         width: double.infinity,
         height: 54,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const InterpretationScren(),
+              ),
+            );
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: _accentPurple,
             foregroundColor: _white,

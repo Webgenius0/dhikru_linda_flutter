@@ -9,16 +9,16 @@ class InterpretationScren extends StatefulWidget {
 
 class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Colors ─────────────────────────────────────────────────────────────────
-  static const Color _bgColor      = Color(0xFF0D0D1A);
-  static const Color _cardBg       = Color(0xFF131325);
-  static const Color _borderColor  = Color(0xFF252545);
+  static const Color _bgColor = Color(0xFF0D0D1A);
+  static const Color _cardBg = Color(0xFF131325);
+  static const Color _borderColor = Color(0xFF252545);
   static const Color _accentPurple = Color(0xFF7B6EF6);
-  static const Color _white        = Colors.white;
-  static const Color _subtleText   = Color(0xFF8888AA);
-  static const Color _labelText    = Color(0xFF6666AA);
-  static const Color _tagBg        = Color(0xFF121226);
-  static const Color _tagBorder    = Color(0xFF252549);
-  static const Color _tagText      = Color(0xFF8888EE);
+  static const Color _white = Colors.white;
+  static const Color _subtleText = Color(0xFF8888AA);
+  static const Color _labelText = Color(0xFF6666AA);
+  static const Color _tagBg = Color(0xFF121226);
+  static const Color _tagBorder = Color(0xFF252549);
+  static const Color _tagText = Color(0xFF8888EE);
 
   final TextEditingController _respondController = TextEditingController();
 
@@ -75,7 +75,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   ];
 
   final List<String> _symbolTags = [
-    'Water', 'Lost', 'Empty City', 'Purple Sky',
+    'Water',
+    'Lost',
+    'Empty City',
+    'Purple Sky',
   ];
 
   @override
@@ -111,7 +114,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                       iconColor: _accentPurple,
                       title: 'Summary',
                       body:
-                      'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....',
+                          'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....',
                     ),
                     const SizedBox(height: 14),
 
@@ -119,7 +122,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                     _buildTextCard(
                       title: 'Meaning',
                       body:
-                      'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted',
+                          'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted',
                     ),
                     const SizedBox(height: 28),
 
@@ -138,7 +141,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           ],
         ),
       ),
-      bottomNavigationBar: _buildSaveButton(),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 45),
+        child: _buildSaveButton(),
+      ),
     );
   }
 
@@ -188,11 +194,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             shape: BoxShape.circle,
             border: Border.all(color: _borderColor, width: 1),
           ),
-          child: const Icon(
-            Icons.ios_share_rounded,
-            color: _white,
-            size: 16,
-          ),
+          child: const Icon(Icons.share, color: _white, size: 16),
         ),
       ],
     );
@@ -331,8 +333,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             decoration: const InputDecoration(
               hintText: 'Write your respond ...',
               hintStyle: TextStyle(color: _subtleText, fontSize: 14),
-              contentPadding:
-              EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 14,
+              ),
               border: InputBorder.none,
             ),
           ),
@@ -412,10 +416,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                   ),
                   Text(
                     item['subtitle'] as String,
-                    style: const TextStyle(
-                      color: _subtleText,
-                      fontSize: 11,
-                    ),
+                    style: const TextStyle(color: _subtleText, fontSize: 11),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
@@ -455,7 +456,8 @@ class _InterpretationScrenState extends State<InterpretationScren> {
               final item = _emotions[index];
               return Padding(
                 padding: EdgeInsets.only(
-                    bottom: index < _emotions.length - 1 ? 18 : 0),
+                  bottom: index < _emotions.length - 1 ? 18 : 0,
+                ),
                 child: _buildEmotionBar(item),
               );
             }),
@@ -546,8 +548,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           runSpacing: 10,
           children: _symbolTags.map((tag) {
             return Container(
-              padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               decoration: BoxDecoration(
                 color: _tagBg,
                 borderRadius: BorderRadius.circular(22),
@@ -590,8 +591,11 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: const [
-              Icon(Icons.bookmark_border_rounded,
-                  size: 20, color: Colors.white),
+              Icon(
+                Icons.bookmark_border_rounded,
+                size: 20,
+                color: Colors.white,
+              ),
               SizedBox(width: 8),
               Text(
                 'Save to Journal',
