@@ -80,9 +80,16 @@ class _NavigationMenuState extends State<NavigationMenu> {
         if (didPop) return;
         await _onWillPop();
       },
-      child: SafeArea(
-        child: Scaffold(
-          body: _pages[_currentIndex],
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: const SystemUiOverlayStyle(
+          statusBarColor: Colors.transparent,
+          statusBarIconBrightness: Brightness.light,
+          statusBarBrightness: Brightness.dark,
+        ),
+        child: SafeArea(
+          top: false,
+          child: Scaffold(
+            body: _pages[_currentIndex],
 
           bottomNavigationBar: CurvedNavigationBar(
             index: _currentIndex,
@@ -109,7 +116,8 @@ class _NavigationMenuState extends State<NavigationMenu> {
           ),
         ),
       ),
-    );
+    ),
+  );
   }
 
   CurvedNavigationBarItem _buildNavItem(

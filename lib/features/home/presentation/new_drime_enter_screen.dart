@@ -1,3 +1,5 @@
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:dhikru_linda_flutter/features/home/presentation/Interpretation_scren.dart';
 
@@ -361,12 +363,7 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
         height: 54,
         child: ElevatedButton(
           onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const InterpretationScren(),
-              ),
-            );
+            NavigationService.navigateTo(Routes.interpretationScren);
           },
           style: ElevatedButton.styleFrom(
             backgroundColor: _accentPurple,

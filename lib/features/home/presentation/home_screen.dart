@@ -1,3 +1,5 @@
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:dhikru_linda_flutter/features/home/presentation/new_drime_enter_screen.dart';
@@ -73,8 +75,14 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
+        top: false,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: MediaQuery.of(context).padding.top + 16,
+            bottom: 16,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -256,12 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
       height: 52,
       child: ElevatedButton(
         onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const NewDrimeEnterScreen(),
-            ),
-          );
+          NavigationService.navigateTo(Routes.newDrimeEnterScreen);
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: _buttonPurple,
