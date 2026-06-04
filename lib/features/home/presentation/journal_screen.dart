@@ -90,10 +90,11 @@ class _JournalScreenState extends State<JournalScreen> {
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
+        top: false,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: MediaQuery.of(context).padding.top + 16),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(

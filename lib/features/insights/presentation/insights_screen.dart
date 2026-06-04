@@ -29,6 +29,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
+        top: false,
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
@@ -105,8 +106,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ─── App Bar ─────────────────────────────────────────────────────────────────
 
   Widget _buildAppBar(BuildContext context) {
+    final double statusBarHeight = MediaQuery.of(context).padding.top;
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: statusBarHeight + 16,
+        bottom: 16,
+      ),
       child: Row(
         children: [
           GestureDetector(

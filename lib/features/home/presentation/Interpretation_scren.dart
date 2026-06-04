@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/helpers/toast.dart';
 
 class InterpretationScren extends StatefulWidget {
   const InterpretationScren({super.key});
@@ -579,7 +582,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         width: double.infinity,
         height: 54,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            ToastUtil.showShortToast('Save to Journal');
+            NavigationService.navigateToUntilReplacement(Routes.userNavigationMenu);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: _accentPurple,
             foregroundColor: _white,
