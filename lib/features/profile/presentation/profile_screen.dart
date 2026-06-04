@@ -396,6 +396,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             _buildDivider(),
 
+            // Privacy Policy
+            _buildMenuItem(
+              icon: Icons.shield_outlined,
+              iconColor: Colors.white70,
+              label: 'Privacy Policy',
+              onTap: () {
+                // TODO: navigate to privacy policy
+              },
+            ),
+            _buildDivider(),
+
+            // Terms & Conditions
+            _buildMenuItem(
+              icon: Icons.article_outlined,
+              iconColor: Colors.white70,
+              label: 'Terms & Conditions',
+              onTap: () {
+                // TODO: navigate to terms & conditions
+              },
+            ),
+            _buildDivider(),
+
             // Help & Support
             _buildMenuItem(
               icon: Icons.help_outline_rounded,
