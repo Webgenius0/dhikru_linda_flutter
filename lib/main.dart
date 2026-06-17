@@ -1,5 +1,4 @@
 import 'package:auto_animated/auto_animated.dart';
-import 'package:dhikru_linda_flutter/features/home/presentation/Interpretation_scren.dart';
 import 'package:dhikru_linda_flutter/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,8 +7,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:provider/provider.dart';
 import '/helpers/all_routes.dart';
-import 'features/home/presentation/journal_screen.dart';
-import 'features/home/presentation/new_drime_enter_screen.dart';
 import 'helpers/di.dart';
 import 'helpers/language.dart';
 import 'helpers/navigation_service.dart';
@@ -89,7 +86,6 @@ class UtillScreenMobile extends StatelessWidget {
           },
           navigatorKey: NavigationService.navigatorKey,
           onGenerateRoute: RouteGenerator.generateRoute,
-
           home: SplashScreen(),
         );
       },
