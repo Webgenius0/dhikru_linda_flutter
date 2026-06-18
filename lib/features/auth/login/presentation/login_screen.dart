@@ -1,5 +1,6 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -62,9 +63,14 @@ class _LoginScreenState extends State<LoginScreen>
   void _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    final response = await loginRxObj.loginRx(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
     setState(() => _isLoading = false);
-    NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+    if (response != null) {
+      NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+    }
   }
 
   @override

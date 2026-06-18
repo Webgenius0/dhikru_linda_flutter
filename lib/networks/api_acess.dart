@@ -1,21 +1,33 @@
-
+import 'package:dhikru_linda_flutter/features/auth/login/data/rx_login/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/login/model/login_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/logout/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register_verify_otp/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_verify_otp_model.dart';
 import 'package:rxdart/rxdart.dart';
 
-// // ------------- Register Api Access -----------------//
+// ------------- Register Api Access -----------------//
 RegisterRx registerRxObj = RegisterRx(
   empty: RegisterModel(),
   dataFetcher: BehaviorSubject<RegisterModel>(),
 );
 
-// // ------------- Register Verify Otp Api Access -----------------//
+// ------------- Register Verify Otp Api Access -----------------//
 RegisterVerifyOtpRx registerVerifyOtpRxObj = RegisterVerifyOtpRx(
   empty: RegisterVerifyOtpModel(),
   dataFetcher: BehaviorSubject<RegisterVerifyOtpModel>(),
 );
+
+// ------------- Login Api Access -----------------//
+LoginRx loginRxObj = LoginRx(
+  empty: LoginModel(),
+  dataFetcher: BehaviorSubject<LoginModel>(),
+);
+
+// _____________ LogOut Api Access _____________
+LogOutRx logOutRxObj = LogOutRx(empty: {}, dataFetcher: BehaviorSubject<Map>());
+
 
 // //_________________Delete Account Api Access ______________________//
 // DeleteAccountRx deleteAccountRxObj =
@@ -55,11 +67,7 @@ RegisterVerifyOtpRx registerVerifyOtpRxObj = RegisterVerifyOtpRx(
 //   dataFetcher: BehaviorSubject<ResendRegisterOtpModel>(),
 // );
 
-// // ------------- Login Api Access -----------------//
-// LoginRx loginRxObj = LoginRx(
-//   empty: LoginModel(),
-//   dataFetcher: BehaviorSubject<LoginModel>(),
-// );
+
 
 // //___________________ Forget Password Api Access ______________________//
 // ForgetPasswordRx forgetPasswordRxObj = ForgetPasswordRx(

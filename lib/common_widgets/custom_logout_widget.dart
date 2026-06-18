@@ -1,10 +1,10 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:dhikru_linda_flutter/features/auth/login/presentation/login_screen.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class CustomLogoutWidget extends StatefulWidget {
   const CustomLogoutWidget({super.key});
@@ -88,9 +88,10 @@ class _CustomLogoutWidgetState extends State<CustomLogoutWidget> {
                       setState(() {
                         _isLoading = true;
                       });
+                      bool success = false;
                       try {
                         // Trigger logout mechanism if any
-                        await Future.delayed(const Duration(milliseconds: 600));
+                        success = await logOutRxObj.logout();
                       } finally {
                         if (mounted) {
                           setState(() {
@@ -98,15 +99,7 @@ class _CustomLogoutWidgetState extends State<CustomLogoutWidget> {
                           });
                         }
                       }
-                      Fluttertoast.showToast(
-                        msg: "Logged out successfully",
-                        toastLength: Toast.LENGTH_SHORT,
-                        gravity: ToastGravity.BOTTOM,
-                        backgroundColor: Colors.black87,
-                        textColor: Colors.white,
-                        fontSize: 16.sp,
-                      );
-                      if (mounted) {
+                      if (success && context.mounted) {
                         Navigator.pushAndRemoveUntil(
                           context,
                           MaterialPageRoute(
