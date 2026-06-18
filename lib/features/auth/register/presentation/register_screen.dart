@@ -1,5 +1,6 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -80,9 +81,16 @@ class _RegisterScreenState extends State<RegisterScreen>
       return;
     }
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    final bool success = await registerRxObj.registerRx(
+      name: _nameController.text.trim().isEmpty ? null : _nameController.text.trim(),
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      passwordConfirmation: _confirmPasswordController.text,
+    );
     setState(() => _isLoading = false);
-    NavigationService.navigateTo(Routes.registerVerifyScreen);
+    if (success) {
+      NavigationService.navigateTo(Routes.registerVerifyScreen);
+    }
   }
 
   @override
@@ -130,9 +138,6 @@ class _RegisterScreenState extends State<RegisterScreen>
                         hint: 'Enter Your Full Name',
                         keyboardType: TextInputType.name,
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return 'Please enter your name';
-                          }
                           return null;
                         },
                       ),
