@@ -24,6 +24,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
 
   // --------------- State ---------------
   bool _isLoading = false;
+  bool _isResending = false;
   int _secondsRemaining = 59;
   late final dynamic _timer;
 
@@ -242,22 +243,42 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
                           fontSize: 13.sp,
                         ),
                       ),
-                      GestureDetector(
-                        onTap: _secondsRemaining > 0
+                       GestureDetector(
+                        onTap: _secondsRemaining > 0 || _isResending
                             ? null
-                            : () {
-                                _startTimer();
+                            : () async {
+                                setState(() {
+                                  _isResending = true;
+                                });
+                                final bool success = await resendOtpRxObj.resendOtpRx(
+                                  email: widget.email,
+                                );
+                                setState(() {
+                                  _isResending = false;
+                                });
+                                if (success) {
+                                  _startTimer();
+                                }
                               },
-                        child: Text(
-                          _secondsRemaining > 0
-                              ? "00:${_secondsRemaining.toString().padLeft(2, '0')}"
-                              : "Resend",
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF8B7AE8),
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        child: _isResending
+                            ? SizedBox(
+                                width: 14.w,
+                                height: 14.w,
+                                child: const CircularProgressIndicator(
+                                  color: Color(0xFF8B7AE8),
+                                  strokeWidth: 1.5,
+                                ),
+                              )
+                            : Text(
+                                _secondsRemaining > 0
+                                    ? "00:${_secondsRemaining.toString().padLeft(2, '0')}"
+                                    : "Resend",
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF8B7AE8),
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ],
                   ),

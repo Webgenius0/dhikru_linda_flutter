@@ -3,8 +3,10 @@ import 'package:dhikru_linda_flutter/features/auth/login/model/login_model.dart'
 import 'package:dhikru_linda_flutter/features/auth/logout/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register_verify_otp/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/register/data/rx_resend_otp/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_verify_otp_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/register/model/resend_otp_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -27,6 +29,12 @@ LoginRx loginRxObj = LoginRx(
 
 // _____________ LogOut Api Access _____________
 LogOutRx logOutRxObj = LogOutRx(empty: {}, dataFetcher: BehaviorSubject<Map>());
+
+// ------------- Resend OTP Api Access -------------
+ResendOtpRx resendOtpRxObj = ResendOtpRx(
+  empty: ResendOtpModel(),
+  dataFetcher: BehaviorSubject<ResendOtpModel>(),
+);
 
 
 // //_________________Delete Account Api Access ______________________//

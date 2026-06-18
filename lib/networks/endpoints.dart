@@ -36,7 +36,7 @@ final class Endpoints {
 
 
   // // -------------------Resend OTP start-------------------
-  // static String resendOtp() => "/api/resend-otp";
+   static String resendOtp() => "/user/resend-otp";
   // // -------------------Resend OTP end-------------------
 
   // // -------------------Forget Password start-------------------
