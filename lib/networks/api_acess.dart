@@ -1,31 +1,13 @@
-// import 'package:ibraheemaltamim_flutter/features/auth/login/data/rx_login/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/login/model/login_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/forget_password/data/rx_forget_password/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/forget_password/model/forget_password_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/logout/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/otp/data/rx_forget_password_verify_otp/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/otp/model/forget_password_otp_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/otp/model/register_resend_otp_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/register/data/rx_register/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/register/model/register_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/otp/data/rx_register_verify_otp/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/otp/model/verify_register_otp_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/otp/data/rx_register_resend_otp/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/set_new_password/data/rx_reset_password/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/auth/set_new_password/model/set_new_password_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_delete_account/rx_delete_account/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_profile_update/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_user_info/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/model/user_info_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_privacy_policy/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_terms/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_update_password/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/model/mentor_details_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/model/privacy_policy_model.dart';
-// import 'package:ibraheemaltamim_flutter/features/profile/data/rx_mentor_details/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/home/data/rx_filter_list/rx.dart';
-// import 'package:ibraheemaltamim_flutter/features/home/model/filter_list_model.dart';
-// import 'package:rxdart/subjects.dart';
+
+import 'package:dhikru_linda_flutter/features/auth/register/data/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/register/model/register_model.dart';
+import 'package:rxdart/rxdart.dart';
+
+// // ------------- Register Api Access -----------------//
+RegisterRx registerRxObj = RegisterRx(
+  empty: RegisterModel(),
+  dataFetcher: BehaviorSubject<RegisterModel>(),
+);
 
 // //_________________Delete Account Api Access ______________________//
 // DeleteAccountRx deleteAccountRxObj =
@@ -51,12 +33,6 @@
 // UpdateProfileRx updateProfileRxObj = UpdateProfileRx(
 //   empty: {},
 //   dataFetcher: BehaviorSubject<Map>(),
-// );
-
-// // ------------- Register Api Access -----------------//
-// RegisterRx registerRxObj = RegisterRx(
-//   empty: RegisterModel(),
-//   dataFetcher: BehaviorSubject<RegisterModel>(),
 // );
 
 // // ------------- Verify Register Otp Api Access -----------------//
