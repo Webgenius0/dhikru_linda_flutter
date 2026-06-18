@@ -89,7 +89,10 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
     setState(() => _isLoading = false);
     if (success) {
-      NavigationService.navigateTo(Routes.registerVerifyScreen);
+      NavigationService.navigateTo(
+        Routes.registerVerifyScreen,
+        arguments: _emailController.text.trim(),
+      );
     }
   }
 
