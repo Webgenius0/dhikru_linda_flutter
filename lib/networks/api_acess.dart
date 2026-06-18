@@ -1,12 +1,20 @@
 
-import 'package:dhikru_linda_flutter/features/auth/register/data/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register_verify_otp/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/register/model/register_verify_otp_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // // ------------- Register Api Access -----------------//
 RegisterRx registerRxObj = RegisterRx(
   empty: RegisterModel(),
   dataFetcher: BehaviorSubject<RegisterModel>(),
+);
+
+// // ------------- Register Verify Otp Api Access -----------------//
+RegisterVerifyOtpRx registerVerifyOtpRxObj = RegisterVerifyOtpRx(
+  empty: RegisterVerifyOtpModel(),
+  dataFetcher: BehaviorSubject<RegisterVerifyOtpModel>(),
 );
 
 // //_________________Delete Account Api Access ______________________//

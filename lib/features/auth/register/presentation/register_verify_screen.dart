@@ -1,12 +1,14 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class RegisterVerifyScreen extends StatefulWidget {
-  const RegisterVerifyScreen({super.key});
+  final String email;
+  const RegisterVerifyScreen({super.key, required this.email});
 
   @override
   State<RegisterVerifyScreen> createState() => _RegisterVerifyScreenState();
@@ -61,14 +63,30 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
   // --------------- Verify Action ---------------
   void _onVerify() async {
     final code = _otpControllers.map((c) => c.text).join();
-    if (code.length < 4) return;
+    if (code.length < 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter the 4-digit code.',
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: const Color(0xFFCF6679),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    final bool success = await registerVerifyOtpRxObj.registerVerifyOtpRx(
+      email: widget.email,
+      otp: code,
+    );
     setState(() => _isLoading = false);
 
-    // Go to home screen or dashboard (chooseRoleScreen or logInScreen)
-    NavigationService.navigateToUntilReplacement(Routes.logInScreen);
+    if (success) {
+      // Go to home screen or dashboard (chooseRoleScreen or logInScreen)
+      NavigationService.navigateToUntilReplacement(Routes.logInScreen);
+    }
   }
 
   @override
@@ -113,7 +131,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
                   SizedBox(height: 16.h),
 
                   Text(
-                    'We sent a 4-digit code to your email.\nEnter the code below to verify.',
+                    'We sent a 4-digit code to your email:\n${widget.email}\nEnter the code below to verify.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       color: Colors.white.withOpacity(0.6),

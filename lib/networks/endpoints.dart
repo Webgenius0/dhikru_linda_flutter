@@ -22,9 +22,9 @@ final class Endpoints {
   static String register() => "/user/register";
   // -------------------Register end-------------------
 
-  // // -------------------Register Verify email start-------------------
-  // static String verifyEmail() => "/api/verify-email";
-  // // -------------------Register Verify email end-------------------
+  // // -------------------Register Verify otp start-------------------
+   static String registerVerifyOtp() => "/user/verify-otp";
+  // // -------------------Register Verify otp end-------------------
 
   // // -------------------Resend OTP start-------------------
   // static String resendOtp() => "/api/resend-otp";
