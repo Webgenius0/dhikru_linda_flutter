@@ -22,22 +22,22 @@ final class Endpoints {
   static String register() => "/user/register";
   // -------------------Register end-------------------
 
-  // // -------------------Register Verify otp start-------------------
+  // -------------------Register Verify otp start-------------------
    static String registerVerifyOtp() => "/user/verify-otp";
-  // // -------------------Register Verify otp end-------------------
+  // -------------------Register Verify otp end-------------------
+
+ // -------------------Login start-------------------
+  static String login() => "/user/login";
+  // -------------------Login end-------------------
+
+  // -------------------Logout start-------------------
+  static String logout() => "/user/logout";
+  // -------------------Logout end-------------------
+
 
   // // -------------------Resend OTP start-------------------
-  // static String resendOtp() => "/api/resend-otp";
+   static String resendOtp() => "/user/resend-otp";
   // // -------------------Resend OTP end-------------------
-
-  // // -------------------Login start-------------------
-  // static String login() => "/api/login";
-  // // -------------------Login end-------------------
-
-
-  // // -------------------Logout start-------------------
-  // static String logout() => "/api/logout";
-  // // -------------------Logout end-------------------
 
   // // -------------------Forget Password start-------------------
   // static String forgetPassword() => "/api/forget-password";
