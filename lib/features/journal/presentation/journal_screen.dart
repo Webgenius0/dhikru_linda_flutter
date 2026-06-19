@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:dhikru_linda_flutter/features/journal/presentation/journal_detail_screen.dart';
-import 'package:dhikru_linda_flutter/features/journal/model/tags_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/tags_model.dart'
+    hide Datum;
+import 'package:dhikru_linda_flutter/features/journal/model/get_all_journal_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:shimmer/shimmer.dart';
 
 class JournalScreen extends StatefulWidget {
   final VoidCallback? onGoHome;
+  final int? tagId;
 
-  const JournalScreen({super.key, this.onGoHome});
+  const JournalScreen({super.key, this.onGoHome, this.tagId});
 
   @override
   State<JournalScreen> createState() => _JournalScreenState();
@@ -26,69 +29,121 @@ class _JournalScreenState extends State<JournalScreen> {
   static const Color _searchBg = Color(0xFF131325);
 
   // ─── State ──────────────────────────────────────────────────────────────────
-  String _selectedFilter = 'All';
+  int? _selectedTagId;
   final TextEditingController _searchController = TextEditingController();
-
-  final List<Map<String, dynamic>> _dreams = [
-    {
-      'emoji': '🌊',
-      'emojiColor': Color(0xFF4ECFB5),
-      'title': 'The Endless Ocean',
-      'date': 'Apr 28',
-      'badge': 'LONGING',
-      'badgeColor': Color(0xFF3A2A60),
-      'badgeTextColor': Color(0xFFBBAAFF),
-      'description':
-          'Floating in vast dark water, a lighthouse calling me forward from the distance.',
-      'tags': ['#water', '#freedom'],
-      'leftAccent': Color(0xFF7B6EF6),
-    },
-    {
-      'emoji': '🌿',
-      'emojiColor': Color(0xFF6FCF6F),
-      'title': 'Forest of Whispers',
-      'date': 'Apr 26',
-      'badge': 'CALM',
-      'badgeColor': Color(0xFF1A3A2A),
-      'badgeTextColor': Color(0xFF6FCF6F),
-      'description':
-          'Ancient trees spoke in a language I almost understood, leaves forming words.',
-      'tags': ['#nature', '#mystery'],
-      'leftAccent': Color(0xFF6FCF6F),
-    },
-    {
-      'emoji': '✦',
-      'emojiColor': Color(0xFFFFD700),
-      'title': 'City in the Clouds',
-      'date': 'Apr 24',
-      'badge': 'EUPHORIC',
-      'badgeColor': Color(0xFF2A2A10),
-      'badgeTextColor': Color(0xFFFFD060),
-      'description':
-          'A floating metropolis above the clouds where everyone flew effortlessly.',
-      'tags': ['#flying', '#wonder'],
-      'leftAccent': Color(0xFFFFD700),
-    },
-  ];
-
-  List<Map<String, dynamic>> get _filteredDreams {
-    if (_selectedFilter == 'All') return _dreams;
-    return _dreams.where((d) {
-      final tags = (d['tags'] as List<String>).join(' ');
-      return tags.toLowerCase().contains(_selectedFilter.toLowerCase());
-    }).toList();
-  }
 
   @override
   void initState() {
     super.initState();
+    _selectedTagId = widget.tagId;
     tagsRxObj.getTags();
+    getAllJournalRxObj.getJournalEntries(tagId: _selectedTagId);
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void didUpdateWidget(covariant JournalScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.tagId != widget.tagId) {
+      setState(() {
+        _selectedTagId = widget.tagId;
+      });
+      getAllJournalRxObj.getJournalEntries(tagId: _selectedTagId);
+    }
+  }
+
+  void _onSearchChanged() {
+    setState(() {});
+  }
+
+  void _filterByTagName(String name) {
+    final tagsModel = tagsRxObj.dataFetcher.valueOrNull;
+    if (tagsModel != null && tagsModel.data != null) {
+      final tagsList = tagsModel.data ?? [];
+      for (final tag in tagsList) {
+        if (tag.name?.toLowerCase() == name.toLowerCase()) {
+          final tagId = tag.id;
+          setState(() {
+            _selectedTagId = tagId;
+          });
+          getAllJournalRxObj.getJournalEntries(tagId: tagId);
+          return;
+        }
+      }
+    }
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Mood color and emoji mapping helper
+  Map<String, dynamic> _getMoodAssets(String? mood) {
+    final m = (mood ?? '').toLowerCase();
+    if (m.contains('longing') || m.contains('wave') || m.contains('🌊')) {
+      return {
+        'emoji': '🌊',
+        'emojiColor': const Color(0xFF4ECFB5),
+        'badge': 'LONGING',
+        'badgeColor': const Color(0xFF3A2A60),
+        'badgeTextColor': const Color(0xFFBBAAFF),
+        'leftAccent': const Color(0xFF7B6EF6),
+      };
+    } else if (m.contains('calm') ||
+        m.contains('leaf') ||
+        m.contains('🌿') ||
+        m.contains('peaceful')) {
+      return {
+        'emoji': '🌿',
+        'emojiColor': const Color(0xFF6FCF6F),
+        'badge': 'CALM',
+        'badgeColor': const Color(0xFF1A3A2A),
+        'badgeTextColor': const Color(0xFF6FCF6F),
+        'leftAccent': const Color(0xFF6FCF6F),
+      };
+    } else if (m.contains('euphoric') ||
+        m.contains('star') ||
+        m.contains('✦') ||
+        m.contains('wonder')) {
+      return {
+        'emoji': '✦',
+        'emojiColor': const Color(0xFFFFD700),
+        'badge': 'EUPHORIC',
+        'badgeColor': const Color(0xFF2A2A10),
+        'badgeTextColor': const Color(0xFFFFD060),
+        'leftAccent': const Color(0xFFFFD700),
+      };
+    } else {
+      // Default / fallback
+      return {
+        'emoji': '✨',
+        'emojiColor': const Color(0xFFFFC0CB),
+        'badge': mood?.toUpperCase() ?? 'DREAM',
+        'badgeColor': const Color(0xFF221144),
+        'badgeTextColor': const Color(0xFFFFD0FF),
+        'leftAccent': const Color(0xFF7B6EF6),
+      };
+    }
+  }
+
+  Map<String, dynamic> _mapDatumToDreamMap(Datum item) {
+    final moodAssets = _getMoodAssets(item.moodDisplay);
+    return {
+      'id': item.id,
+      'emoji': moodAssets['emoji'],
+      'emojiColor': moodAssets['emojiColor'],
+      'title': item.title ?? 'Untitled Dream',
+      'date': item.formattedDate ?? '',
+      'badge': moodAssets['badge'],
+      'badgeColor': moodAssets['badgeColor'],
+      'badgeTextColor': moodAssets['badgeTextColor'],
+      'description': item.summary ?? '',
+      'tags': item.symbolTags ?? <String>[],
+      'leftAccent': moodAssets['leftAccent'],
+    };
   }
 
   @override
@@ -116,12 +171,63 @@ class _JournalScreenState extends State<JournalScreen> {
             ),
             const SizedBox(height: 16),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: _filteredDreams.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) =>
-                    _buildDreamCard(_filteredDreams[index]),
+              child: StreamBuilder<GetAllJournalModel>(
+                stream: getAllJournalRxObj.getJournalStream,
+                builder: (context, snapshot) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: getAllJournalRxObj.isLoading,
+                    builder: (context, apiLoading, child) {
+                      final isLoading =
+                          apiLoading ||
+                          snapshot.connectionState == ConnectionState.waiting;
+                      final journalList = snapshot.hasData
+                          ? (snapshot.data?.data ?? [])
+                          : [];
+
+                      if (isLoading) {
+                        return ListView.separated(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: journalList.isEmpty
+                              ? 4
+                              : journalList.length,
+                          separatorBuilder: (_, __) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) =>
+                              _buildShimmerDreamCard(),
+                        );
+                      }
+
+                      // Client-side search filtering using title
+                      final String query = _searchController.text.toLowerCase();
+                      final filteredList = journalList.where((item) {
+                        final titleMatch = (item.title ?? '')
+                            .toLowerCase()
+                            .contains(query);
+                        return titleMatch;
+                      }).toList();
+
+                      if (filteredList.isEmpty) {
+                        return Center(
+                          child: Text(
+                            'No journal entries found.',
+                            style: TextStyle(color: _subtleText, fontSize: 14),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        itemCount: filteredList.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final item = filteredList[index];
+                          final dreamMap = _mapDatumToDreamMap(item);
+                          return _buildDreamCard(dreamMap);
+                        },
+                      );
+                    },
+                  );
+                },
               ),
             ),
             const SizedBox(height: 16),
@@ -206,10 +312,12 @@ class _JournalScreenState extends State<JournalScreen> {
         final tagsList = snapshot.hasData ? (snapshot.data?.data ?? []) : [];
 
         // Combine 'All' with fetched tags
-        final List<String> currentFilters = ['All'];
+        final List<Map<String, dynamic>> currentFilters = [
+          {'id': null, 'name': 'All'},
+        ];
         for (var tag in tagsList) {
           if (tag.name != null && tag.name!.isNotEmpty) {
-            currentFilters.add(tag.name!);
+            currentFilters.add({'id': tag.id, 'name': tag.name});
           }
         }
 
@@ -243,11 +351,18 @@ class _JournalScreenState extends State<JournalScreen> {
           scrollDirection: Axis.horizontal,
           child: Row(
             children: currentFilters.map((filter) {
-              final bool selected = _selectedFilter == filter;
+              final filterName = filter['name'] as String;
+              final filterId = filter['id'] as int?;
+              final bool selected = _selectedTagId == filterId;
               return Padding(
                 padding: const EdgeInsets.only(right: 8),
                 child: GestureDetector(
-                  onTap: () => setState(() => _selectedFilter = filter),
+                  onTap: () {
+                    setState(() {
+                      _selectedTagId = filterId;
+                    });
+                    getAllJournalRxObj.getJournalEntries(tagId: filterId);
+                  },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     padding: const EdgeInsets.symmetric(
@@ -263,7 +378,7 @@ class _JournalScreenState extends State<JournalScreen> {
                       ),
                     ),
                     child: Text(
-                      filter,
+                      filterName,
                       style: TextStyle(
                         color: selected ? _white : _subtleText,
                         fontSize: 13,
@@ -282,6 +397,21 @@ class _JournalScreenState extends State<JournalScreen> {
     );
   }
 
+  Widget _buildShimmerDreamCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        height: 110,
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: _borderColor, width: 1),
+        ),
+      ),
+    );
+  }
+
   // ─── Dream Card ──────────────────────────────────────────────────────────────
 
   Widget _buildDreamCard(Map<String, dynamic> dream) {
@@ -296,19 +426,145 @@ class _JournalScreenState extends State<JournalScreen> {
           ),
         );
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: _cardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: _borderColor, width: 1),
-        ),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Left color accent bar
-              Container(
-                width: 3.5,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(18, 16, 16, 14),
+              decoration: BoxDecoration(
+                color: _cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _borderColor, width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Emoji bubble
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: (dream['emojiColor'] as Color).withOpacity(
+                            0.12,
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            dream['emoji'] as String,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      // Title + date
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              dream['title'] as String,
+                              style: const TextStyle(
+                                color: _white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.2,
+                                height: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              dream['date'] as String,
+                              style: const TextStyle(
+                                color: _subtleText,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: dream['badgeColor'] as Color,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          dream['badge'] as String,
+                          style: TextStyle(
+                            color: dream['badgeTextColor'] as Color,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  // Description
+                  Text(
+                    dream['description'] as String,
+                    style: const TextStyle(
+                      color: Color(0xFFAAAAAC),
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  // Tags
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: (dream['tags'] as List<String>).map((tag) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: GestureDetector(
+                            onTap: () => _filterByTagName(tag),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _tagBg,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                tag,
+                                style: const TextStyle(
+                                  color: _tagText,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 4,
                 decoration: BoxDecoration(
                   color: accent,
                   borderRadius: const BorderRadius.only(
@@ -317,126 +573,8 @@ class _JournalScreenState extends State<JournalScreen> {
                   ),
                 ),
               ),
-              // Card content
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 16, 16, 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title row
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Emoji bubble
-                          Container(
-                            width: 32,
-                            height: 32,
-                            decoration: BoxDecoration(
-                              color: (dream['emojiColor'] as Color).withOpacity(
-                                0.12,
-                              ),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Center(
-                              child: Text(
-                                dream['emoji'] as String,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          // Title + date
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  dream['title'] as String,
-                                  style: const TextStyle(
-                                    color: _white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -0.2,
-                                    height: 1.2,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  dream['date'] as String,
-                                  style: const TextStyle(
-                                    color: _subtleText,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          // Badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: dream['badgeColor'] as Color,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              dream['badge'] as String,
-                              style: TextStyle(
-                                color: dream['badgeTextColor'] as Color,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      // Description
-                      Text(
-                        dream['description'] as String,
-                        style: const TextStyle(
-                          color: Color(0xFFAAAAAC),
-                          fontSize: 13,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      // Tags
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 6,
-                        children: (dream['tags'] as List<String>).map((tag) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _tagBg,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              tag,
-                              style: const TextStyle(
-                                color: _tagText,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
