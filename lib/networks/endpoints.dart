@@ -48,29 +48,28 @@ final class Endpoints {
    static String resetPassword() => "/user/reset-password";
   // -------------------Reset Password end-------------------
 
-   // -------------------Delete Account start-----------------
-   static String deleteAccount() => "/user/account/delete";
-   // -------------------Delete Account end-------------------
+  // -------------------Delete Account start-----------------
+  static String deleteAccount() => "/user/account/delete";
+  // -------------------Delete Account end-------------------
 
-   // -------------------Get Profile start-------------------
-   static String getProfile() => "/user/me";
-   // -------------------Get Profile end-------------------
+  // -------------------Get Profile start-------------------
+  static String getProfile() => "/user/me";
+  // -------------------Get Profile end-------------------
 
- // -------------------Update Profile start-------------------
-   static String updateProfile() => "/profile/update";
-   // -------------------Update Profile end-------------------
+  // -------------------Update Profile start-------------------
+  static String updateProfile() => "/profile/update";
+  // -------------------Update Profile end-------------------
 
   // -------------------Change Password start-------------------
-   static String changePassword() => "/change-password";
+  static String changePassword() => "/change-password";
   // -------------------Change Password end-------------------
 
-
+  // -------------------Help Support start-------------------
+  static String helpSupport() => "/help-support";
+  // -------------------Help Support end-------------------
 
    
-   // // -------------------Verify Otp start-------------------
-  // static String verifyForgetPasswordOtp() => "/api/verify-otp";
-  // // -------------------Verify Otp end-------------------
-  
+
   // // -------------------Update Profile start-------------------
   // static String updateProfile() => "/api/update-profile";
   // // -------------------Update Profile end-------------------

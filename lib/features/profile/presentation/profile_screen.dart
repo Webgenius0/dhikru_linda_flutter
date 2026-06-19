@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dhikru_linda_flutter/common_widgets/custom_delete_account_widget.dart';
 import 'package:dhikru_linda_flutter/common_widgets/custom_logout_widget.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/change_password_screen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/help_and_support_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/edit_profile_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_app_version_footer.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_header_widget.dart';
@@ -441,7 +442,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
               iconColor: Colors.white70,
               label: 'Help & Support',
               onTap: () {
-                // TODO: navigate to help & support
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HelpAndSupportScreen()),
+                );
               },
             ),
             _buildDivider(),
