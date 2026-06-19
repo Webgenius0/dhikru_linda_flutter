@@ -26,7 +26,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
   bool _isLoading = false;
   bool _isResending = false;
   int _secondsRemaining = 59;
-  late final dynamic _timer;
+  dynamic _timer;
 
   @override
   void initState() {
@@ -36,6 +36,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
 
   void _startTimer() {
     _secondsRemaining = 59;
+    _timer?.cancel();
     _timer = Stream.periodic(const Duration(seconds: 1), (x) => x)
         .take(59)
         .listen((_) {
@@ -51,7 +52,7 @@ class _RegisterVerifyScreenState extends State<RegisterVerifyScreen>
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     for (var controller in _otpControllers) {
       controller.dispose();
     }

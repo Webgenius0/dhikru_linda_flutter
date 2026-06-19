@@ -1,12 +1,15 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class SetNewPassword extends StatefulWidget {
-  const SetNewPassword({super.key});
+  final String email;
+  final String resetToken;
+  const SetNewPassword({super.key, required this.email, required this.resetToken});
 
   @override
   State<SetNewPassword> createState() => _SetNewPasswordState();
@@ -63,10 +66,15 @@ class _SetNewPasswordState extends State<SetNewPassword>
   void _onContinue() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    final bool success = await resetPasswordRxObj.resetPasswordRx(
+      email: widget.email,
+      resetToken: widget.resetToken,
+      password: _passwordController.text,
+      passwordConfirmation: _confirmPasswordController.text,
+    );
     setState(() => _isLoading = false);
 
-    if (mounted) {
+    if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -77,7 +85,9 @@ class _SetNewPasswordState extends State<SetNewPassword>
         ),
       );
       Future.delayed(const Duration(seconds: 1), () {
-        NavigationService.navigateToUntilReplacement(Routes.logInScreen);
+        if (mounted) {
+          NavigationService.navigateToUntilReplacement(Routes.logInScreen);
+        }
       });
     }
   }

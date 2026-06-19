@@ -1,3 +1,5 @@
+import 'package:dhikru_linda_flutter/features/auth/forgot_password/data/rx_forgot_password/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/forgot_password/model/forgot_password_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/login/data/rx_login/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/login/model/login_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/logout/rx.dart';
@@ -7,6 +9,9 @@ import 'package:dhikru_linda_flutter/features/auth/register/data/rx_resend_otp/r
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/register_verify_otp_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/model/resend_otp_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/set_new_password/data/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/set_new_password/model/set_new_password_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/account_delete/data/rx.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -37,9 +42,24 @@ ResendOtpRx resendOtpRxObj = ResendOtpRx(
 );
 
 
-// //_________________Delete Account Api Access ______________________//
-// DeleteAccountRx deleteAccountRxObj =
-//     DeleteAccountRx(empty: {}, dataFetcher: BehaviorSubject<Map>());
+// _____________ Forgot Password Api Access _____________
+ForgotPasswordRx forgotPasswordRxObj = ForgotPasswordRx(
+  empty: ForgetPasswordModel(),
+  dataFetcher: BehaviorSubject<ForgetPasswordModel>(),
+);
+
+// _____________ Reset Password Api Access _____________
+ResetPasswordRx resetPasswordRxObj = ResetPasswordRx(
+  empty: SetForgetPasswordModel(),
+  dataFetcher: BehaviorSubject<SetForgetPasswordModel>(),
+);
+
+// ------------- Delete Account Api Access -------------
+DeleteAccountRx deleteAccountRxObj = DeleteAccountRx(
+  empty: DeleteAccountModel(),
+  dataFetcher: BehaviorSubject<DeleteAccountModel>(),
+);
+
 
 // //_________________Update Password Api Access ______________________//
 // UpdatePasswordRx updatePasswordRxObj =

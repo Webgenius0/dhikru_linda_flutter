@@ -1,5 +1,7 @@
 // ignore_for_file: deprecated_member_use
 
+import 'package:dhikru_linda_flutter/features/auth/login/presentation/login_screen.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -91,8 +93,9 @@ class _CustomDeleteAccountWidgetState extends State<CustomDeleteAccountWidget> {
                       setState(() {
                         _isLoading = true;
                       });
+                      bool success = false;
                       try {
-                        // Trigger account deletion if any
+                        success = await deleteAccountRxObj.deleteAccount();
                       } finally {
                         if (mounted) {
                           setState(() {
@@ -100,7 +103,15 @@ class _CustomDeleteAccountWidgetState extends State<CustomDeleteAccountWidget> {
                           });
                         }
                       }
-                      Navigator.pop(context, true);
+                      if (success && context.mounted) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const LoginScreen(),
+                          ),
+                          (route) => false,
+                        );
+                      }
                     },
                     child: Container(
                       height: 48.h,

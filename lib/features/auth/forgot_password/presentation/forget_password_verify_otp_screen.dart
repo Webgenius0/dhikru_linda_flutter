@@ -1,12 +1,14 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class ForgetPasswordVerifyOtpScreen extends StatefulWidget {
-  const ForgetPasswordVerifyOtpScreen({super.key});
+  final String email;
+  const ForgetPasswordVerifyOtpScreen({super.key, required this.email});
 
   @override
   State<ForgetPasswordVerifyOtpScreen> createState() =>
@@ -26,8 +28,9 @@ class _ForgetPasswordVerifyOtpScreenState
 
   // --------------- State ---------------
   bool _isLoading = false;
+  bool _isResending = false;
   int _secondsRemaining = 59;
-  late final dynamic _timer;
+  dynamic _timer;
 
   @override
   void initState() {
@@ -37,6 +40,7 @@ class _ForgetPasswordVerifyOtpScreenState
 
   void _startTimer() {
     _secondsRemaining = 59;
+    _timer?.cancel();
     _timer = Stream.periodic(const Duration(seconds: 1), (x) => x)
         .take(59)
         .listen((_) {
@@ -52,7 +56,7 @@ class _ForgetPasswordVerifyOtpScreenState
 
   @override
   void dispose() {
-    _timer.cancel();
+    _timer?.cancel();
     for (var controller in _otpControllers) {
       controller.dispose();
     }
@@ -65,14 +69,31 @@ class _ForgetPasswordVerifyOtpScreenState
   // --------------- Verify Action ---------------
   void _onVerify() async {
     final code = _otpControllers.map((c) => c.text).join();
-    if (code.length < 4) return;
+    if (code.length < 4) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Please enter the 4-digit code.',
+            style: GoogleFonts.inter(),
+          ),
+          backgroundColor: const Color(0xFFCF6679),
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
     await Future.delayed(const Duration(milliseconds: 1200));
     setState(() => _isLoading = false);
 
     // Go to set new password screen
-    NavigationService.navigateToReplacement(Routes.setNewPassword);
+    NavigationService.navigateToReplacement(
+      Routes.setNewPassword,
+      arguments: {
+        'email': widget.email,
+        'resetToken': code,
+      },
+    );
   }
 
   @override
@@ -117,7 +138,7 @@ class _ForgetPasswordVerifyOtpScreenState
                   SizedBox(height: 16.h),
 
                   Text(
-                    'We sent a 4-digit code to your email.\nEnter the code below to verify.',
+                    'We sent a 4-digit code to your email:\n${widget.email}\nEnter the code below to verify.',
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       color: Colors.white.withOpacity(0.6),
@@ -232,21 +253,41 @@ class _ForgetPasswordVerifyOtpScreenState
                         ),
                       ),
                       GestureDetector(
-                        onTap: _secondsRemaining > 0
+                        onTap: _secondsRemaining > 0 || _isResending
                             ? null
-                            : () {
-                                _startTimer();
+                            : () async {
+                                setState(() {
+                                  _isResending = true;
+                                });
+                                final bool success = await resendOtpRxObj.resendOtpRx(
+                                  email: widget.email,
+                                );
+                                setState(() {
+                                  _isResending = false;
+                                });
+                                if (success) {
+                                  _startTimer();
+                                }
                               },
-                        child: Text(
-                          _secondsRemaining > 0
-                              ? "00:${_secondsRemaining.toString().padLeft(2, '0')}"
-                              : "Resend",
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF8B7AE8),
-                            fontSize: 13.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                        child: _isResending
+                            ? SizedBox(
+                                width: 14.w,
+                                height: 14.w,
+                                child: const CircularProgressIndicator(
+                                  color: Color(0xFF8B7AE8),
+                                  strokeWidth: 1.5,
+                                ),
+                              )
+                            : Text(
+                                _secondsRemaining > 0
+                                    ? "00:${_secondsRemaining.toString().padLeft(2, '0')}"
+                                    : "Resend",
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF8B7AE8),
+                                  fontSize: 13.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                       ),
                     ],
                   ),

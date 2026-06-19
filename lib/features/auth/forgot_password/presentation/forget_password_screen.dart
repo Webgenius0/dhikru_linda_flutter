@@ -1,5 +1,6 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -35,10 +36,7 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
       duration: const Duration(milliseconds: 800),
     );
 
-    _fadeAnim = CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeIn,
-    );
+    _fadeAnim = CurvedAnimation(parent: _animController, curve: Curves.easeIn);
 
     _slideAnim = Tween<Offset>(
       begin: const Offset(0, 0.08),
@@ -59,23 +57,16 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
   void _onSubmit() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    final bool success = await forgotPasswordRxObj.forgotPasswordRx(
+      email: _emailController.text.trim(),
+    );
     setState(() => _isLoading = false);
 
-    // Show a success message / popup, or navigate back
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Reset link has been sent to your email',
-            style: GoogleFonts.inter(),
-          ),
-          backgroundColor: const Color(0xFF8B7AE8),
-        ),
+    if (success && mounted) {
+      NavigationService.navigateToReplacement(
+        Routes.forgetPasswordVerifyOtpScreen,
+        arguments: _emailController.text.trim(),
       );
-      Future.delayed(const Duration(seconds: 1), () {
-        NavigationService.navigateToReplacement(Routes.forgetPasswordVerifyOtpScreen);
-      });
     }
   }
 
@@ -164,8 +155,9 @@ class _ForgetPasswordScreenState extends State<ForgetPasswordScreen>
                           onPressed: _isLoading ? null : _onSubmit,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFF8B7AE8),
-                            disabledBackgroundColor:
-                                const Color(0xFF8B7AE8).withOpacity(0.6),
+                            disabledBackgroundColor: const Color(
+                              0xFF8B7AE8,
+                            ).withOpacity(0.6),
                             elevation: 0,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(30.r),
