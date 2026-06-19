@@ -24,6 +24,8 @@ import 'package:dhikru_linda_flutter/features/profile/data/privacy_policy/rx.dar
 import 'package:dhikru_linda_flutter/features/profile/model/privacy_policy_model.dart';
 import 'package:dhikru_linda_flutter/features/profile/data/terms_and_condition/rx.dart';
 import 'package:dhikru_linda_flutter/features/profile/model/terms_and_condition_model.dart';
+import 'package:dhikru_linda_flutter/features/home/data/get_home_data/rx.dart';
+import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -123,6 +125,12 @@ PrivacyPolicyRx privacyPolicyRxObj = PrivacyPolicyRx(
 TermsAndConditionRx termsAndConditionRxObj = TermsAndConditionRx(
   empty: TermsAndConditionModel(),
   dataFetcher: BehaviorSubject<TermsAndConditionModel>(),
+);
+
+// ------------- Home Data Api Access -------------
+HomeDataRx homeDataRxObj = HomeDataRx(
+  empty: HomeDataModel(),
+  dataFetcher: BehaviorSubject<HomeDataModel>(),
 );
 
 // // ------------- Verify Register Otp Api Access -----------------//
