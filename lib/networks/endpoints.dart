@@ -76,5 +76,9 @@ final class Endpoints {
   static String termsAndCondition() => "/pages/terms";
   // -------------------Terms and Condition end-------------------
 
+  // -------------------Home start-----------------
+  static String homeData() => "/home";
+  // -------------------Home end-------------------
+
 
 }

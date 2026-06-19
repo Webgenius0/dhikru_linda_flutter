@@ -3,14 +3,18 @@ import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
-import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
+import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart'
+    hide Data;
+import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dhikru_linda_flutter/networks/endpoints.dart' as endpoints;
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onGoProfile;
-  const HomeScreen({super.key, this.onGoProfile});
+  final VoidCallback? onGoJournal;
+  const HomeScreen({super.key, this.onGoProfile, this.onGoJournal});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -32,52 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
   static const Color _tagBg = Color(0xFF1E1E35);
   static const Color _tagText = Color(0xFF6666AA);
 
-  final List<Map<String, dynamic>> _recentDreams = [
-    {
-      'emoji': '🌊',
-      'title': 'The Endless Ocean',
-      'time': 'LAST NIGHT',
-      'description':
-          'Floating in vast dark water, a lighthouse in the distance calling me forward.',
-      'tags': ['#water', '#freedom', '#longing'],
-      'emojiColor': Color(0xFF4ECFB5),
-    },
-    {
-      'emoji': '🌿',
-      'title': 'Forest of Whispers',
-      'time': '2 DAYS AGO',
-      'description':
-          'Ancient trees speaking in a language I almost understood, leaves forming words.',
-      'tags': ['#nature', '#mystery', '#communication'],
-      'emojiColor': Color(0xFF6FCF6F),
-    },
-  ];
-
-  // Mood trend data: Mon–Sun
-  final List<FlSpot> _moodSpots = const [
-    FlSpot(0, 65),
-    FlSpot(1, 70),
-    FlSpot(2, 55),
-    FlSpot(3, 78),
-    FlSpot(4, 74),
-    FlSpot(5, 82),
-    FlSpot(6, 90),
-  ];
-
-  final List<String> _weekDays = const [
-    'Mon',
-    'Tue',
-    'Wed',
-    'Thu',
-    'Fri',
-    'Sat',
-    'Sun',
-  ];
-
   @override
   void initState() {
     super.initState();
     getProfileRxObj.getProfileInfo();
+    homeDataRxObj.getHomeData();
   }
 
   @override
@@ -102,11 +65,25 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 24),
               _buildPortalCard(),
               const SizedBox(height: 24),
-              _buildStatsRow(),
-              const SizedBox(height: 32),
-              _buildRecentDreamsSection(),
-              const SizedBox(height: 32),
-              _buildWeeklyInsightSection(),
+              StreamBuilder<HomeDataModel>(
+                stream: homeDataRxObj.getHomeDataStream,
+                builder: (context, snapshot) {
+                  final isLoading =
+                      snapshot.connectionState == ConnectionState.waiting;
+                  final data = snapshot.hasData ? snapshot.data?.data : null;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatsRow(data, isLoading),
+                      const SizedBox(height: 32),
+                      _buildRecentDreamsSection(data, isLoading),
+                      const SizedBox(height: 32),
+                      _buildWeeklyInsightSection(data, isLoading),
+                    ],
+                  );
+                },
+              ),
               const SizedBox(height: 24),
             ],
           ),
@@ -194,7 +171,8 @@ class _HomeScreenState extends State<HomeScreen> {
               if (avatar != null && avatar.isNotEmpty) {
                 String fullImageUrl = avatar;
                 if (!fullImageUrl.startsWith('http')) {
-                  fullImageUrl = "${endpoints.url}/${fullImageUrl.startsWith('/') ? fullImageUrl.substring(1) : fullImageUrl}";
+                  fullImageUrl =
+                      "${endpoints.url}/${fullImageUrl.startsWith('/') ? fullImageUrl.substring(1) : fullImageUrl}";
                 }
                 return CachedNetworkImage(
                   imageUrl: fullImageUrl,
@@ -360,40 +338,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── Stats Row ──────────────────────────────────────────────────────────────
 
-  Widget _buildStatsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildStatCard(
-            icon: '✦',
-            iconColor: _accentPurple,
-            value: '42',
-            label: 'DREAMS',
-            hasBorder: false,
-          ),
+  Widget _buildShimmerStatCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        height: 110.h,
+        decoration: BoxDecoration(
+          color: _statCardBg,
+          borderRadius: BorderRadius.circular(16.r),
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildStatCard(
-            icon: '〜',
-            iconColor: _accentGreen,
-            value: '12',
-            label: 'THIS WEEK',
-            hasBorder: true,
-          ),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(Data? data, bool isLoading) {
+    if (isLoading || data == null || data.stats == null) {
+      return IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(child: _buildShimmerStatCard()),
+            const SizedBox(width: 10),
+            Expanded(child: _buildShimmerStatCard()),
+            const SizedBox(width: 10),
+            Expanded(child: _buildShimmerStatCard()),
+          ],
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: _buildStatCard(
-            icon: '😊',
-            iconColor: Colors.amber,
-            value: 'Vivid',
-            label: 'AVG. MOOD',
-            hasBorder: false,
-            isEmoji: true,
+      );
+    }
+
+    final stats = data.stats!;
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(
+            child: _buildStatCard(
+              icon: '✦',
+              iconColor: _accentPurple,
+              value: (stats.totalDreams ?? 0).toString(),
+              label: 'DREAMS',
+              hasBorder: false,
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildStatCard(
+              icon: '〜',
+              iconColor: _accentGreen,
+              value: (stats.dreamsThisWeek ?? 0).toString(),
+              label: 'THIS WEEK',
+              hasBorder: true,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildStatCard(
+              icon: '😊',
+              iconColor: Colors.amber,
+              value: stats.avgMood ?? 'N/A',
+              label: 'AVG. MOOD',
+              hasBorder: false,
+              isEmoji: true,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -405,49 +416,84 @@ class _HomeScreenState extends State<HomeScreen> {
     required bool hasBorder,
     bool isEmoji = false,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
-      decoration: BoxDecoration(
-        color: _statCardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: hasBorder ? _accentPurple : _statBorder,
-          width: hasBorder ? 1.5 : 1,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          isEmoji
-              ? Text(icon, style: const TextStyle(fontSize: 22))
-              : Text(
-                  icon,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 18),
+            decoration: BoxDecoration(
+              color: _statCardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: hasBorder ? _accentPurple : _statBorder,
+                width: hasBorder ? 1.5 : 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                isEmoji
+                    ? Text(
+                        icon,
+                        style: const TextStyle(fontSize: 22),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      )
+                    : Text(
+                        icon,
+                        style: TextStyle(
+                          color: iconColor,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                const SizedBox(height: 8),
+                Text(
+                  value,
                   style: TextStyle(
-                    color: iconColor,
-                    fontSize: 22,
+                    color: _white,
+                    fontSize: value.length > 3 ? 18 : 26,
                     fontWeight: FontWeight.w700,
+                    height: 1.0,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: TextStyle(
-              color: _white,
-              fontSize: value.length > 3 ? 18 : 26,
-              fontWeight: FontWeight.w700,
-              height: 1.0,
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: _subtleText,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.8,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: const TextStyle(
-              color: _subtleText,
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 0.8,
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: _accentPurple,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
+                ),
+              ),
             ),
-            textAlign: TextAlign.center,
           ),
         ],
       ),
@@ -456,120 +502,274 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── Recent Dreams ──────────────────────────────────────────────────────────
 
-  Widget _buildRecentDreamsSection() {
+  Widget _buildShimmerDreamCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        width: double.infinity,
+        height: 120.h,
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentDreamsSection(Data? data, bool isLoading) {
+    if (isLoading || data == null || data.recentDreams == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'RECENT DREAMS',
+                style: TextStyle(
+                  color: _subtleText,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.8,
+                ),
+              ),
+              GestureDetector(
+                onTap: widget.onGoJournal,
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    color: _accentGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _buildShimmerDreamCard(),
+          const SizedBox(height: 12),
+          _buildShimmerDreamCard(),
+        ],
+      );
+    }
+
+    final dreams = data.recentDreams!;
+    if (dreams.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'RECENT DREAMS',
+                style: TextStyle(
+                  color: _subtleText,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 1.8,
+                ),
+              ),
+              GestureDetector(
+                onTap: widget.onGoJournal,
+                child: const Text(
+                  'View All',
+                  style: TextStyle(
+                    color: _accentGreen,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 30),
+            alignment: Alignment.center,
+            child: const Text(
+              'No dreams logged yet.',
+              style: TextStyle(color: _subtleText),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'RECENT DREAMS',
-          style: TextStyle(
-            color: _subtleText,
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.8,
-          ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'RECENT DREAMS',
+              style: TextStyle(
+                color: _subtleText,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.8,
+              ),
+            ),
+            GestureDetector(
+              onTap: widget.onGoJournal,
+              child: const Text(
+                'View All',
+                style: TextStyle(
+                  color: _accentGreen,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 1.8,
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 14),
-        ...List.generate(_recentDreams.length, (index) {
+        ...List.generate(dreams.length, (index) {
           return Padding(
             padding: EdgeInsets.only(
-              bottom: index < _recentDreams.length - 1 ? 12 : 0,
+              bottom: index < dreams.length - 1 ? 12 : 0,
             ),
-            child: _buildDreamCard(_recentDreams[index]),
+            child: _buildDreamCard(dreams[index]),
           );
         }),
       ],
     );
   }
 
-  Widget _buildDreamCard(Map<String, dynamic> dream) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-      decoration: BoxDecoration(
-        color: _cardBg,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFF22223A), width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildDreamCard(RecentDream dream) {
+    final moodStr = dream.moodDisplay ?? '';
+    String emoji = '😴';
+    if (moodStr.isNotEmpty) {
+      final parts = moodStr.split(' ');
+      if (parts.isNotEmpty) {
+        emoji = parts.first;
+      }
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: Stack(
         children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 34,
-                height: 34,
-                decoration: BoxDecoration(
-                  color: (dream['emojiColor'] as Color).withOpacity(0.12),
-                  borderRadius: BorderRadius.circular(8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+            decoration: BoxDecoration(
+              color: _cardBg,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFF22223A), width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: _accentPurple.withOpacity(0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Center(
+                        child: Text(
+                          emoji,
+                          style: const TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        dream.title ?? 'Untitled Dream',
+                        style: const TextStyle(
+                          color: _white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.2,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      dream.timeAgo ?? '',
+                      style: const TextStyle(
+                        color: _subtleText,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
                 ),
-                child: Center(
-                  child: Text(
-                    dream['emoji'] as String,
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  dream['title'] as String,
+                const SizedBox(height: 10),
+                Text(
+                  dream.summary ?? '',
                   style: const TextStyle(
-                    color: _white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.2,
+                    color: Color(0xFFAAAAAC),
+                    fontSize: 13.5,
+                    height: 1.5,
+                    letterSpacing: 0.1,
                   ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                dream['time'] as String,
-                style: const TextStyle(
-                  color: _subtleText,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            dream['description'] as String,
-            style: const TextStyle(
-              color: Color(0xFFAAAAAC),
-              fontSize: 13.5,
-              height: 1.5,
-              letterSpacing: 0.1,
+                if (dream.emotionalTags != null &&
+                    dream.emotionalTags!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: dream.emotionalTags!.map((tag) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: _tagBg,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              tag,
+                              style: const TextStyle(
+                                color: _tagText,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            children: (dream['tags'] as List<String>).map((tag) {
-              return Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
+          Positioned(
+            left: 0,
+            top: 0,
+            bottom: 0,
+            child: Container(
+              width: 4,
+              decoration: const BoxDecoration(
+                color: _accentPurple,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(16),
+                  bottomLeft: Radius.circular(16),
                 ),
-                decoration: BoxDecoration(
-                  color: _tagBg,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  tag,
-                  style: const TextStyle(
-                    color: _tagText,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              );
-            }).toList(),
+              ),
+            ),
           ),
         ],
       ),
@@ -578,7 +778,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── Weekly Insight / Mood Chart ────────────────────────────────────────────
 
-  Widget _buildWeeklyInsightSection() {
+  Widget _buildWeeklyInsightSection(Data? data, bool isLoading) {
+    if (isLoading || data == null || data.weeklyInsight?.moodTrend == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'WEEKLY INSIGHT',
+            style: TextStyle(
+              color: _subtleText,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.8,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Shimmer.fromColors(
+            baseColor: Colors.white.withOpacity(0.05),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Container(
+              width: double.infinity,
+              height: 250.h,
+              decoration: BoxDecoration(
+                color: _cardBg,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -592,12 +822,20 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         const SizedBox(height: 14),
-        _buildMoodChartCard(),
+        _buildMoodChartCard(data.weeklyInsight!.moodTrend!),
       ],
     );
   }
 
-  Widget _buildMoodChartCard() {
+  Widget _buildMoodChartCard(MoodTrend moodTrend) {
+    final List<FlSpot> spots = [];
+    final trendData = moodTrend.data ?? [];
+    for (int i = 0; i < trendData.length; i++) {
+      spots.add(FlSpot(i.toDouble(), (trendData[i].score ?? 0).toDouble()));
+    }
+
+    final List<String> weekDays = trendData.map((d) => d.day ?? '').toList();
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(20, 22, 16, 20),
@@ -621,118 +859,132 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const SizedBox(height: 20),
           // Chart
-          SizedBox(
-            height: 200,
-            child: LineChart(
-              LineChartData(
-                minX: 0,
-                maxX: 6,
-                minY: 0,
-                maxY: 100,
-                gridData: FlGridData(
-                  show: true,
-                  drawVerticalLine: false,
-                  horizontalInterval: 25,
-                  getDrawingHorizontalLine: (value) =>
-                      FlLine(color: const Color(0xFF252540), strokeWidth: 1),
-                ),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  topTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
+          if (spots.isEmpty)
+            Container(
+              height: 200,
+              alignment: Alignment.center,
+              child: const Text(
+                'No data available',
+                style: TextStyle(color: _subtleText),
+              ),
+            )
+          else
+            SizedBox(
+              height: 200,
+              child: LineChart(
+                LineChartData(
+                  minX: 0,
+                  maxX: (spots.length - 1).toDouble(),
+                  minY: 0,
+                  maxY: 100,
+                  gridData: FlGridData(
+                    show: true,
+                    drawVerticalLine: false,
+                    horizontalInterval: 25,
+                    getDrawingHorizontalLine: (value) =>
+                        FlLine(color: const Color(0xFF252540), strokeWidth: 1),
                   ),
-                  rightTitles: const AxisTitles(
-                    sideTitles: SideTitles(showTitles: false),
-                  ),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 36,
-                      interval: 25,
-                      getTitlesWidget: (value, meta) {
-                        if (value == 0 ||
-                            value == 25 ||
-                            value == 50 ||
-                            value == 75 ||
-                            value == 100) {
-                          return Text(
-                            value.toInt().toString(),
-                            style: const TextStyle(
-                              color: Color(0xFF555577),
-                              fontSize: 11,
+                  borderData: FlBorderData(show: false),
+                  titlesData: FlTitlesData(
+                    topTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    rightTitles: const AxisTitles(
+                      sideTitles: SideTitles(showTitles: false),
+                    ),
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 36,
+                        interval: 25,
+                        getTitlesWidget: (value, meta) {
+                          if (value == 0 ||
+                              value == 25 ||
+                              value == 50 ||
+                              value == 75 ||
+                              value == 100) {
+                            return Text(
+                              value.toInt().toString(),
+                              style: const TextStyle(
+                                color: Color(0xFF555577),
+                                fontSize: 11,
+                              ),
+                            );
+                          }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 28,
+                        interval: 1,
+                        getTitlesWidget: (value, meta) {
+                          final int idx = value.toInt();
+                          if (idx < 0 || idx >= weekDays.length) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8),
+                            child: Text(
+                              weekDays[idx],
+                              style: const TextStyle(
+                                color: Color(0xFF666688),
+                                fontSize: 11,
+                              ),
                             ),
                           );
-                        }
-                        return const SizedBox.shrink();
-                      },
+                        },
+                      ),
                     ),
                   ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 28,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        final int idx = value.toInt();
-                        if (idx < 0 || idx >= _weekDays.length) {
-                          return const SizedBox.shrink();
-                        }
-                        return Padding(
-                          padding: const EdgeInsets.only(top: 8),
-                          child: Text(
-                            _weekDays[idx],
-                            style: const TextStyle(
-                              color: Color(0xFF666688),
-                              fontSize: 11,
-                            ),
-                          ),
-                        );
-                      },
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: spots,
+                      isCurved: true,
+                      curveSmoothness: 0.35,
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF7B6EF6), // purple
+                          Color(0xFF00CFFF), // cyan/blue
+                        ],
+                      ),
+                      barWidth: 2.5,
+                      isStrokeCapRound: true,
+                      dotData: FlDotData(
+                        show: true,
+                        getDotPainter: (spot, percent, bar, index) {
+                          return FlDotCirclePainter(
+                            radius: 4,
+                            color: const Color(0xFF00CFFF),
+                            strokeWidth: 2,
+                            strokeColor: const Color(0xFF161628),
+                          );
+                        },
+                      ),
+                      belowBarData: BarAreaData(show: false),
                     ),
-                  ),
+                  ],
                 ),
-                lineBarsData: [
-                  LineChartBarData(
-                    spots: _moodSpots,
-                    isCurved: true,
-                    curveSmoothness: 0.35,
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF7B6EF6), // purple
-                        Color(0xFF00CFFF), // cyan/blue
-                      ],
-                    ),
-                    barWidth: 2.5,
-                    isStrokeCapRound: true,
-                    dotData: FlDotData(
-                      show: true,
-                      getDotPainter: (spot, percent, bar, index) {
-                        return FlDotCirclePainter(
-                          radius: 4,
-                          color: const Color(0xFF00CFFF),
-                          strokeWidth: 2,
-                          strokeColor: const Color(0xFF161628),
-                        );
-                      },
-                    ),
-                    belowBarData: BarAreaData(show: false),
-                  ),
-                ],
               ),
             ),
-          ),
-          const SizedBox(height: 18),
-          // Bottom insight text
-          const Center(
-            child: Text(
-              'Your mood has improved by 38% this week',
-              style: TextStyle(
-                color: Color(0xFF8888AA),
-                fontSize: 13,
-                letterSpacing: 0.1,
+          if (moodTrend.description != null &&
+              moodTrend.description!.isNotEmpty) ...[
+            const SizedBox(height: 18),
+            Center(
+              child: Text(
+                moodTrend.description!,
+                style: const TextStyle(
+                  color: Color(0xFF8888AA),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.1,
+                ),
+                textAlign: TextAlign.center,
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
