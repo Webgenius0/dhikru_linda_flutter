@@ -14,6 +14,8 @@ import 'package:dhikru_linda_flutter/features/auth/set_new_password/model/set_ne
 import 'package:dhikru_linda_flutter/features/auth/account_delete/data/rx.dart';
 import 'package:dhikru_linda_flutter/features/home/data/get_profile_info/rx.dart';
 import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
+import 'package:dhikru_linda_flutter/features/profile/data/update_profile/rx.dart';
+import 'package:dhikru_linda_flutter/features/home/model/update_profile_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -85,11 +87,11 @@ GetProfileRx getProfileRxObj = GetProfileRx(
 //   dataFetcher: BehaviorSubject<PrivacyPolicyModel>(),
 // );
 
-// // ------------- Update Profile Api Access -----------------//
-// UpdateProfileRx updateProfileRxObj = UpdateProfileRx(
-//   empty: {},
-//   dataFetcher: BehaviorSubject<Map>(),
-// );
+// ------------- Update Profile Api Access -------------
+UpdateProfileRx updateProfileRxObj = UpdateProfileRx(
+  empty: UpdateProfileModel(),
+  dataFetcher: BehaviorSubject<UpdateProfileModel>(),
+);
 
 // // ------------- Verify Register Otp Api Access -----------------//
 // VerifyRegisterOtpRx verifyRegisterOtpRxObj = VerifyRegisterOtpRx(

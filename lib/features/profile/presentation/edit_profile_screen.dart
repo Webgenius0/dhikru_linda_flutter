@@ -1,9 +1,9 @@
 // ignore_for_file: deprecated_member_use
 
 import 'dart:io';
-
 import 'package:dhikru_linda_flutter/common_widgets/profile_avatar.dart';
-import 'package:dhikru_linda_flutter/helpers/toast.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -64,15 +64,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.name);
-    _selectedGender = _genderOptions.contains(widget.gender)
-        ? widget.gender
-        : _genderOptions.first;
+    
+    final String genderLower = widget.gender.trim().toLowerCase();
+    _selectedGender = _genderOptions.firstWhere(
+      (opt) => opt.toLowerCase() == genderLower,
+      orElse: () => _genderOptions.first,
+    );
+    
     _selectedAge = _ageOptions.contains(widget.age)
         ? widget.age
         : _ageOptions.first;
-    _selectedStatus = _statusOptions.contains(widget.status)
-        ? widget.status
-        : _statusOptions.first;
+        
+    final String statusLower = widget.status.trim().toLowerCase().replaceAll('_', ' ');
+    _selectedStatus = _statusOptions.firstWhere(
+      (opt) => opt.toLowerCase() == statusLower,
+      orElse: () => _statusOptions.first,
+    );
   }
 
   @override
@@ -192,19 +199,48 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     if (name.isEmpty) return;
 
     setState(() => _isSaving = true);
-    await Future.delayed(
-      const Duration(milliseconds: 600),
-    ); // TODO: replace with real API call
-    if (mounted) {
-      setState(() => _isSaving = false);
-      ToastUtil.showShortToast('Profile edited successfully.');
-      Navigator.pop(context, {
-        'name': name,
-        'gender': _selectedGender,
-        'age': _selectedAge,
-        'status': _selectedStatus,
-        'imageFile': _pickedImage,
-      });
+    try {
+      final success = await updateProfileRxObj.updateProfile(
+        name: name,
+        maritalStatus: _selectedStatus.toLowerCase().replaceAll(' ', '_'),
+        age: _selectedAge,
+        gender: _selectedGender.toLowerCase(),
+        avatar: _pickedImage,
+      );
+
+      if (success && mounted) {
+        final currentProfile = getProfileRxObj.dataFetcher.hasValue ? getProfileRxObj.dataFetcher.value : null;
+        final currentUser = currentProfile?.data?.user;
+        final updatedUser = (currentUser ?? User()).copyWith(
+          name: name,
+          maritalStatus: _selectedStatus.toLowerCase().replaceAll(' ', '_'),
+          age: _selectedAge,
+          gender: _selectedGender.toLowerCase(),
+        );
+        getProfileRxObj.dataFetcher.sink.add(
+          GetProfileModel(
+            success: true,
+            message: currentProfile?.message,
+            code: currentProfile?.code,
+            data: Data(user: updatedUser),
+          ),
+        );
+
+        // Also fetch from server to sync latest data (including remote image URL)
+        getProfileRxObj.getProfileInfo();
+
+        Navigator.pop(context, {
+          'name': name,
+          'gender': _selectedGender,
+          'age': _selectedAge,
+          'status': _selectedStatus,
+          'imageFile': _pickedImage,
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 
