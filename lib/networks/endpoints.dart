@@ -52,7 +52,11 @@ final class Endpoints {
    static String deleteAccount() => "/user/account/delete";
    // -------------------Delete Account end-------------------
 
-  // // -------------------Verify Otp start-------------------
+   // -------------------Get Profile start-------------------
+   static String getProfile() => "/user/me";
+   // -------------------Get Profile end-------------------
+
+   // // -------------------Verify Otp start-------------------
   // static String verifyForgetPasswordOtp() => "/api/verify-otp";
   // // -------------------Verify Otp end-------------------
   

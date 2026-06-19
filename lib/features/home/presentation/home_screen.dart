@@ -2,7 +2,11 @@ import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'package:dhikru_linda_flutter/features/home/presentation/new_drime_enter_screen.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:dhikru_linda_flutter/networks/endpoints.dart' as endpoints;
 
 class HomeScreen extends StatefulWidget {
   final VoidCallback? onGoProfile;
@@ -69,6 +73,12 @@ class _HomeScreenState extends State<HomeScreen> {
     'Sat',
     'Sun',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    getProfileRxObj.getProfileInfo();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,15 +186,48 @@ class _HomeScreenState extends State<HomeScreen> {
           color: const Color(0xFF3A2060),
         ),
         child: ClipOval(
-          child: Container(
-            color: const Color(0xFF5A3A80),
-            child: Image.asset(
-              'assets/images/person_img.png',
-              height: 22,
-              width: 22,
-              fit: BoxFit.cover,
-              // color: Colors.white70,
-            ),
+          child: StreamBuilder<GetProfileModel>(
+            stream: getProfileRxObj.getProfileData,
+            builder: (context, snapshot) {
+              final user = snapshot.data?.data?.user;
+              final avatar = user?.avatar;
+              if (avatar != null && avatar.isNotEmpty) {
+                String fullImageUrl = avatar;
+                if (!fullImageUrl.startsWith('http')) {
+                  fullImageUrl = "${endpoints.url}/${fullImageUrl.startsWith('/') ? fullImageUrl.substring(1) : fullImageUrl}";
+                }
+                return CachedNetworkImage(
+                  imageUrl: fullImageUrl,
+                  width: 38,
+                  height: 38,
+                  fit: BoxFit.cover,
+                  placeholder: (context, url) => Shimmer.fromColors(
+                    baseColor: Colors.white.withOpacity(0.05),
+                    highlightColor: Colors.white.withOpacity(0.1),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      color: Colors.white,
+                    ),
+                  ),
+                  errorWidget: (context, url, error) => Image.asset(
+                    'assets/images/person_img.png',
+                    width: 38,
+                    height: 38,
+                    fit: BoxFit.cover,
+                  ),
+                );
+              }
+              return Container(
+                color: const Color(0xFF5A3A80),
+                child: Image.asset(
+                  'assets/images/person_img.png',
+                  height: 22,
+                  width: 22,
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -194,15 +237,37 @@ class _HomeScreenState extends State<HomeScreen> {
   // ─── Greeting ───────────────────────────────────────────────────────────────
 
   Widget _buildGreetingName() {
-    return const Text(
-      'Lee H.',
-      style: TextStyle(
-        color: _white,
-        fontSize: 32,
-        fontWeight: FontWeight.w700,
-        letterSpacing: -0.5,
-        height: 1.1,
-      ),
+    return StreamBuilder<GetProfileModel>(
+      stream: getProfileRxObj.getProfileData,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting ||
+            !snapshot.hasData ||
+            snapshot.data?.data?.user == null) {
+          return Shimmer.fromColors(
+            baseColor: Colors.white.withOpacity(0.05),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Container(
+              width: 120,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          );
+        }
+        final name = snapshot.data?.data?.user?.name ?? '';
+        return Text(
+          name,
+          style: const TextStyle(
+            color: _white,
+            fontSize: 32,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+            height: 1.1,
+          ),
+        );
+      },
     );
   }
 
