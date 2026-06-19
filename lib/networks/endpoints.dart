@@ -60,6 +60,12 @@ final class Endpoints {
    static String updateProfile() => "/profile/update";
    // -------------------Update Profile end-------------------
 
+  // -------------------Change Password start-------------------
+   static String changePassword() => "/change-password";
+  // -------------------Change Password end-------------------
+
+
+
    
    // // -------------------Verify Otp start-------------------
   // static String verifyForgetPasswordOtp() => "/api/verify-otp";
@@ -73,11 +79,6 @@ final class Endpoints {
   // // -------------------Get Profile start-------------------
   // static String getProfile() => "/api/me";
   // // -------------------Get Profile end-------------------
-
-  // // -------------------Update Password start-------------------
-  // static String updatePassword() => "/api/update-password";
-  // // -------------------Update Password end-------------------
-
 
   // // -------------------Privacy Policy start-------------------
   // static String privacyPolicy() => "/api/dynamic-pages/single/privacy-policy";
