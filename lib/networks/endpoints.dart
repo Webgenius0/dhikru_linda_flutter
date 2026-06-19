@@ -83,4 +83,8 @@ final class Endpoints {
   // -------------------Insights start-----------------
   static String insights() => "/insights";
   // -------------------Insights end-------------------
+
+  // -------------------Tags start-----------------
+  static String tags() => "/tags";
+  // -------------------Tags end-------------------
 }

@@ -7,7 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'features/home/presentation/home_screen.dart';
-import 'features/home/presentation/journal_screen.dart';
+import 'features/journal/presentation/journal_screen.dart';
 import 'features/insights/presentation/insights_screen.dart';
 import 'features/profile/presentation/profile_screen.dart';
 
