@@ -6,8 +6,9 @@ import 'package:dhikru_linda_flutter/common_widgets/custom_delete_account_widget
 import 'package:dhikru_linda_flutter/common_widgets/custom_logout_widget.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/edit_profile_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_app_version_footer.dart';
-import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_appbar_widget.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_header_widget.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -33,6 +34,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   File? _imageFile;
   String? _imageUrl;
 
+  @override
+  void initState() {
+    super.initState();
+    getProfileRxObj.getProfileInfo();
+  }
+
   // ── Colors ──
   static const _bg = Color(0xFF0B0F14);
   static const _cardBg = Color(0xFF111720);
@@ -45,25 +52,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const Color _borderColor = Color(0xFF252545);
 
   Future<void> _navigateToEditProfile() async {
+    final user = getProfileRxObj.dataFetcher.hasValue ? getProfileRxObj.dataFetcher.value.data?.user : null;
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (_) => EditProfileScreen(
-          name: _name,
-          email: _email,
-          gender: _gender,
-          age: _age,
-          status: _status,
-          imageUrl: _imageUrl,
+          name: user?.name ?? _name,
+          email: user?.email ?? _email,
+          gender: user?.gender ?? _gender,
+          age: user?.age is int ? user?.age : (int.tryParse(user?.age?.toString() ?? '') ?? _age),
+          status: user?.maritalStatus ?? _status,
+          imageUrl: user?.avatar ?? _imageUrl,
         ),
       ),
     );
     if (result != null && result is Map && mounted) {
+      getProfileRxObj.getProfileInfo();
       setState(() {
-        _name = result['name'] as String? ?? _name;
-        _gender = result['gender'] as String? ?? _gender;
-        _age = result['age'] as int? ?? _age;
-        _status = result['status'] as String? ?? _status;
         _imageFile = result['imageFile'] as File? ?? _imageFile;
       });
     }
@@ -99,14 +104,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
             // ── Avatar + User Info ──
             SliverToBoxAdapter(
-              child: CustomProfileHeaderWidget(
-                name: _name,
-                email: _email,
-                gender: _gender,
-                age: _age,
-                status: _status,
-                imageFile: _imageFile,
-                imageUrl: _imageUrl,
+              child: StreamBuilder<GetProfileModel>(
+                stream: getProfileRxObj.getProfileData,
+                builder: (context, snapshot) {
+                  final isLoading = snapshot.connectionState == ConnectionState.waiting ||
+                      !snapshot.hasData ||
+                      snapshot.data?.data?.user == null;
+                  
+                  final user = snapshot.data?.data?.user;
+                  return CustomProfileHeaderWidget(
+                    name: user?.name,
+                    email: user?.email,
+                    gender: user?.gender,
+                    age: user?.age,
+                    status: user?.maritalStatus,
+                    imageFile: _imageFile,
+                    imageUrl: user?.avatar,
+                    isLoading: isLoading,
+                  );
+                },
               ),
             ),
 

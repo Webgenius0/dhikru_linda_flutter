@@ -12,6 +12,8 @@ import 'package:dhikru_linda_flutter/features/auth/register/model/resend_otp_mod
 import 'package:dhikru_linda_flutter/features/auth/set_new_password/data/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/set_new_password/model/set_new_password_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/account_delete/data/rx.dart';
+import 'package:dhikru_linda_flutter/features/home/data/get_profile_info/rx.dart';
+import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -58,6 +60,12 @@ ResetPasswordRx resetPasswordRxObj = ResetPasswordRx(
 DeleteAccountRx deleteAccountRxObj = DeleteAccountRx(
   empty: DeleteAccountModel(),
   dataFetcher: BehaviorSubject<DeleteAccountModel>(),
+);
+
+// ------------- Get Profile Api Access -------------
+GetProfileRx getProfileRxObj = GetProfileRx(
+  empty: GetProfileModel(),
+  dataFetcher: BehaviorSubject<GetProfileModel>(),
 );
 
 

@@ -4,25 +4,28 @@ import 'package:dhikru_linda_flutter/common_widgets/profile_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 
 class CustomProfileHeaderWidget extends StatelessWidget {
-  final String name;
-  final String email;
-  final String gender;
-  final int age;
-  final String status;
+  final String? name;
+  final String? email;
+  final String? gender;
+  final dynamic age;
+  final String? status;
   final File? imageFile;
   final String? imageUrl;
+  final bool isLoading;
 
   const CustomProfileHeaderWidget({
     super.key,
-    required this.name,
-    required this.email,
-    required this.gender,
-    required this.age,
-    required this.status,
+    this.name,
+    this.email,
+    this.gender,
+    this.age,
+    this.status,
     this.imageFile,
     this.imageUrl,
+    this.isLoading = false,
   });
 
   static const Color _bg = Color(0xFF0B0F14);
@@ -31,6 +34,24 @@ class CustomProfileHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> parts = [];
+    if (gender != null &&
+        gender.toString().trim().isNotEmpty &&
+        gender.toString().trim().toLowerCase() != 'null') {
+      parts.add('Gender: $gender');
+    }
+    if (age != null &&
+        age.toString().trim().isNotEmpty &&
+        age.toString().trim().toLowerCase() != 'null') {
+      parts.add('Age : $age');
+    }
+    if (status != null &&
+        status.toString().trim().isNotEmpty &&
+        status.toString().trim().toLowerCase() != 'null') {
+      parts.add('Marital Status: $status');
+    }
+    final detailsText = parts.join(' || ');
+
     return Column(
       children: [
         SizedBox(height: 10.h),
@@ -55,13 +76,26 @@ class CustomProfileHeaderWidget extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
               ),
-              child: ProfileAvatar(
-                radius: 54.r,
-                imageFile: imageFile,
-                imageUrl: imageUrl,
-                borderColor: _bg,
-                borderWidth: 3,
-              ),
+              child: isLoading
+                  ? Shimmer.fromColors(
+                      baseColor: Colors.white.withOpacity(0.05),
+                      highlightColor: Colors.white.withOpacity(0.1),
+                      child: Container(
+                        width: 108.r,
+                        height: 108.r,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    )
+                  : ProfileAvatar(
+                      radius: 54.r,
+                      imageFile: imageFile,
+                      imageUrl: imageUrl,
+                      borderColor: _bg,
+                      borderWidth: 3,
+                    ),
             ),
           ),
         ),
@@ -69,39 +103,78 @@ class CustomProfileHeaderWidget extends StatelessWidget {
         SizedBox(height: 18.h),
 
         // ── Name ──
-        Text(
-          name,
-          style: GoogleFonts.inter(
-            color: Colors.white,
-            fontSize: 24.sp,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
-          ),
-        ),
+        isLoading
+            ? Shimmer.fromColors(
+                baseColor: Colors.white.withOpacity(0.05),
+                highlightColor: Colors.white.withOpacity(0.1),
+                child: Container(
+                  width: 160.w,
+                  height: 24.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              )
+            : Text(
+                name ?? '',
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontSize: 24.sp,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
+                ),
+              ),
 
         SizedBox(height: 6.h),
 
         // ── Email ──
-        Text(
-          email,
-          style: GoogleFonts.inter(
-            color: _mutedText,
-            fontSize: 14.sp,
-            fontWeight: FontWeight.w400,
-          ),
-        ),
+        isLoading
+            ? Shimmer.fromColors(
+                baseColor: Colors.white.withOpacity(0.05),
+                highlightColor: Colors.white.withOpacity(0.1),
+                child: Container(
+                  width: 200.w,
+                  height: 14.h,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              )
+            : Text(
+                email ?? '',
+                style: GoogleFonts.inter(
+                  color: _mutedText,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
 
-        SizedBox(height: 8.h),
-
-        // ── Details (Gender || Age : X || Status) ──
-        Text(
-          '$gender || Age : $age || $status',
-          style: GoogleFonts.inter(
-            color: _mutedText.withOpacity(0.85),
-            fontSize: 13.sp,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        if (isLoading || detailsText.isNotEmpty) ...[
+          SizedBox(height: 8.h),
+          isLoading
+              ? Shimmer.fromColors(
+                  baseColor: Colors.white.withOpacity(0.05),
+                  highlightColor: Colors.white.withOpacity(0.1),
+                  child: Container(
+                    width: 180.w,
+                    height: 12.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                  ),
+                )
+              : Text(
+                  detailsText,
+                  style: GoogleFonts.inter(
+                    color: _mutedText.withOpacity(0.85),
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+        ],
 
         SizedBox(height: 16.h),
       ],
