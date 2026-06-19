@@ -2,8 +2,8 @@ import 'dart:io';
 import 'package:dhikru_linda_flutter/features/auth/login/presentation/login_screen.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/presentation/register_screen.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/presentation/register_verify_screen.dart';
-import 'package:dhikru_linda_flutter/features/auth/forget_password/presentation/forget_password_screen.dart';
-import 'package:dhikru_linda_flutter/features/auth/forget_password/presentation/forget_password_verify_otp_screen.dart';
+import 'package:dhikru_linda_flutter/features/auth/forgot_password/presentation/forget_password_screen.dart';
+import 'package:dhikru_linda_flutter/features/auth/forgot_password/presentation/forget_password_verify_otp_screen.dart';
 import 'package:dhikru_linda_flutter/features/auth/set_new_password/presentation/set_new_password.dart';
 import 'package:dhikru_linda_flutter/features/home/presentation/Interpretation_scren.dart';
 import 'package:dhikru_linda_flutter/features/home/presentation/new_drime_enter_screen.dart';
@@ -127,22 +127,28 @@ final class RouteGenerator {
               );
 
       case Routes.forgetPasswordVerifyOtpScreen:
+        final email = (settings.arguments as String?) ?? "";
         return Platform.isAndroid
             ? _FadedTransitionRoute(
-                widget: const ForgetPasswordVerifyOtpScreen(),
+                widget: ForgetPasswordVerifyOtpScreen(email: email),
                 settings: settings,
               )
             : CupertinoPageRoute(
-                builder: (context) => const ForgetPasswordVerifyOtpScreen(),
+                builder: (context) => ForgetPasswordVerifyOtpScreen(email: email),
               );
 
       case Routes.setNewPassword:
+        final Map<String, dynamic> args = (settings.arguments as Map<String, dynamic>?) ?? {};
+        final String email = args['email'] as String? ?? "";
+        final String resetToken = args['resetToken'] as String? ?? "";
         return Platform.isAndroid
             ? _FadedTransitionRoute(
-                widget: const SetNewPassword(),
+                widget: SetNewPassword(email: email, resetToken: resetToken),
                 settings: settings,
               )
-            : CupertinoPageRoute(builder: (context) => const SetNewPassword());
+            : CupertinoPageRoute(
+                builder: (context) => SetNewPassword(email: email, resetToken: resetToken),
+              );
 
       default:
         return null;

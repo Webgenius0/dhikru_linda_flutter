@@ -26,7 +26,7 @@ final class Endpoints {
    static String registerVerifyOtp() => "/user/verify-otp";
   // -------------------Register Verify otp end-------------------
 
- // -------------------Login start-------------------
+  // -------------------Login start-------------------
   static String login() => "/user/login";
   // -------------------Login end-------------------
 
@@ -35,18 +35,22 @@ final class Endpoints {
   // -------------------Logout end-------------------
 
 
-  // // -------------------Resend OTP start-------------------
+  // -------------------Resend OTP start-------------------
    static String resendOtp() => "/user/resend-otp";
-  // // -------------------Resend OTP end-------------------
+  // -------------------Resend OTP end-------------------
 
-  // // -------------------Forget Password start-------------------
-  // static String forgetPassword() => "/api/forget-password";
-  // // -------------------Forget Password end-------------------
+  // -------------------Forget Password start-----------------
+  static String forgotPassword() => "/user/forget-password";
+  // -------------------Forget Password end-------------------
 
 
-  // // -------------------Reset Password start-------------------
-  // static String resetPassword() => "/api/reset-password";
-  // // -------------------Reset Password end-------------------
+  // -------------------Reset Password start-----------------
+   static String resetPassword() => "/user/reset-password";
+  // -------------------Reset Password end-------------------
+
+   // -------------------Delete Account start-----------------
+   static String deleteAccount() => "/user/account/delete";
+   // -------------------Delete Account end-------------------
 
   // // -------------------Verify Otp start-------------------
   // static String verifyForgetPasswordOtp() => "/api/verify-otp";
@@ -60,11 +64,6 @@ final class Endpoints {
   // // -------------------Get Profile start-------------------
   // static String getProfile() => "/api/me";
   // // -------------------Get Profile end-------------------
-
-  // // -------------------Delete Account start-------------------
-  // static String deleteAccount() => "/api/delete-profile";
-  // // -------------------Delete Account end-------------------
-
 
   // // -------------------Update Password start-------------------
   // static String updatePassword() => "/api/update-password";
