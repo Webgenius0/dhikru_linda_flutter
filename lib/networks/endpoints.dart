@@ -71,4 +71,10 @@ final class Endpoints {
   // -------------------Privacy Policy start-----------------
   static String privacyPolicy() => "/pages/privacy";
   // -------------------Privacy Policy end-------------------
+
+  // -------------------Terms and Condition start-----------------
+  static String termsAndCondition() => "/pages/terms";
+  // -------------------Terms and Condition end-------------------
+
+
 }
