@@ -1,7 +1,9 @@
-import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_appbar_widget.dart';
+import 'package:dhikru_linda_flutter/features/insights/model/insight_data_model.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 
 class InsightsScreen extends StatefulWidget {
   final VoidCallback? onGoHome;
@@ -25,79 +27,170 @@ class _InsightsScreenState extends State<InsightsScreen> {
   static const _accentTeal = Color(0xFF2DD4BF);
 
   @override
+  void initState() {
+    super.initState();
+    insightsDataRxObj.getInsightsData();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _bg,
       body: SafeArea(
         top: false,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            // ── App Bar ──
-            SliverToBoxAdapter(child: _buildAppBar(context)),
+        child: StreamBuilder<InsightsDataModel>(
+          stream: insightsDataRxObj.getInsightsDataStream,
+          builder: (context, snapshot) {
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
+            final data = snapshot.hasData ? snapshot.data?.data : null;
 
-            // ── Mood Trend Card ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                child: _buildMoodTrendCard(),
-              ),
-            ),
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                // ── App Bar ──
+                SliverToBoxAdapter(child: _buildAppBar(context)),
 
-            // ── Theme Frequency Card ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                child: _buildThemeFrequencyCard(),
-              ),
-            ),
+                if (isLoading || data == null) ...[
+                  // ── Mood Trend Shimmer Card ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      child: _buildShimmerMoodTrendCard(),
+                    ),
+                  ),
 
-            // ── Recurring Symbols Section ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 20.w,
-                  right: 20.w,
-                  top: 20.h,
-                  bottom: 8.h,
-                ),
-                child: Text(
-                  'RECURRING SYMBOLS',
-                  style: GoogleFonts.inter(
-                    color: _mutedText,
-                    fontSize: 11.sp,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.2,
+                  // ── Theme Frequency Shimmer Card ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      child: _buildShimmerThemeFrequencyCard(),
+                    ),
+                  ),
+
+                  // ── Recurring Symbols Section ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: 20.w,
+                        right: 20.w,
+                        top: 20.h,
+                        bottom: 8.h,
+                      ),
+                      child: Text(
+                        'RECURRING SYMBOLS',
+                        style: GoogleFonts.inter(
+                          color: _mutedText,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: _buildShimmerRecurringSymbols(),
+                    ),
+                  ),
+
+                  // ── Subconscious Evolution Shimmer Card ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 16.h,
+                      ),
+                      child: _buildShimmerSubconsciousEvolutionCard(),
+                    ),
+                  ),
+                ] else ...[
+                  // ── Mood Trend Card ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      child: _buildMoodTrendCard(data.moodTrend),
+                    ),
+                  ),
+
+                  // ── Theme Frequency Card ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      child: _buildThemeFrequencyCard(data.themeFrequency),
+                    ),
+                  ),
+
+                  // ── Recurring Symbols Section ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.only(
+                        left: 20.w,
+                        right: 20.w,
+                        top: 20.h,
+                        bottom: 8.h,
+                      ),
+                      child: Text(
+                        'RECURRING SYMBOLS',
+                        style: GoogleFonts.inter(
+                          color: _mutedText,
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: _buildRecurringSymbols(data.recurringSymbols),
+                    ),
+                  ),
+
+                  // ── Subconscious Evolution Card ──
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 16.h,
+                      ),
+                      child: _buildSubconsciousEvolutionCard(
+                        data.subconsciousEvolution,
+                      ),
+                    ),
+                  ),
+                ],
+
+                // ── Unlock Premium Insights Card ──
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 10.h,
+                    ),
+                    child: _buildPremiumCard(),
                   ),
                 ),
-              ),
-            ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: _buildRecurringSymbols(),
-              ),
-            ),
 
-            // ── Subconscious Evolution Card ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-                child: _buildSubconsciousEvolutionCard(),
-              ),
-            ),
-
-            // ── Unlock Premium Insights Card ──
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-                child: _buildPremiumCard(),
-              ),
-            ),
-
-            // Padding at the bottom of the scroll list
-            SliverToBoxAdapter(child: SizedBox(height: 10.h)),
-          ],
+                // Padding at the bottom of the scroll list
+                SliverToBoxAdapter(child: SizedBox(height: 10.h)),
+              ],
+            );
+          },
         ),
       ),
     );
@@ -157,7 +250,15 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ────────────────────────────────────────────────
   //  Mood Trend Card Widget
   // ────────────────────────────────────────────────
-  Widget _buildMoodTrendCard() {
+  Widget _buildMoodTrendCard(MoodTrend? moodTrend) {
+    final hasData = moodTrend?.data != null && moodTrend!.data!.isNotEmpty;
+    final pointsYPercentage = hasData
+        ? moodTrend.data!.map((x) => (x.score ?? 0) / 100.0).toList()
+        : <double>[];
+    final days = hasData
+        ? moodTrend.data!.map((x) => x.day ?? '').toList()
+        : ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -212,15 +313,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                         child: CustomPaint(
                           size: Size.infinite,
                           painter: _MoodTrendLinePainter(
-                            pointsYPercentage: [
-                              0.65,
-                              0.70,
-                              0.55,
-                              0.80,
-                              0.75,
-                              0.85,
-                              0.90,
-                            ],
+                            pointsYPercentage: pointsYPercentage,
                             lineColor: _accentTeal,
                             gridColor: _dividerColor,
                           ),
@@ -231,21 +324,20 @@ class _InsightsScreenState extends State<InsightsScreen> {
                       // X-axis labels
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children:
-                            ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-                                .map(
-                                  (day) => Expanded(
-                                    child: Text(
-                                      day,
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.inter(
-                                        color: _mutedText.withOpacity(0.6),
-                                        fontSize: 11.sp,
-                                      ),
-                                    ),
+                        children: days
+                            .map(
+                              (day) => Expanded(
+                                child: Text(
+                                  day,
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    color: _mutedText.withOpacity(0.6),
+                                    fontSize: 11.sp,
                                   ),
-                                )
-                                .toList(),
+                                ),
+                              ),
+                            )
+                            .toList(),
                       ),
                     ],
                   ),
@@ -256,7 +348,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           SizedBox(height: 18.h),
 
           Text(
-            'Your mood has improved by 38% this week',
+            moodTrend?.description ?? '',
             style: GoogleFonts.inter(
               color: _mutedText,
               fontSize: 13.sp,
@@ -268,12 +360,83 @@ class _InsightsScreenState extends State<InsightsScreen> {
     );
   }
 
+  // ─── Shimmer Mood Trend Card ───
+  Widget _buildShimmerMoodTrendCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(color: _dividerColor, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 120.w,
+              height: 16.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+            SizedBox(height: 24.h),
+            Container(
+              height: 180.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            SizedBox(height: 18.h),
+            Container(
+              width: 220.w,
+              height: 14.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   // ────────────────────────────────────────────────
   //  Theme Frequency Card Widget
   // ────────────────────────────────────────────────
-  Widget _buildThemeFrequencyCard() {
-    final List<double> barPercentages = [1.0, 0.75, 0.375, 0.25, 0.125];
-    final List<String> barLabels = ['Fear', 'Growth', 'Joy', 'Calm', 'Other'];
+  Widget _buildThemeFrequencyCard(ThemeFrequency? themeFrequency) {
+    final themeData = themeFrequency?.data ?? [];
+
+    int maxVal = 40;
+    for (var item in themeData) {
+      if (item.percentage != null && item.percentage! > maxVal) {
+        maxVal = item.percentage!;
+      }
+    }
+    if (maxVal % 10 != 0) {
+      maxVal = ((maxVal / 10).ceil() * 10);
+    }
+    if (maxVal == 0) maxVal = 40;
+
+    final yLabels = [
+      maxVal.toString(),
+      (maxVal * 0.75).round().toString(),
+      (maxVal * 0.5).round().toString(),
+      (maxVal * 0.25).round().toString(),
+      '0',
+    ];
+
+    final List<double> barPercentages = themeData.isEmpty
+        ? [1.0, 0.75, 0.375, 0.25, 0.125]
+        : themeData.map((e) => (e.percentage ?? 0) / maxVal).toList();
+    final List<String> barLabels = themeData.isEmpty
+        ? ['Fear', 'Growth', 'Joy', 'Calm', 'Other']
+        : themeData.map((e) => e.name ?? '').toList();
 
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -303,7 +466,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 // Y-axis labels
                 Column(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: ['40', '30', '20', '10', '0']
+                  children: yLabels
                       .map(
                         (val) => SizedBox(
                           width: 24.w,
@@ -343,7 +506,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
                                 crossAxisAlignment: CrossAxisAlignment.end,
-                                children: List.generate(5, (index) {
+                                children: List.generate(barPercentages.length, (
+                                  index,
+                                ) {
                                   return FractionallySizedBox(
                                     heightFactor: barPercentages[index],
                                     child: Container(
@@ -394,38 +559,96 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
           SizedBox(height: 20.h),
 
-          // Legend and details
-          Text(
-            'Most common theme',
-            style: GoogleFonts.inter(
-              color: _mutedText.withOpacity(0.6),
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w400,
+          if (themeFrequency?.dominantThemeLabel != null &&
+              themeFrequency!.dominantThemeLabel!.isNotEmpty) ...[
+            // Legend and details
+            Text(
+              'Most common theme',
+              style: GoogleFonts.inter(
+                color: _mutedText.withOpacity(0.6),
+                fontSize: 12.sp,
+                fontWeight: FontWeight.w400,
+              ),
             ),
-          ),
-          SizedBox(height: 6.h),
-          Row(
-            children: [
-              Container(
-                width: 8.w,
-                height: 8.w,
-                decoration: const BoxDecoration(
-                  color: _accentPurple,
-                  shape: BoxShape.circle,
+            SizedBox(height: 6.h),
+            Row(
+              children: [
+                Container(
+                  width: 8.w,
+                  height: 8.w,
+                  decoration: const BoxDecoration(
+                    color: _accentPurple,
+                    shape: BoxShape.circle,
+                  ),
                 ),
-              ),
-              SizedBox(width: 8.w),
-              Text(
-                'Fear (40%)',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w600,
+                SizedBox(width: 8.w),
+                Text(
+                  themeFrequency.dominantThemeLabel!,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
+      ),
+    );
+  }
+
+  // ─── Shimmer Theme Frequency Card ───
+  Widget _buildShimmerThemeFrequencyCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(color: _dividerColor, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 140.w,
+              height: 16.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+            SizedBox(height: 24.h),
+            Container(
+              height: 180.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+            SizedBox(height: 20.h),
+            Container(
+              width: 100.w,
+              height: 12.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Container(
+              width: 80.w,
+              height: 14.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -433,41 +656,86 @@ class _InsightsScreenState extends State<InsightsScreen> {
   // ────────────────────────────────────────────────
   //  Recurring Symbols Tags
   // ────────────────────────────────────────────────
-  Widget _buildRecurringSymbols() {
-    final List<Map<String, dynamic>> symbols = [
-      {'tag': '#Water', 'count': 8},
-      {'tag': '#nature', 'count': 5},
-      {'tag': '#flying', 'count': 4},
-    ];
+  Widget _buildRecurringSymbols(List<RecurringSymbol>? symbols) {
+    if (symbols == null || symbols.isEmpty) {
+      return Text(
+        'No recurring symbols detected yet.',
+        style: GoogleFonts.inter(
+          color: _mutedText.withOpacity(0.6),
+          fontSize: 13.sp,
+          fontWeight: FontWeight.w400,
+        ),
+      );
+    }
 
-    return Wrap(
-      spacing: 10.w,
-      runSpacing: 10.h,
-      children: symbols.map((sym) {
-        return Container(
-          padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-          decoration: BoxDecoration(
-            color: _accentPurple.withOpacity(0.08),
-            borderRadius: BorderRadius.circular(20.r),
-            border: Border.all(color: _accentPurple.withOpacity(0.3), width: 1),
-          ),
-          child: Text(
-            '${sym['tag']} (${sym['count']})',
-            style: GoogleFonts.inter(
-              color: _accentPurpleLight,
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w500,
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      physics: const BouncingScrollPhysics(),
+      child: Row(
+        children: symbols.map((sym) {
+          final tag = sym.display ?? '#${sym.name ?? ''}';
+          return Container(
+            margin: EdgeInsets.only(right: 10.w),
+            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+            decoration: BoxDecoration(
+              color: _accentPurple.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(20.r),
+              border: Border.all(
+                color: _accentPurple.withOpacity(0.3),
+                width: 1,
+              ),
             ),
-          ),
-        );
-      }).toList(),
+            child: Text(
+              tag,
+              style: GoogleFonts.inter(
+                color: _accentPurpleLight,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  // ─── Shimmer Recurring Symbols ───
+  Widget _buildShimmerRecurringSymbols() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const NeverScrollableScrollPhysics(),
+        child: Row(
+          children: List.generate(3, (index) {
+            return Container(
+              margin: EdgeInsets.only(right: 10.w),
+              width: (80 + (index * 15)).w,
+              height: 32.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(20.r),
+              ),
+            );
+          }),
+        ),
+      ),
     );
   }
 
   // ────────────────────────────────────────────────
   //  Subconscious Evolution Dashboard
   // ────────────────────────────────────────────────
-  Widget _buildSubconsciousEvolutionCard() {
+  Widget _buildSubconsciousEvolutionCard(SubconsciousEvolution? evolution) {
+    final title = evolution?.title ?? 'Subconscious Evolution';
+    final timeframe = evolution?.timeframe ?? '7 Days';
+    final description = evolution?.description ?? '';
+    final intensityScore = evolution?.intensityScore ?? 0.0;
+    final intensityLabel =
+        evolution?.intensityLabel ?? 'Emotional Intensity Score';
+    final progressValue = (intensityScore / 10.0).clamp(0.0, 1.0);
+
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
@@ -483,7 +751,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Subconscious Evolution',
+                title,
                 style: GoogleFonts.inter(
                   color: Colors.white,
                   fontSize: 16.sp,
@@ -497,7 +765,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 child: Text(
-                  '7 Days',
+                  timeframe,
                   style: GoogleFonts.inter(
                     color: _accentPurpleLight,
                     fontSize: 11.sp,
@@ -511,7 +779,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
 
           // Main summary text
           Text(
-            'Your dreams have shifted from anxiety-driven narratives to more exploratory and peaceful themes. Water symbols have increased 40% this month, suggesting a deeper dive into emotional awareness.',
+            description,
             style: GoogleFonts.inter(
               color: Colors.white.withOpacity(0.7),
               fontSize: 13.sp,
@@ -528,7 +796,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(10.r),
                   child: LinearProgressIndicator(
-                    value: 0.72,
+                    value: progressValue,
                     minHeight: 6.h,
                     backgroundColor: _dividerColor,
                     valueColor: const AlwaysStoppedAnimation<Color>(
@@ -539,7 +807,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
               ),
               SizedBox(width: 14.w),
               Text(
-                '7.2/10',
+                '$intensityScore/10',
                 style: GoogleFonts.inter(
                   color: _accentTeal,
                   fontSize: 15.sp,
@@ -550,7 +818,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
           ),
           SizedBox(height: 6.h),
           Text(
-            'Emotional Intensity Score',
+            intensityLabel,
             style: GoogleFonts.inter(
               color: _mutedText.withOpacity(0.6),
               fontSize: 11.sp,
@@ -558,6 +826,89 @@ class _InsightsScreenState extends State<InsightsScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // ─── Shimmer Subconscious Evolution Card ───
+  Widget _buildShimmerSubconsciousEvolutionCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        padding: EdgeInsets.all(20.w),
+        decoration: BoxDecoration(
+          color: _cardBg,
+          borderRadius: BorderRadius.circular(18.r),
+          border: Border.all(color: _dividerColor, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: 160.w,
+                  height: 16.h,
+                  decoration: BoxDecoration(
+                    color: _white,
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+                Container(
+                  width: 50.w,
+                  height: 20.h,
+                  decoration: BoxDecoration(
+                    color: _white,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 14.h),
+            Container(
+              width: double.infinity,
+              height: 40.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(6.r),
+              ),
+            ),
+            SizedBox(height: 24.h),
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: 6.h,
+                    decoration: BoxDecoration(
+                      color: _white,
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 14.w),
+                Container(
+                  width: 40.w,
+                  height: 16.h,
+                  decoration: BoxDecoration(
+                    color: _white,
+                    borderRadius: BorderRadius.circular(4.r),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 6.h),
+            Container(
+              width: 150.w,
+              height: 11.h,
+              decoration: BoxDecoration(
+                color: _white,
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -685,7 +1036,7 @@ class _MoodTrendLinePainter extends CustomPainter {
       canvas.drawLine(Offset(0, yPos), Offset(w, yPos), gridPaint);
     }
 
-    if (pointsYPercentage.isEmpty) return;
+    if (pointsYPercentage.length < 2) return;
 
     // Calculate Day coordinate offsets
     final double stepX = w / (pointsYPercentage.length - 1);
@@ -741,7 +1092,8 @@ class _MoodTrendLinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _MoodTrendLinePainter oldDelegate) => false;
+  bool shouldRepaint(covariant _MoodTrendLinePainter oldDelegate) =>
+      oldDelegate.pointsYPercentage != pointsYPercentage;
 }
 
 // ────────────────────────────────────────────────

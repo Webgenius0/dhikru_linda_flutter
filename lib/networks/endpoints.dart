@@ -80,5 +80,7 @@ final class Endpoints {
   static String homeData() => "/home";
   // -------------------Home end-------------------
 
-
+  // -------------------Insights start-----------------
+  static String insights() => "/insights";
+  // -------------------Insights end-------------------
 }
