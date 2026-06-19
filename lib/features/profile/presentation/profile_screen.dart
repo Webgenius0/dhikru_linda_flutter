@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:dhikru_linda_flutter/common_widgets/custom_delete_account_widget.dart';
 import 'package:dhikru_linda_flutter/common_widgets/custom_logout_widget.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/change_password_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/edit_profile_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_app_version_footer.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_header_widget.dart';
@@ -441,6 +442,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
               label: 'Help & Support',
               onTap: () {
                 // TODO: navigate to help & support
+              },
+            ),
+            _buildDivider(),
+
+            // Change Password
+            _buildMenuItem(
+              icon: Icons.lock_outline_rounded,
+              iconColor: Colors.white70,
+              label: 'Change Password',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                );
               },
             ),
             _buildDivider(),
