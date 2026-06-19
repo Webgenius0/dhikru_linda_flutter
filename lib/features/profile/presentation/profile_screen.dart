@@ -7,6 +7,7 @@ import 'package:dhikru_linda_flutter/common_widgets/custom_logout_widget.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/change_password_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/help_and_support_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/edit_profile_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_app_version_footer.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_header_widget.dart';
@@ -431,7 +432,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (_) => const PrivacyPolicyScreen(),
+                    builder: (_) => const TermsAndConditionScreen(),
                   ),
                 );
               },
