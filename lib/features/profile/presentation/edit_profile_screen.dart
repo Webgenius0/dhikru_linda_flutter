@@ -51,20 +51,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool _isSaving = false;
 
   // ── Dropdown options ──
-  final List<String> _genderOptions = [
-    'Male',
-    'Female',
-    'Non-binary',
-    'Prefer not to say',
-  ];
-  final List<int> _ageOptions = List.generate(83, (i) => i + 18); // 18–100
+  final List<String> _genderOptions = ['Male', 'Female'];
+  final List<int> _ageOptions = List.generate(150, (i) => i + 1); // 1–150
   final List<String> _statusOptions = [
     'Single',
-    'In a relationship',
     'Married',
     'Divorced',
-    'Widowed',
-    'It\'s complicated',
     'Prefer not to say',
   ];
 
@@ -383,65 +375,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       ),
     );
   }
-
-  // ─── App Bar ─────────────────────────────────────────────────────────────────
-
-  // Widget _buildAppBar(BuildContext context) {
-  //   return Padding(
-  //     padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
-  //     child: Row(
-  //       children: [
-  //         GestureDetector(
-  //           onTap: () {
-  //             if (widget.onGoHome != null) {
-  //               widget.onGoHome!();
-  //             } else if (Navigator.canPop(context)) {
-  //               Navigator.pop(context);
-  //             }
-  //           },
-  //           child: Container(
-  //             width: 34,
-  //             height: 34,
-  //             decoration: BoxDecoration(
-  //               color: _cardBg,
-  //               shape: BoxShape.circle,
-  //               border: Border.all(color: _borderColor, width: 1),
-  //             ),
-  //             child: const Icon(
-  //               Icons.chevron_left_rounded,
-  //               color: _white,
-  //               size: 22,
-  //             ),
-  //           ),
-  //         ),
-  //         const SizedBox(width: 14),
-  //         Text(
-  //           'Profile',
-  //           style: TextStyle(
-  //             color: _white,
-  //             fontSize: 22,
-  //             fontWeight: FontWeight.w700,
-  //             letterSpacing: -0.3,
-  //           ),
-  //         ),
-  //         Spacer(),
-  //         GestureDetector(
-  //           onTap: _navigateToEditProfile,
-  //           child: Container(
-  //             width: 34,
-  //             height: 34,
-  //             decoration: BoxDecoration(
-  //               color: _cardBg,
-  //               shape: BoxShape.circle,
-  //               border: Border.all(color: _borderColor, width: 1),
-  //             ),
-  //             child: const Icon(Icons.edit_outlined, color: _white, size: 15),
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
 
   // ────────────────────────────────────────────────
   //  Avatar Picker
