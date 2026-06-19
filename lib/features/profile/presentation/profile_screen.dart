@@ -6,6 +6,7 @@ import 'package:dhikru_linda_flutter/common_widgets/custom_delete_account_widget
 import 'package:dhikru_linda_flutter/common_widgets/custom_logout_widget.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/change_password_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/help_and_support_screen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/edit_profile_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_app_version_footer.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/custom_profile_header_widget.dart';
@@ -54,7 +55,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   static const Color _borderColor = Color(0xFF252545);
 
   Future<void> _navigateToEditProfile() async {
-    final user = getProfileRxObj.dataFetcher.hasValue ? getProfileRxObj.dataFetcher.value.data?.user : null;
+    final user = getProfileRxObj.dataFetcher.hasValue
+        ? getProfileRxObj.dataFetcher.value.data?.user
+        : null;
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -62,7 +65,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           name: user?.name ?? _name,
           email: user?.email ?? _email,
           gender: user?.gender ?? _gender,
-          age: user?.age is int ? user?.age : (int.tryParse(user?.age?.toString() ?? '') ?? _age),
+          age: user?.age is int
+              ? user?.age
+              : (int.tryParse(user?.age?.toString() ?? '') ?? _age),
           status: user?.maritalStatus ?? _status,
           imageUrl: user?.avatar ?? _imageUrl,
         ),
@@ -109,10 +114,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: StreamBuilder<GetProfileModel>(
                 stream: getProfileRxObj.getProfileData,
                 builder: (context, snapshot) {
-                  final isLoading = snapshot.connectionState == ConnectionState.waiting ||
+                  final isLoading =
+                      snapshot.connectionState == ConnectionState.waiting ||
                       !snapshot.hasData ||
                       snapshot.data?.data?.user == null;
-                  
+
                   final user = snapshot.data?.data?.user;
                   return CustomProfileHeaderWidget(
                     name: user?.name,
@@ -200,12 +206,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           const SizedBox(width: 14),
           Text(
             'Profile',
-              style: TextStyle(
-            color: _white,
-            fontSize: 22,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.3,
-          ),
+            style: TextStyle(
+              color: _white,
+              fontSize: 22,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.3,
+            ),
           ),
           Spacer(),
           GestureDetector(
@@ -400,27 +406,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         child: Column(
           children: [
-            // Privacy & Security
-            _buildMenuItem(
-              icon: Icons.shield_outlined,
-              iconColor: const Color(0xFF2DD4BF),
-              label: 'Privacy & Security',
-              subtitle: 'Your dreams are securely encrypted',
-              subtitleColor: const Color(0xFF2DD4BF),
-              showArrow: true,
-              onTap: () {
-                // TODO: navigate to privacy & security
-              },
-            ),
-            _buildDivider(),
-
             // Privacy Policy
             _buildMenuItem(
               icon: Icons.shield_outlined,
               iconColor: Colors.white70,
               label: 'Privacy Policy',
               onTap: () {
-                // TODO: navigate to privacy policy
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PrivacyPolicyScreen(),
+                  ),
+                );
               },
             ),
             _buildDivider(),
@@ -431,7 +428,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
               iconColor: Colors.white70,
               label: 'Terms & Conditions',
               onTap: () {
-                // TODO: navigate to terms & conditions
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const PrivacyPolicyScreen(),
+                  ),
+                );
               },
             ),
             _buildDivider(),
@@ -444,7 +446,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const HelpAndSupportScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const HelpAndSupportScreen(),
+                  ),
                 );
               },
             ),
@@ -458,7 +462,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onTap: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const ChangePasswordScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const ChangePasswordScreen(),
+                  ),
                 );
               },
             ),
