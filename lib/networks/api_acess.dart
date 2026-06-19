@@ -18,6 +18,8 @@ import 'package:dhikru_linda_flutter/features/profile/data/update_profile/rx.dar
 import 'package:dhikru_linda_flutter/features/home/model/update_profile_model.dart';
 import 'package:dhikru_linda_flutter/features/profile/data/change_password/rx.dart';
 import 'package:dhikru_linda_flutter/features/profile/model/change_password_model.dart';
+import 'package:dhikru_linda_flutter/features/profile/data/help_and_support/rx.dart';
+import 'package:dhikru_linda_flutter/features/profile/model/help_and_support_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -99,6 +101,12 @@ UpdateProfileRx updateProfileRxObj = UpdateProfileRx(
 ChangePasswordRx changePasswordRxObj = ChangePasswordRx(
   empty: ChangePasswordModel(),
   dataFetcher: BehaviorSubject<ChangePasswordModel>(),
+);
+
+// ------------- Help & Support Api Access -------------
+HelpAndSupportRx helpAndSupportRxObj = HelpAndSupportRx(
+  empty: HelpAndSupportModel(),
+  dataFetcher: BehaviorSubject<HelpAndSupportModel>(),
 );
 
 // // ------------- Verify Register Otp Api Access -----------------//
