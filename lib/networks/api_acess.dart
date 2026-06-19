@@ -28,6 +28,8 @@ import 'package:dhikru_linda_flutter/features/home/data/get_home_data/rx.dart';
 import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
 import 'package:dhikru_linda_flutter/features/insights/data/rx_insights_data/rx.dart';
 import 'package:dhikru_linda_flutter/features/insights/model/insight_data_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/data/rx.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/tags_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -139,5 +141,11 @@ HomeDataRx homeDataRxObj = HomeDataRx(
 InsightsDataRx insightsDataRxObj = InsightsDataRx(
   empty: InsightsDataModel(),
   dataFetcher: BehaviorSubject<InsightsDataModel>(),
+);
+
+// ------------- Tags Api Access -------------
+TagsRx tagsRxObj = TagsRx(
+  empty: TagsModel(),
+  dataFetcher: BehaviorSubject<TagsModel>(),
 );
 
