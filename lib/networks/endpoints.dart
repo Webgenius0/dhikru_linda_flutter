@@ -56,6 +56,11 @@ final class Endpoints {
    static String getProfile() => "/user/me";
    // -------------------Get Profile end-------------------
 
+ // -------------------Update Profile start-------------------
+   static String updateProfile() => "/profile/update";
+   // -------------------Update Profile end-------------------
+
+   
    // // -------------------Verify Otp start-------------------
   // static String verifyForgetPasswordOtp() => "/api/verify-otp";
   // // -------------------Verify Otp end-------------------

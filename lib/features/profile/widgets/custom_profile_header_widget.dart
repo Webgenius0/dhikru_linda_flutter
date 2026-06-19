@@ -32,13 +32,31 @@ class CustomProfileHeaderWidget extends StatelessWidget {
   static const Color _mutedText = Color(0xFF8993A4);
   static const Color _accentPurple = Color(0xFF7C5CF6);
 
+  String _formatGender(String? val) {
+    if (val == null) return '';
+    final v = val.toLowerCase().trim();
+    if (v == 'male') return 'Male';
+    if (v == 'female') return 'Female';
+    return val;
+  }
+
+  String _formatStatus(String? val) {
+    if (val == null) return '';
+    final v = val.toLowerCase().trim().replaceAll('_', ' ');
+    if (v == 'single') return 'Single';
+    if (v == 'married') return 'Married';
+    if (v == 'divorced') return 'Divorced';
+    if (v == 'prefer not to say') return 'Prefer not to say';
+    return v.split(' ').map((word) => word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '').join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final List<String> parts = [];
     if (gender != null &&
         gender.toString().trim().isNotEmpty &&
         gender.toString().trim().toLowerCase() != 'null') {
-      parts.add('Gender: $gender');
+      parts.add('Gender: ${_formatGender(gender)}');
     }
     if (age != null &&
         age.toString().trim().isNotEmpty &&
@@ -48,7 +66,7 @@ class CustomProfileHeaderWidget extends StatelessWidget {
     if (status != null &&
         status.toString().trim().isNotEmpty &&
         status.toString().trim().toLowerCase() != 'null') {
-      parts.add('Marital Status: $status');
+      parts.add('Marital Status: ${_formatStatus(status)}');
     }
     final detailsText = parts.join(' || ');
 
