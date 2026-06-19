@@ -87,4 +87,10 @@ final class Endpoints {
   // -------------------Tags start-----------------
   static String tags() => "/tags";
   // -------------------Tags end-------------------
+
+  // -------------------Tags start-----------------
+  static String getAllJournal({int? tagId}) =>
+      tagId != null ? "/journal-entries?tag=$tagId" : "/journal-entries";
+  // -------------------Tags end-------------------
+
 }

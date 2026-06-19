@@ -20,14 +20,15 @@ class NavigationMenu extends StatefulWidget {
 
 class _NavigationMenuState extends State<NavigationMenu> {
   int _currentIndex = 0;
+  int? _selectedTagId;
 
   static const Color activeColor = Color(0xFF9D87F5);
   static const Color inactiveColor = Color(0xFF9DB2CE);
 
   List<Widget> get _pages => [
-    HomeScreen(onGoProfile: _goProfile, onGoJournal: _goJournal),
-    JournalScreen(onGoHome: _goHome),
-    InsightsScreen(onGoHome: _goHome),
+    HomeScreen(onGoProfile: _goProfile, onGoJournal: () => _goJournal(null)),
+    JournalScreen(onGoHome: _goHome, tagId: _selectedTagId),
+    InsightsScreen(onGoHome: _goHome, onGoJournal: _goJournal),
     ProfileScreen(onGoHome: _goHome),
   ];
 
@@ -35,8 +36,11 @@ class _NavigationMenuState extends State<NavigationMenu> {
     setState(() => _currentIndex = 0);
   }
 
-  void _goJournal() {
-    setState(() => _currentIndex = 1);
+  void _goJournal(int? tagId) {
+    setState(() {
+      _selectedTagId = tagId;
+      _currentIndex = 1;
+    });
   }
 
   void _goProfile() {

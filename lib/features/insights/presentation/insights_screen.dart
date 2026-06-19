@@ -7,8 +7,9 @@ import 'package:shimmer/shimmer.dart';
 
 class InsightsScreen extends StatefulWidget {
   final VoidCallback? onGoHome;
+  final void Function(int? tagId)? onGoJournal;
 
-  const InsightsScreen({super.key, this.onGoHome});
+  const InsightsScreen({super.key, this.onGoHome, this.onGoJournal});
 
   @override
   State<InsightsScreen> createState() => _InsightsScreenState();
@@ -30,6 +31,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
   void initState() {
     super.initState();
     insightsDataRxObj.getInsightsData();
+    tagsRxObj.getTags();
   }
 
   @override
@@ -673,24 +675,41 @@ class _InsightsScreenState extends State<InsightsScreen> {
       physics: const BouncingScrollPhysics(),
       child: Row(
         children: symbols.map((sym) {
-          final tag = sym.display ?? '#${sym.name ?? ''}';
-          return Container(
-            margin: EdgeInsets.only(right: 10.w),
-            padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: _accentPurple.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(20.r),
-              border: Border.all(
-                color: _accentPurple.withOpacity(0.3),
-                width: 1,
+          final tagText = sym.display ?? '#${sym.name ?? ''}';
+          return GestureDetector(
+            onTap: () {
+              final tagsModel = tagsRxObj.dataFetcher.valueOrNull;
+              if (tagsModel != null && tagsModel.data != null) {
+                final tagsList = tagsModel.data ?? [];
+                for (final tag in tagsList) {
+                  if (tag.name?.toLowerCase() == sym.name?.toLowerCase() ||
+                      tag.name?.toLowerCase() == sym.display?.toLowerCase() ||
+                      sym.display?.toLowerCase().contains(tag.name?.toLowerCase() ?? '') == true) {
+                    widget.onGoJournal?.call(tag.id);
+                    return;
+                  }
+                }
+              }
+              widget.onGoJournal?.call(null);
+            },
+            child: Container(
+              margin: EdgeInsets.only(right: 10.w),
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              decoration: BoxDecoration(
+                color: _accentPurple.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(20.r),
+                border: Border.all(
+                  color: _accentPurple.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-            ),
-            child: Text(
-              tag,
-              style: GoogleFonts.inter(
-                color: _accentPurpleLight,
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w500,
+              child: Text(
+                tagText,
+                style: GoogleFonts.inter(
+                  color: _accentPurpleLight,
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           );

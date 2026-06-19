@@ -112,12 +112,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
         ];
 
     // Symbol Tags configuration
-    final List<String> symbolTags = const [
-      'Water',
-      'Lost',
-      'Empty City',
-      'Purple Sky',
-    ];
+    final List<String> symbolTags = List<String>.from(widget.dream['tags'] ?? []);
 
     return Scaffold(
       backgroundColor: _bgColor,
