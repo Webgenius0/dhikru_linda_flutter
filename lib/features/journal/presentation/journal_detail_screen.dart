@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/show_journal_model.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 
 class JournalDetailScreen extends StatefulWidget {
   final Map<String, dynamic> dream;
@@ -57,116 +61,377 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
   ];
 
   @override
+  void initState() {
+    super.initState();
+    showJournalRxObj.clean();
+    if (widget.dream['id'] != null) {
+      showJournalRxObj.showJournalDetails(journalId: widget.dream['id']);
+    }
+
+    showJournalRxObj.getShowJournalStream.firstWhere((data) => data.data != null).then((data) {
+      if (mounted && data.data?.userResponse != null) {
+        _respondController.text = data.data!.userResponse!;
+      }
+    });
+  }
+
+  @override
   void dispose() {
     _respondController.dispose();
+    showJournalRxObj.clean();
     super.dispose();
+  }
+
+  Color _getEmotionColor(String? name) {
+    if (name == null) return const Color(0xFF7B6EF6);
+    final n = name.toLowerCase();
+    if (n.contains('anxi') || n.contains('fear') || n.contains('stress') || n.contains('overwhelm')) return const Color(0xFFEE4444);
+    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl')) return const Color(0xFF7B6EF6);
+    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz')) return const Color(0xFF00CFFF);
+    if (n.contains('joy') || n.contains('happ') || n.contains('excit') || n.contains('calm')) return const Color(0xFF22CCAA);
+    if (n.contains('sad') || n.contains('grief') || n.contains('sorrow')) return const Color(0xFF9988FF);
+    return const Color(0xFF7B6EF6);
+  }
+
+  Map<String, dynamic> _getCareItemIconAndColors(String title) {
+    final t = title.toLowerCase();
+    if (t.contains('meditat')) {
+      return {
+        'icon': Icons.favorite_border_rounded,
+        'iconColor': const Color(0xFF9988FF),
+        'iconBg': const Color(0xFF1E1A3A),
+      };
+    } else if (t.contains('walk')) {
+      return {
+        'icon': Icons.directions_walk_rounded,
+        'iconColor': const Color(0xFF22CCAA),
+        'iconBg': const Color(0xFF0A2A22),
+      };
+    } else if (t.contains('journ')) {
+      return {
+        'icon': Icons.menu_book_rounded,
+        'iconColor': const Color(0xFFEEAA44),
+        'iconBg': const Color(0xFF2A1E0A),
+      };
+    } else if (t.contains('relax')) {
+      return {
+        'icon': Icons.coffee_rounded,
+        'iconColor': const Color(0xFFEE6688),
+        'iconBg': const Color(0xFF2A1020),
+      };
+    }
+    return {
+      'icon': Icons.self_improvement_rounded,
+      'iconColor': const Color(0xFF9988FF),
+      'iconBg': const Color(0xFF1E1A3A),
+    };
+  }
+
+  Widget _buildShimmerLoader(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.04),
+      highlightColor: Colors.white.withOpacity(0.08),
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 16),
+            // Header row skeleton
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: const BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Container(
+                      width: 130.w,
+                      height: 18.h,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(4.r),
+                      ),
+                    ),
+                  ],
+                ),
+                Container(
+                  width: 34,
+                  height: 34,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 28),
+
+            // Hero header centered details
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    width: 72,
+                    height: 72,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Container(
+                    width: 200.w,
+                    height: 22.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 140.w,
+                    height: 14.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4.r),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Summary Card
+            Container(
+              width: double.infinity,
+              height: 120.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+            ),
+            const SizedBox(height: 14),
+
+            // Meaning Card
+            Container(
+              width: double.infinity,
+              height: 100.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Respond label & box
+            Container(
+              width: 100.w,
+              height: 12.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(3.r),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              height: 80.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(14.r),
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // Care label & grids
+            Container(
+              width: 130.w,
+              height: 12.h,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(3.r),
+              ),
+            ),
+            const SizedBox(height: 12),
+            GridView.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 10,
+              mainAxisSpacing: 10,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              childAspectRatio: 2.6,
+              children: List.generate(4, (index) {
+                return Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                );
+              }),
+            ),
+            const SizedBox(height: 28),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    // Dynamically retrieve values from dream, or use beautiful defaults matching the mockup
-    final String title = widget.dream['title'] ?? 'The Endless Ocean';
-    final String date = widget.dream['date'] ?? 'Oct 25';
-
-    // Derive a clean list of emotions from the badge or default
-    final String badge =
-        (widget.dream['badge'] as String? ?? 'Anxiety, Overwhelm')
-            .toLowerCase();
-    final String capitalizedBadge = badge
-        .split(', ')
-        .map((word) => word.substring(0, 1).toUpperCase() + word.substring(1))
-        .join(', ');
-    final String subtitleText = '$date • $capitalizedBadge';
-
-    // Summary & Meaning contents
-    final String summary =
-        widget.dream['summary'] ??
-        'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters...';
-
-    final String meaning =
-        widget.dream['meaning'] ??
-        'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted';
-
-    // Emotions configuration
-    final List<Map<String, dynamic>> emotions =
-        widget.dream['emotions'] ??
-        [
-          {
-            'label': 'Anxiety',
-            'percent': 75,
-            'color': const Color(0xFFEE4444),
-            'trackColor': const Color(0xFF3A1A1A),
-          },
-          {
-            'label': 'Confusion',
-            'percent': 45,
-            'color': const Color(0xFF7B6EF6),
-            'trackColor': const Color(0xFF221A3A),
-          },
-          {
-            'label': 'Awe',
-            'percent': 30,
-            'color': const Color(0xFF00CFFF),
-            'trackColor': const Color(0xFF0A253A),
-          },
-        ];
-
-    // Symbol Tags configuration
-    final List<String> symbolTags = List<String>.from(widget.dream['tags'] ?? []);
-
     return Scaffold(
       backgroundColor: _bgColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildAppBar(context),
-                    const SizedBox(height: 28),
+        child: StreamBuilder<ShowJournalModel>(
+          stream: showJournalRxObj.getShowJournalStream,
+          builder: (context, snapshot) {
+            return ValueListenableBuilder<bool>(
+              valueListenable: showJournalRxObj.isLoading,
+              builder: (context, apiLoading, child) {
+                final isLoading = apiLoading || snapshot.connectionState == ConnectionState.waiting;
+                if (isLoading) {
+                  return _buildShimmerLoader(context);
+                }
 
-                    // Hero Header with glowing icon and title
-                    Center(child: _buildHeroHeader(title, subtitleText)),
-                    const SizedBox(height: 28),
-
-                    // Summary glassmorphism card
-                    _buildTextCard(
-                      icon: Icons.notes_rounded,
-                      iconColor: _accentPurple,
-                      title: 'Summary',
-                      body: summary,
+                final journalData = snapshot.data?.data;
+                if (journalData == null) {
+                  return const Center(
+                    child: Text(
+                      "No journal details found.",
+                      style: TextStyle(color: _subtleText),
                     ),
-                    const SizedBox(height: 14),
+                  );
+                }
 
-                    // Meaning glassmorphism card
-                    _buildTextCard(title: 'Meaning', body: meaning),
-                    const SizedBox(height: 28),
+                // Dynamically retrieve values from journalData, fallback to dream values
+                final String title = journalData.title ?? widget.dream['title'] ?? 'The Endless Ocean';
+                final String date = journalData.formattedDate ?? widget.dream['date'] ?? 'Oct 25';
 
-                    // Response input section
-                    _buildYourRespondSection(),
-                    const SizedBox(height: 28),
+                // Derive a clean list of emotions from the badge or default
+                final String badge = (journalData.moodDisplay ?? widget.dream['badge'] as String? ?? 'Anxiety, Overwhelm').toLowerCase();
+                final String capitalizedBadge = badge
+                    .split(', ')
+                    .map((word) => word.isNotEmpty ? (word.substring(0, 1).toUpperCase() + word.substring(1)) : '')
+                    .join(', ');
+                final String subtitleText = '$date • $capitalizedBadge';
 
-                    // Care & Reflection cards
-                    _buildCareReflectionSection(),
-                    const SizedBox(height: 28),
+                // Summary & Meaning contents
+                final String summary = journalData.summary ?? widget.dream['summary'] ?? '';
+                final String meaning = journalData.meaning ?? widget.dream['meaning'] ?? '';
 
-                    // Emotional landscape progress bars
-                    _buildEmotionalLandscapeSection(emotions),
-                    const SizedBox(height: 28),
+                // Emotions configuration
+                final List<Map<String, dynamic>> emotions = (journalData.emotionalLandscape != null && journalData.emotionalLandscape!.isNotEmpty)
+                    ? journalData.emotionalLandscape!.map((e) {
+                        final color = _getEmotionColor(e.name);
+                        return {
+                          'label': e.name ?? '',
+                          'percent': e.percentage ?? 0,
+                          'color': color,
+                          'trackColor': color.withOpacity(0.15),
+                        };
+                      }).toList()
+                    : [
+                        {
+                          'label': 'Anxiety',
+                          'percent': 75,
+                          'color': const Color(0xFFEE4444),
+                          'trackColor': const Color(0xFF3A1A1A),
+                        },
+                        {
+                          'label': 'Confusion',
+                          'percent': 45,
+                          'color': const Color(0xFF7B6EF6),
+                          'trackColor': const Color(0xFF221A3A),
+                        },
+                        {
+                          'label': 'Awe',
+                          'percent': 30,
+                          'color': const Color(0xFF00CFFF),
+                          'trackColor': const Color(0xFF0A253A),
+                        },
+                      ];
 
-                    // Symbol tags section
-                    _buildSymbolTagsSection(symbolTags),
-                    const SizedBox(height: 40),
+                // Care items mapping from API with fallback to default mockup list
+                final List<Map<String, dynamic>> careItems = (journalData.careReflection != null && journalData.careReflection!.isNotEmpty)
+                    ? journalData.careReflection!.map((item) {
+                        final itemTitle = item.shortTitle ?? item.title ?? 'Reflection';
+                        final itemSubtitle = item.title ?? item.shortTitle ?? '';
+                        final mapping = _getCareItemIconAndColors(itemTitle);
+                        return {
+                          'icon': mapping['icon'],
+                          'iconColor': mapping['iconColor'],
+                          'iconBg': mapping['iconBg'],
+                          'title': itemTitle,
+                          'subtitle': itemSubtitle,
+                        };
+                      }).toList()
+                    : _careItems;
+
+                // Symbol Tags configuration
+                final List<String> symbolTags = journalData.symbolTags ?? List<String>.from(widget.dream['tags'] ?? []);
+
+                return Column(
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        physics: const BouncingScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const SizedBox(height: 16),
+                            _buildAppBar(context),
+                            const SizedBox(height: 28),
+
+                            // Hero Header with glowing icon and title
+                            Center(child: _buildHeroHeader(title, subtitleText)),
+                            const SizedBox(height: 28),
+
+                            // Summary glassmorphism card
+                            _buildTextCard(
+                              icon: Icons.notes_rounded,
+                              iconColor: _accentPurple,
+                              title: 'Summary',
+                              body: summary,
+                            ),
+                            const SizedBox(height: 14),
+
+                            // Meaning glassmorphism card
+                            _buildTextCard(title: 'Meaning', body: meaning),
+                            const SizedBox(height: 28),
+
+                            // Response input section
+                            _buildYourRespondSection(),
+                            const SizedBox(height: 28),
+
+                            // Care & Reflection cards
+                            _buildCareReflectionSection(careItems),
+                            const SizedBox(height: 28),
+
+                            // Emotional landscape progress bars
+                            _buildEmotionalLandscapeSection(emotions),
+                            const SizedBox(height: 28),
+
+                            // Symbol tags section
+                            _buildSymbolTagsSection(symbolTags),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      ),
+                    ),
                   ],
-                ),
-              ),
-            ),
-          ],
+                );
+              },
+            );
+          },
         ),
       ),
     );
@@ -380,7 +645,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
 
   // ─── Care & Reflection ───────────────────────────────────────────────────────
 
-  Widget _buildCareReflectionSection() {
+  Widget _buildCareReflectionSection(List<Map<String, dynamic>> careItems) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -401,7 +666,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: 2.6,
-          children: _careItems.map((item) => _buildCareCard(item)).toList(),
+          children: careItems.map((item) => _buildCareCard(item)).toList(),
         ),
       ],
     );

@@ -32,6 +32,8 @@ import 'package:dhikru_linda_flutter/features/journal/data/get_tags/rx.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/tags_model.dart';
 import 'package:dhikru_linda_flutter/features/journal/data/get_all_journal/rx.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/get_all_journal_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/data/show_journal/rx.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/show_journal_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -155,5 +157,11 @@ TagsRx tagsRxObj = TagsRx(
 GetAllJournalRx getAllJournalRxObj = GetAllJournalRx(
   empty: GetAllJournalModel(),
   dataFetcher: BehaviorSubject<GetAllJournalModel>(),
+);
+
+// ------------- Show Journal Api Access -------------
+ShowJournalRx showJournalRxObj = ShowJournalRx(
+  empty: ShowJournalModel(),
+  dataFetcher: BehaviorSubject<ShowJournalModel>(),
 );
 
