@@ -4,6 +4,11 @@ import 'dart:developer';
 import 'package:flutter/foundation.dart';
 
 import 'package:dio/dio.dart';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/di.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/helpers/toast.dart';
 
 import '../exception_handler/data_source.dart';
 
@@ -42,6 +47,19 @@ final class Logger extends Interceptor {
       log('Error: ${err.error}');
       log('Error Req option: ${err.requestOptions}');
     }
+
+    if (err.response?.statusCode == 401) {
+      final isLoggedIn = appData.read(kKeyIsLoggedIn) ?? false;
+      if (isLoggedIn) {
+        appData.write(kKeyIsLoggedIn, false);
+        appData.remove(kKeyAccessToken);
+        appData.remove(kKeyName);
+        appData.remove(kKeyEmail);
+        ToastUtil.showShortToast("Session expired. Please log in again.");
+        NavigationService.navigateToUntilReplacement(Routes.logInScreen);
+      }
+    }
+
     ErrorHandler.handle(err).failure;
     return super.onError(err, handler);
   }
