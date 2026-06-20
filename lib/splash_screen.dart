@@ -1,5 +1,8 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/helpers/helper_methods.dart';
+import 'package:dhikru_linda_flutter/helpers/di.dart';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -42,9 +45,16 @@ class _SplashScreenState extends State<SplashScreen>
     // --------------- Start Animation ---------------
     _animationController.forward();
 
-    // --------------- Navigate to Login Screen ---------------
-    Future.delayed(const Duration(seconds: 2), () {
-      NavigationService.navigateToReplacement(Routes.logInScreen);
+    // --------------- Initialize & Navigate ---------------
+    setInitValue().then((_) {
+      if (mounted) {
+        bool isLoggedIn = appData.read(kKeyIsLoggedIn) ?? false;
+        if (isLoggedIn) {
+          NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+        } else {
+          NavigationService.navigateToReplacement(Routes.logInScreen);
+        }
+      }
     });
   }
 
