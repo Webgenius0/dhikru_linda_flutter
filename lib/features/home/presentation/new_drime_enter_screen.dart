@@ -1,5 +1,6 @@
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/tags_model.dart';
 import 'package:flutter/material.dart';
@@ -34,11 +35,19 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
   final TextEditingController _descController = TextEditingController();
 
   final Set<int> _selectedTagIds = {};
-
+  bool _isVoiceEntry = false;
+ 
   @override
   void initState() {
     super.initState();
     tagsRxObj.getTags();
+    _descController.addListener(() {
+      if (_descController.text.isEmpty && _isVoiceEntry) {
+        setState(() {
+          _isVoiceEntry = false;
+        });
+      }
+    });
   }
 
   @override
@@ -262,6 +271,11 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
           backgroundColor: Colors.transparent,
           builder: (context) => _VoiceRecordingBottomSheetContent(
             controller: _descController,
+            onRecordSuccess: (bool isVoice) {
+              setState(() {
+                _isVoiceEntry = isVoice;
+              });
+            },
           ),
         );
       },
@@ -404,50 +418,98 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
   // ─── Bottom Interpret Button ─────────────────────────────────────────────────
 
   Widget _buildInterpretButton() {
-    return Container(
-      color: _bgColor,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-      child: SizedBox(
-        width: double.infinity,
-        height: 54,
-        child: ElevatedButton(
-          onPressed: () {
-            NavigationService.navigateTo(Routes.interpretationScren);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _accentPurple,
-            foregroundColor: _white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Text('✦', style: TextStyle(fontSize: 16, color: Colors.white)),
-              SizedBox(width: 8),
-              Text(
-                'Interpret My Dream',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
+    return ValueListenableBuilder<bool>(
+      valueListenable: newJournalEntryRxObj.isLoading,
+      builder: (context, isLoading, child) {
+        return Container(
+          color: _bgColor,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () async {
+                if (isLoading) return;
+                final title = _titleController.text.trim();
+                final content = _descController.text.trim();
+
+                if (title.isEmpty) {
+                  ToastUtil.showShortToast("Please enter a title for your dream.");
+                  return;
+                }
+
+                if (content.isEmpty) {
+                  ToastUtil.showShortToast("Please describe your dream or record your voice.");
+                  return;
+                }
+
+                final success = await newJournalEntryRxObj.addNewJournalEntry(
+                  title: title,
+                  content: _isVoiceEntry ? null : content,
+                  contentVoice: _isVoiceEntry ? content : null,
+                  tagIds: _selectedTagIds.toList(),
+                );
+
+                if (success && mounted) {
+                  final entryModel = newJournalEntryRxObj.dataFetcher.valueOrNull;
+                  if (entryModel != null && entryModel.data != null) {
+                    NavigationService.navigateTo(
+                      Routes.interpretationScren,
+                      arguments: entryModel.data,
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accentPurple,
+                foregroundColor: _white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
               ),
-            ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isLoading) ...[
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ] else ...[
+                    const Text('✦', style: TextStyle(fontSize: 16, color: Colors.white)),
+                    const SizedBox(width: 8),
+                  ],
+                  const Text(
+                    'Interpret My Dream',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
 
 class _VoiceRecordingBottomSheetContent extends StatefulWidget {
   final TextEditingController controller;
+  final ValueChanged<bool> onRecordSuccess;
 
   const _VoiceRecordingBottomSheetContent({
     required this.controller,
+    required this.onRecordSuccess,
   });
 
   @override
@@ -726,6 +788,7 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
                 child: OutlinedButton(
                   onPressed: () {
                     widget.controller.text = _originalText;
+                    widget.onRecordSuccess(false);
                     Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(
@@ -747,6 +810,7 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
+                    widget.onRecordSuccess(true);
                     Navigator.pop(context);
                   },
                   style: ElevatedButton.styleFrom(

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/new_journal_entry_model.dart';
+import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:shimmer/shimmer.dart';
 
 class InterpretationScren extends StatefulWidget {
   const InterpretationScren({super.key});
@@ -24,6 +27,37 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   static const Color _tagText = Color(0xFF8888EE);
 
   final TextEditingController _respondController = TextEditingController();
+
+  Data? _dreamData;
+  bool _isInitialized = false;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      final args = ModalRoute.of(context)?.settings.arguments;
+      if (args is Data) {
+        _dreamData = args;
+        if (_dreamData!.userResponse != null) {
+          _respondController.text = _dreamData!.userResponse!;
+        }
+      }
+      _isInitialized = true;
+    }
+  }
 
   final List<Map<String, dynamic>> _emotions = [
     {
@@ -98,56 +132,60 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         child: Column(
           children: [
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    Center(child: _buildAppBar(context)),
-                    const SizedBox(height: 28),
+              child: _isLoading
+                  ? _buildShimmerLoading()
+                  : SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          Center(child: _buildAppBar(context)),
+                          const SizedBox(height: 28),
 
-                    // ── NEW: Hero header ──
-                    Center(child: _buildHeroHeader()),
-                    const SizedBox(height: 28),
+                          // ── NEW: Hero header ──
+                          Center(child: _buildHeroHeader()),
+                          const SizedBox(height: 28),
 
-                    // ── NEW: Summary card ──
-                    _buildTextCard(
-                      icon: Icons.list_rounded,
-                      iconColor: _accentPurple,
-                      title: 'Summary',
-                      body:
-                          'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....',
+                          // ── Summary card ──
+                          _buildTextCard(
+                            icon: Icons.list_rounded,
+                            iconColor: _accentPurple,
+                            title: 'Summary',
+                            body: _dreamData?.summary ??
+                                'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....',
+                          ),
+                          const SizedBox(height: 14),
+
+                          // ── Meaning card ──
+                          _buildTextCard(
+                            title: 'Meaning',
+                            body: _dreamData?.meaning ??
+                                'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted',
+                          ),
+                          const SizedBox(height: 28),
+
+                          _buildYourRespondSection(),
+                          const SizedBox(height: 28),
+                          _buildCareReflectionSection(),
+                          const SizedBox(height: 28),
+                          _buildEmotionalLandscapeSection(),
+                          const SizedBox(height: 28),
+                          _buildSymbolTagsSection(),
+                          const SizedBox(height: 100),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 14),
-
-                    // ── NEW: Meaning card ──
-                    _buildTextCard(
-                      title: 'Meaning',
-                      body:
-                          'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted',
-                    ),
-                    const SizedBox(height: 28),
-
-                    _buildYourRespondSection(),
-                    const SizedBox(height: 28),
-                    _buildCareReflectionSection(),
-                    const SizedBox(height: 28),
-                    _buildEmotionalLandscapeSection(),
-                    const SizedBox(height: 28),
-                    _buildSymbolTagsSection(),
-                    const SizedBox(height: 100),
-                  ],
-                ),
-              ),
             ),
           ],
         ),
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 45),
-        child: _buildSaveButton(),
-      ),
+      bottomNavigationBar: _isLoading
+          ? const SizedBox.shrink()
+          : Padding(
+              padding: const EdgeInsets.only(bottom: 45),
+              child: _buildSaveButton(),
+            ),
     );
   }
 
@@ -206,6 +244,11 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Hero Header ─────────────────────────────────────────────────────────────
 
   Widget _buildHeroHeader() {
+    final title = _dreamData?.title ?? 'The Endless Ocean';
+    final dateAndMoods = _dreamData != null
+        ? '${_dreamData!.formattedDate ?? ''}${_dreamData!.moodDisplay != null ? ' • ${_dreamData!.moodDisplay}' : ''}'
+        : 'Oct 25 • Anxiety, Overwhelm';
+
     return Column(
       children: [
         // Purple circle icon
@@ -229,10 +272,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         ),
         const SizedBox(height: 16),
         // Dream title
-        const Text(
-          'The Endless Ocean',
+        Text(
+          title,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: _white,
             fontSize: 26,
             fontWeight: FontWeight.w700,
@@ -242,10 +285,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         ),
         const SizedBox(height: 8),
         // Date + tags
-        const Text(
-          'Oct 25 • Anxiety, Overwhelm',
+        Text(
+          dateAndMoods,
           textAlign: TextAlign.center,
-          style: TextStyle(
+          style: const TextStyle(
             color: _subtleText,
             fontSize: 13,
             letterSpacing: 0.1,
@@ -351,6 +394,30 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Care & Reflection ───────────────────────────────────────────────────────
 
   Widget _buildCareReflectionSection() {
+    final hasData = _dreamData?.careReflection != null && _dreamData!.careReflection!.isNotEmpty;
+    final List<Map<String, dynamic>> itemsToShow = [];
+
+    if (hasData) {
+      for (var reflection in _dreamData!.careReflection!) {
+        final title = reflection.title ?? '';
+        final subtitle = reflection.shortTitle ?? '';
+        if (title.isEmpty) continue;
+
+        final decoration = _getCareItemIconAndColors(title);
+        itemsToShow.add({
+          'icon': decoration['icon'] ?? Icons.favorite_border_rounded,
+          'iconColor': decoration['iconColor'] ?? const Color(0xFF9988FF),
+          'iconBg': decoration['iconBg'] ?? const Color(0xFF1E1A3A),
+          'title': title,
+          'subtitle': subtitle,
+        });
+      }
+    } else {
+      itemsToShow.addAll(_careItems);
+    }
+
+    if (itemsToShow.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -371,10 +438,39 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           childAspectRatio: 2.6,
-          children: _careItems.map((item) => _buildCareCard(item)).toList(),
+          children: itemsToShow.map((item) => _buildCareCard(item)).toList(),
         ),
       ],
     );
+  }
+
+  Map<String, dynamic> _getCareItemIconAndColors(String title) {
+    final t = title.toLowerCase();
+    if (t.contains('meditat')) {
+      return {
+        'icon': Icons.favorite_border_rounded,
+        'iconColor': const Color(0xFF9988FF),
+        'iconBg': const Color(0xFF1E1A3A),
+      };
+    } else if (t.contains('walk')) {
+      return {
+        'icon': Icons.directions_walk_rounded,
+        'iconColor': const Color(0xFF22CCAA),
+        'iconBg': const Color(0xFF0A2A22),
+      };
+    } else if (t.contains('journal')) {
+      return {
+        'icon': Icons.menu_book_rounded,
+        'iconColor': const Color(0xFFEEAA44),
+        'iconBg': const Color(0xFF2A1E0A),
+      };
+    } else {
+      return {
+        'icon': Icons.coffee_rounded,
+        'iconColor': const Color(0xFFEE6688),
+        'iconBg': const Color(0xFF2A1020),
+      };
+    }
   }
 
   Widget _buildCareCard(Map<String, dynamic> item) {
@@ -434,6 +530,28 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Emotional Landscape ─────────────────────────────────────────────────────
 
   Widget _buildEmotionalLandscapeSection() {
+    final hasData = _dreamData?.emotionalLandscape != null && _dreamData!.emotionalLandscape!.isNotEmpty;
+    final List<Map<String, dynamic>> emotionsToShow = [];
+
+    if (hasData) {
+      for (var emotion in _dreamData!.emotionalLandscape!) {
+        final name = emotion.name ?? '';
+        final percent = emotion.percentage ?? 0;
+        if (name.isEmpty) continue;
+
+        emotionsToShow.add({
+          'label': name,
+          'percent': percent,
+          'color': _getEmotionColor(name),
+          'trackColor': _getEmotionTrackColor(name),
+        });
+      }
+    } else {
+      emotionsToShow.addAll(_emotions);
+    }
+
+    if (emotionsToShow.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -455,11 +573,11 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             border: Border.all(color: _borderColor, width: 1),
           ),
           child: Column(
-            children: List.generate(_emotions.length, (index) {
-              final item = _emotions[index];
+            children: List.generate(emotionsToShow.length, (index) {
+              final item = emotionsToShow[index];
               return Padding(
                 padding: EdgeInsets.only(
-                  bottom: index < _emotions.length - 1 ? 18 : 0,
+                  bottom: index < emotionsToShow.length - 1 ? 18 : 0,
                 ),
                 child: _buildEmotionBar(item),
               );
@@ -468,6 +586,22 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         ),
       ],
     );
+  }
+
+  Color _getEmotionColor(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('anxi') || n.contains('fear') || n.contains('stress') || n.contains('overwhelm')) return const Color(0xFFEE4444);
+    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl')) return const Color(0xFF4466EE);
+    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz')) return const Color(0xFF22CC88);
+    return const Color(0xFF7B6EF6);
+  }
+
+  Color _getEmotionTrackColor(String name) {
+    final n = name.toLowerCase();
+    if (n.contains('anxi') || n.contains('fear') || n.contains('stress') || n.contains('overwhelm')) return const Color(0xFF3A1A1A);
+    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl')) return const Color(0xFF1A1A3A);
+    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz')) return const Color(0xFF0A2A1A);
+    return const Color(0xFF1A1A30);
   }
 
   Widget _buildEmotionBar(Map<String, dynamic> item) {
@@ -533,6 +667,11 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Symbol Tags ─────────────────────────────────────────────────────────────
 
   Widget _buildSymbolTagsSection() {
+    final hasData = _dreamData?.symbolTags != null && _dreamData!.symbolTags!.isNotEmpty;
+    final List<String> tagsToShow = hasData ? _dreamData!.symbolTags! : _symbolTags;
+
+    if (tagsToShow.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -549,7 +688,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: _symbolTags.map((tag) {
+          children: tagsToShow.map((tag) {
             return Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
               decoration: BoxDecoration(
@@ -575,44 +714,212 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Save to Journal Button ───────────────────────────────────────────────────
 
   Widget _buildSaveButton() {
-    return Container(
-      color: _bgColor,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-      child: SizedBox(
-        width: double.infinity,
-        height: 54,
-        child: ElevatedButton(
-          onPressed: () {
-            ToastUtil.showShortToast('Save to Journal');
-            NavigationService.navigateToUntilReplacement(Routes.userNavigationMenu);
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _accentPurple,
-            foregroundColor: _white,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              Icon(
-                Icons.bookmark_border_rounded,
-                size: 20,
-                color: Colors.white,
-              ),
-              SizedBox(width: 8),
-              Text(
-                'Save to Journal',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.2,
+    return ValueListenableBuilder<bool>(
+      valueListenable: saveJournalResponseRxObj.isLoading,
+      builder: (context, isLoading, child) {
+        return Container(
+          color: _bgColor,
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+          child: SizedBox(
+            width: double.infinity,
+            height: 54,
+            child: ElevatedButton(
+              onPressed: () async {
+                if (isLoading) return;
+                final text = _respondController.text.trim();
+
+                if (text.isEmpty) {
+                  ToastUtil.showShortToast("The user response field is required.");
+                  return;
+                }
+
+                final journalId = _dreamData?.id ?? 0;
+                final success = await saveJournalResponseRxObj.saveJournalResponse(
+                  journalId: journalId,
+                  userResponse: text,
+                );
+
+                if (success && mounted) {
+                  NavigationService.navigateToUntilReplacement(Routes.userNavigationMenu);
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _accentPurple,
+                foregroundColor: _white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
-            ],
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (isLoading) ...[
+                    const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                  ] else ...[
+                    const Icon(
+                      Icons.bookmark_border_rounded,
+                      size: 20,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  const Text(
+                    'Save to Journal',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildShimmerLoading() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          Center(child: _buildAppBar(context)),
+          const SizedBox(height: 28),
+
+          // Shimmer Hero Header
+          Center(
+            child: Shimmer.fromColors(
+              baseColor: Colors.white.withOpacity(0.05),
+              highlightColor: Colors.white.withOpacity(0.1),
+              child: Column(
+                children: [
+                  Container(
+                    width: 60,
+                    height: 60,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    width: 180,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    width: 120,
+                    height: 14,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Shimmer Summary Card
+          _buildShimmerCard(height: 120),
+          const SizedBox(height: 14),
+
+          // Shimmer Meaning Card
+          _buildShimmerCard(height: 100),
+          const SizedBox(height: 28),
+
+          // Shimmer Your Respond Section
+          Shimmer.fromColors(
+            baseColor: Colors.white.withOpacity(0.05),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 100,
+                  height: 12,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  width: double.infinity,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Shimmer Care Reflection Section
+          Shimmer.fromColors(
+            baseColor: Colors.white.withOpacity(0.05),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 120,
+                  height: 12,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 12),
+                GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  childAspectRatio: 2.6,
+                  children: List.generate(4, (index) {
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    );
+                  }),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerCard({required double height}) {
+    return Shimmer.fromColors(
+      baseColor: Colors.white.withOpacity(0.05),
+      highlightColor: Colors.white.withOpacity(0.1),
+      child: Container(
+        width: double.infinity,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
         ),
       ),
     );

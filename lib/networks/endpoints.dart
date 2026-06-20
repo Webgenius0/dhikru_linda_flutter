@@ -102,4 +102,9 @@ final class Endpoints {
   // -------------------Add Journal end-------------------
 
 
+  // -------------------Add Journal start-----------------
+  static String journalEntryResponse({required int journalId}) => "/journal-entries/response/$journalId";
+  // -------------------Add Journal end-------------------
+
+
 }
