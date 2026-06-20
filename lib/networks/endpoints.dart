@@ -93,4 +93,13 @@ final class Endpoints {
       tagId != null ? "/journal-entries?tag=$tagId" : "/journal-entries";
   // -------------------Tags end-------------------
 
+  // -------------------Show Journal start-----------------
+  static String showJournal({required int journalId}) => "/journal-entries/$journalId";
+  // -------------------Show Journal end-------------------
+
+  // -------------------Add Journal start-----------------
+  static String journalEntry() => "/journal-entries";
+  // -------------------Add Journal end-------------------
+
+
 }

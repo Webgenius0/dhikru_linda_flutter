@@ -66,5 +66,9 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>This app requires speech recognition permission to convert your dream description voice recordings into text.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>This app requires microphone permission to record your dream description voice.</string>
 </dict>
 </plist>
