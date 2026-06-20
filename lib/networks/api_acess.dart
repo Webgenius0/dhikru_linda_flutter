@@ -34,6 +34,10 @@ import 'package:dhikru_linda_flutter/features/journal/data/get_all_journal/rx.da
 import 'package:dhikru_linda_flutter/features/journal/model/get_all_journal_model.dart';
 import 'package:dhikru_linda_flutter/features/journal/data/show_journal/rx.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/show_journal_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/data/new_journal_entry/rx.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/new_journal_entry_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/data/save_journal_response/rx.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/save_journal_response_model.dart';
 import 'package:rxdart/rxdart.dart';
 
 // ------------- Register Api Access -----------------//
@@ -163,5 +167,17 @@ GetAllJournalRx getAllJournalRxObj = GetAllJournalRx(
 ShowJournalRx showJournalRxObj = ShowJournalRx(
   empty: ShowJournalModel(),
   dataFetcher: BehaviorSubject<ShowJournalModel>(),
+);
+
+// ------------- New Journal Entry Api Access -------------
+NewJournalEntryRx newJournalEntryRxObj = NewJournalEntryRx(
+  empty: NewJournalEntryModel(),
+  dataFetcher: BehaviorSubject<NewJournalEntryModel>(),
+);
+
+// ------------- Save Journal Response Api Access -------------
+SaveJournalResponseRx saveJournalResponseRxObj = SaveJournalResponseRx(
+  empty: SaveJournalResponseModel(),
+  dataFetcher: BehaviorSubject<SaveJournalResponseModel>(),
 );
 

@@ -26,7 +26,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
   static const Color _tagBorder = Color(0xFF252549);
   static const Color _tagText = Color(0xFF8888EE);
 
-  final TextEditingController _respondController = TextEditingController();
+
 
   // Care items mapping
   final List<Map<String, dynamic>> _careItems = [
@@ -67,17 +67,10 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
     if (widget.dream['id'] != null) {
       showJournalRxObj.showJournalDetails(journalId: widget.dream['id']);
     }
-
-    showJournalRxObj.getShowJournalStream.firstWhere((data) => data.data != null).then((data) {
-      if (mounted && data.data?.userResponse != null) {
-        _respondController.text = data.data!.userResponse!;
-      }
-    });
   }
 
   @override
   void dispose() {
-    _respondController.dispose();
     showJournalRxObj.clean();
     super.dispose();
   }
@@ -409,8 +402,10 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                             const SizedBox(height: 28),
 
                             // Response input section
-                            _buildYourRespondSection(),
-                            const SizedBox(height: 28),
+                            if (journalData.userResponse != null && journalData.userResponse!.trim().isNotEmpty) ...[
+                              _buildYourRespondSection(journalData.userResponse!),
+                              const SizedBox(height: 28),
+                            ],
 
                             // Care & Reflection cards
                             _buildCareReflectionSection(careItems),
@@ -604,7 +599,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
 
   // ─── Your Respond ────────────────────────────────────────────────────────────
 
-  Widget _buildYourRespondSection() {
+  Widget _buildYourRespondSection(String userResponse) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -619,23 +614,20 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
         ),
         const SizedBox(height: 12),
         Container(
+          width: double.infinity,
           decoration: BoxDecoration(
             color: _cardBg,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: _borderColor, width: 1),
           ),
-          child: TextField(
-            controller: _respondController,
-            maxLines: 3,
-            style: const TextStyle(color: _white, fontSize: 14, height: 1.5),
-            decoration: const InputDecoration(
-              hintText: 'Write your respond ..',
-              hintStyle: TextStyle(color: _subtleText, fontSize: 14),
-              contentPadding: EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              border: InputBorder.none,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+            child: Text(
+              userResponse,
+              style: const TextStyle(color: _white, fontSize: 14, height: 1.5),
             ),
           ),
         ),
