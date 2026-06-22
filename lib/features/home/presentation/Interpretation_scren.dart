@@ -5,6 +5,7 @@ import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/new_journal_entry_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:share_plus/share_plus.dart';
 
 class InterpretationScren extends StatefulWidget {
   const InterpretationScren({super.key});
@@ -152,7 +153,8 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                             icon: Icons.list_rounded,
                             iconColor: _accentPurple,
                             title: 'Summary',
-                            body: _dreamData?.summary ??
+                            body:
+                                _dreamData?.summary ??
                                 'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....',
                           ),
                           const SizedBox(height: 14),
@@ -160,7 +162,8 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                           // ── Meaning card ──
                           _buildTextCard(
                             title: 'Meaning',
-                            body: _dreamData?.meaning ??
+                            body:
+                                _dreamData?.meaning ??
                                 'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted',
                           ),
                           const SizedBox(height: 28),
@@ -227,15 +230,23 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           ],
         ),
         // Share button
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: _cardBg,
-            shape: BoxShape.circle,
-            border: Border.all(color: _borderColor, width: 1),
-          ),
-          child: const Icon(Icons.share, color: _white, size: 16),
+        Builder(
+          builder: (context) {
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _shareInterpretation(context),
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: _cardBg,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _borderColor, width: 1),
+                ),
+                child: const Icon(Icons.share, color: _white, size: 16),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -394,7 +405,9 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Care & Reflection ───────────────────────────────────────────────────────
 
   Widget _buildCareReflectionSection() {
-    final hasData = _dreamData?.careReflection != null && _dreamData!.careReflection!.isNotEmpty;
+    final hasData =
+        _dreamData?.careReflection != null &&
+        _dreamData!.careReflection!.isNotEmpty;
     final List<Map<String, dynamic>> itemsToShow = [];
 
     if (hasData) {
@@ -530,7 +543,9 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Emotional Landscape ─────────────────────────────────────────────────────
 
   Widget _buildEmotionalLandscapeSection() {
-    final hasData = _dreamData?.emotionalLandscape != null && _dreamData!.emotionalLandscape!.isNotEmpty;
+    final hasData =
+        _dreamData?.emotionalLandscape != null &&
+        _dreamData!.emotionalLandscape!.isNotEmpty;
     final List<Map<String, dynamic>> emotionsToShow = [];
 
     if (hasData) {
@@ -590,17 +605,29 @@ class _InterpretationScrenState extends State<InterpretationScren> {
 
   Color _getEmotionColor(String name) {
     final n = name.toLowerCase();
-    if (n.contains('anxi') || n.contains('fear') || n.contains('stress') || n.contains('overwhelm')) return const Color(0xFFEE4444);
-    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl')) return const Color(0xFF4466EE);
-    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz')) return const Color(0xFF22CC88);
+    if (n.contains('anxi') ||
+        n.contains('fear') ||
+        n.contains('stress') ||
+        n.contains('overwhelm'))
+      return const Color(0xFFEE4444);
+    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl'))
+      return const Color(0xFF4466EE);
+    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz'))
+      return const Color(0xFF22CC88);
     return const Color(0xFF7B6EF6);
   }
 
   Color _getEmotionTrackColor(String name) {
     final n = name.toLowerCase();
-    if (n.contains('anxi') || n.contains('fear') || n.contains('stress') || n.contains('overwhelm')) return const Color(0xFF3A1A1A);
-    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl')) return const Color(0xFF1A1A3A);
-    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz')) return const Color(0xFF0A2A1A);
+    if (n.contains('anxi') ||
+        n.contains('fear') ||
+        n.contains('stress') ||
+        n.contains('overwhelm'))
+      return const Color(0xFF3A1A1A);
+    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl'))
+      return const Color(0xFF1A1A3A);
+    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz'))
+      return const Color(0xFF0A2A1A);
     return const Color(0xFF1A1A30);
   }
 
@@ -667,8 +694,11 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   // ─── Symbol Tags ─────────────────────────────────────────────────────────────
 
   Widget _buildSymbolTagsSection() {
-    final hasData = _dreamData?.symbolTags != null && _dreamData!.symbolTags!.isNotEmpty;
-    final List<String> tagsToShow = hasData ? _dreamData!.symbolTags! : _symbolTags;
+    final hasData =
+        _dreamData?.symbolTags != null && _dreamData!.symbolTags!.isNotEmpty;
+    final List<String> tagsToShow = hasData
+        ? _dreamData!.symbolTags!
+        : _symbolTags;
 
     if (tagsToShow.isEmpty) return const SizedBox.shrink();
 
@@ -729,18 +759,23 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                 final text = _respondController.text.trim();
 
                 if (text.isEmpty) {
-                  ToastUtil.showShortToast("The user response field is required.");
+                  ToastUtil.showShortToast(
+                    "The user response field is required.",
+                  );
                   return;
                 }
 
                 final journalId = _dreamData?.id ?? 0;
-                final success = await saveJournalResponseRxObj.saveJournalResponse(
-                  journalId: journalId,
-                  userResponse: text,
-                );
+                final success = await saveJournalResponseRxObj
+                    .saveJournalResponse(
+                      journalId: journalId,
+                      userResponse: text,
+                    );
 
                 if (success && mounted) {
-                  NavigationService.navigateToUntilReplacement(Routes.userNavigationMenu);
+                  NavigationService.navigateToUntilReplacement(
+                    Routes.userNavigationMenu,
+                  );
                 }
               },
               style: ElevatedButton.styleFrom(
@@ -853,11 +888,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 100,
-                  height: 12,
-                  color: Colors.white,
-                ),
+                Container(width: 100, height: 12, color: Colors.white),
                 const SizedBox(height: 12),
                 Container(
                   width: double.infinity,
@@ -879,11 +910,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 120,
-                  height: 12,
-                  color: Colors.white,
-                ),
+                Container(width: 120, height: 12, color: Colors.white),
                 const SizedBox(height: 12),
                 GridView.count(
                   crossAxisCount: 2,
@@ -921,6 +948,111 @@ class _InterpretationScrenState extends State<InterpretationScren> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
         ),
+      ),
+    );
+  }
+
+  void _shareInterpretation(BuildContext context) {
+    final title = _dreamData?.title ?? 'The Endless Ocean';
+    final dateAndMoods = _dreamData != null
+        ? '${_dreamData!.formattedDate ?? ''}${_dreamData!.moodDisplay != null ? ' • ${_dreamData!.moodDisplay}' : ''}'
+        : 'Oct 25 • Anxiety, Overwhelm';
+    final summary =
+        _dreamData?.summary ??
+        'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters....';
+    final meaning =
+        _dreamData?.meaning ??
+        'You were wandering through a deserted metropolis under a vivid purple sky. Losing your shoes preceded a sudden flood, leaving you wading through rising waters. You were wandering through a deserted';
+
+    final buffer = StringBuffer();
+    buffer.writeln('✨ Dream Interpretation: $title ✨');
+    buffer.writeln('📅 $dateAndMoods');
+    buffer.writeln();
+    buffer.writeln('📝 Summary:');
+    buffer.writeln(summary);
+    buffer.writeln();
+    buffer.writeln('💡 Meaning:');
+    buffer.writeln(meaning);
+
+    // 📊 Emotional Landscape
+    final List<String> emotionStrings = [];
+    if (_dreamData?.emotionalLandscape != null && _dreamData!.emotionalLandscape!.isNotEmpty) {
+      for (var emotion in _dreamData!.emotionalLandscape!) {
+        final name = emotion.name ?? '';
+        final percent = emotion.percentage ?? 0;
+        if (name.isNotEmpty) {
+          emotionStrings.add('• $name: $percent%');
+        }
+      }
+    } else {
+      for (var emotion in _emotions) {
+        final label = emotion['label'] ?? '';
+        final percent = emotion['percent'] ?? 0;
+        if (label.isNotEmpty) {
+          emotionStrings.add('• $label: $percent%');
+        }
+      }
+    }
+
+    if (emotionStrings.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('📊 Emotional Landscape:');
+      for (var emotion in emotionStrings) {
+        buffer.writeln(emotion);
+      }
+    }
+
+    // 🧘 Care & Reflection
+    final List<String> careStrings = [];
+    if (_dreamData?.careReflection != null && _dreamData!.careReflection!.isNotEmpty) {
+      for (var reflection in _dreamData!.careReflection!) {
+        final t = reflection.title ?? '';
+        final st = reflection.shortTitle ?? '';
+        if (t.isNotEmpty) {
+          careStrings.add(st.isNotEmpty ? '• $t ($st)' : '• $t');
+        }
+      }
+    } else {
+      for (var item in _careItems) {
+        final t = item['title'] ?? '';
+        final st = item['subtitle'] ?? '';
+        if (t.isNotEmpty) {
+          careStrings.add(st.isNotEmpty ? '• $t ($st)' : '• $t');
+        }
+      }
+    }
+
+    if (careStrings.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('🧘 Care & Reflection:');
+      for (var care in careStrings) {
+        buffer.writeln(care);
+      }
+    }
+
+    // 🏷️ Symbol Tags
+    final tags = _dreamData?.symbolTags ?? _symbolTags;
+    if (tags.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('🏷️ Symbol Tags:');
+      buffer.writeln(tags.join(', '));
+    }
+
+    final userResponse = _respondController.text.trim();
+    if (userResponse.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('💭 My Response:');
+      buffer.writeln(userResponse);
+    }
+
+    final box = context.findRenderObject() as RenderBox?;
+    final sharePositionOrigin = box != null ? (box.localToGlobal(Offset.zero) & box.size) : null;
+
+    SharePlus.instance.share(
+      ShareParams(
+        text: buffer.toString(),
+        subject: 'Dream Interpretation: $title',
+        sharePositionOrigin: sharePositionOrigin,
       ),
     );
   }
