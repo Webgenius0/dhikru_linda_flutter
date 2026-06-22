@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/show_journal_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:share_plus/share_plus.dart';
 
 class JournalDetailScreen extends StatefulWidget {
   final Map<String, dynamic> dream;
@@ -26,14 +27,13 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
   static const Color _tagBorder = Color(0xFF252549);
   static const Color _tagText = Color(0xFF8888EE);
 
-
-
   // Care items mapping
   final List<Map<String, dynamic>> _careItems = [
     {
       'icon': Icons.favorite_border_rounded,
       'iconColor': Color(0xFF9988FF),
       'iconBg': Color(0xFF1E1A3A),
+
       'title': 'Meditate',
       'subtitle': '5 min practice',
     },
@@ -78,11 +78,22 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
   Color _getEmotionColor(String? name) {
     if (name == null) return const Color(0xFF7B6EF6);
     final n = name.toLowerCase();
-    if (n.contains('anxi') || n.contains('fear') || n.contains('stress') || n.contains('overwhelm')) return const Color(0xFFEE4444);
-    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl')) return const Color(0xFF7B6EF6);
-    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz')) return const Color(0xFF00CFFF);
-    if (n.contains('joy') || n.contains('happ') || n.contains('excit') || n.contains('calm')) return const Color(0xFF22CCAA);
-    if (n.contains('sad') || n.contains('grief') || n.contains('sorrow')) return const Color(0xFF9988FF);
+    if (n.contains('anxi') ||
+        n.contains('fear') ||
+        n.contains('stress') ||
+        n.contains('overwhelm'))
+      return const Color(0xFFEE4444);
+    if (n.contains('confus') || n.contains('doubt') || n.contains('puzzl'))
+      return const Color(0xFF7B6EF6);
+    if (n.contains('awe') || n.contains('wonder') || n.contains('amaz'))
+      return const Color(0xFF00CFFF);
+    if (n.contains('joy') ||
+        n.contains('happ') ||
+        n.contains('excit') ||
+        n.contains('calm'))
+      return const Color(0xFF22CCAA);
+    if (n.contains('sad') || n.contains('grief') || n.contains('sorrow'))
+      return const Color(0xFF9988FF);
     return const Color(0xFF7B6EF6);
   }
 
@@ -289,7 +300,9 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
             return ValueListenableBuilder<bool>(
               valueListenable: showJournalRxObj.isLoading,
               builder: (context, apiLoading, child) {
-                final isLoading = apiLoading || snapshot.connectionState == ConnectionState.waiting;
+                final isLoading =
+                    apiLoading ||
+                    snapshot.connectionState == ConnectionState.waiting;
                 if (isLoading) {
                   return _buildShimmerLoader(context);
                 }
@@ -305,23 +318,42 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                 }
 
                 // Dynamically retrieve values from journalData, fallback to dream values
-                final String title = journalData.title ?? widget.dream['title'] ?? 'The Endless Ocean';
-                final String date = journalData.formattedDate ?? widget.dream['date'] ?? 'Oct 25';
+                final String title =
+                    journalData.title ??
+                    widget.dream['title'] ??
+                    'The Endless Ocean';
+                final String date =
+                    journalData.formattedDate ??
+                    widget.dream['date'] ??
+                    'Oct 25';
 
                 // Derive a clean list of emotions from the badge or default
-                final String badge = (journalData.moodDisplay ?? widget.dream['badge'] as String? ?? 'Anxiety, Overwhelm').toLowerCase();
+                final String badge =
+                    (journalData.moodDisplay ??
+                            widget.dream['badge'] as String? ??
+                            'Anxiety, Overwhelm')
+                        .toLowerCase();
                 final String capitalizedBadge = badge
                     .split(', ')
-                    .map((word) => word.isNotEmpty ? (word.substring(0, 1).toUpperCase() + word.substring(1)) : '')
+                    .map(
+                      (word) => word.isNotEmpty
+                          ? (word.substring(0, 1).toUpperCase() +
+                                word.substring(1))
+                          : '',
+                    )
                     .join(', ');
                 final String subtitleText = '$date • $capitalizedBadge';
 
                 // Summary & Meaning contents
-                final String summary = journalData.summary ?? widget.dream['summary'] ?? '';
-                final String meaning = journalData.meaning ?? widget.dream['meaning'] ?? '';
+                final String summary =
+                    journalData.summary ?? widget.dream['summary'] ?? '';
+                final String meaning =
+                    journalData.meaning ?? widget.dream['meaning'] ?? '';
 
                 // Emotions configuration
-                final List<Map<String, dynamic>> emotions = (journalData.emotionalLandscape != null && journalData.emotionalLandscape!.isNotEmpty)
+                final List<Map<String, dynamic>> emotions =
+                    (journalData.emotionalLandscape != null &&
+                        journalData.emotionalLandscape!.isNotEmpty)
                     ? journalData.emotionalLandscape!.map((e) {
                         final color = _getEmotionColor(e.name);
                         return {
@@ -353,10 +385,14 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                       ];
 
                 // Care items mapping from API with fallback to default mockup list
-                final List<Map<String, dynamic>> careItems = (journalData.careReflection != null && journalData.careReflection!.isNotEmpty)
+                final List<Map<String, dynamic>> careItems =
+                    (journalData.careReflection != null &&
+                        journalData.careReflection!.isNotEmpty)
                     ? journalData.careReflection!.map((item) {
-                        final itemTitle = item.shortTitle ?? item.title ?? 'Reflection';
-                        final itemSubtitle = item.title ?? item.shortTitle ?? '';
+                        final itemTitle =
+                            item.shortTitle ?? item.title ?? 'Reflection';
+                        final itemSubtitle =
+                            item.title ?? item.shortTitle ?? '';
                         final mapping = _getCareItemIconAndColors(itemTitle);
                         return {
                           'icon': mapping['icon'],
@@ -369,7 +405,9 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                     : _careItems;
 
                 // Symbol Tags configuration
-                final List<String> symbolTags = journalData.symbolTags ?? List<String>.from(widget.dream['tags'] ?? []);
+                final List<String> symbolTags =
+                    journalData.symbolTags ??
+                    List<String>.from(widget.dream['tags'] ?? []);
 
                 return Column(
                   children: [
@@ -381,11 +419,23 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const SizedBox(height: 16),
-                            _buildAppBar(context),
+                            _buildAppBar(
+                              context,
+                              title: title,
+                              subtitleText: subtitleText,
+                              summary: summary,
+                              meaning: meaning,
+                              userResponse: journalData.userResponse,
+                              emotions: emotions,
+                              careItems: careItems,
+                              symbolTags: symbolTags,
+                            ),
                             const SizedBox(height: 28),
 
                             // Hero Header with glowing icon and title
-                            Center(child: _buildHeroHeader(title, subtitleText)),
+                            Center(
+                              child: _buildHeroHeader(title, subtitleText),
+                            ),
                             const SizedBox(height: 28),
 
                             // Summary glassmorphism card
@@ -402,8 +452,13 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                             const SizedBox(height: 28),
 
                             // Response input section
-                            if (journalData.userResponse != null && journalData.userResponse!.trim().isNotEmpty) ...[
-                              _buildYourRespondSection(journalData.userResponse!),
+                            if (journalData.userResponse != null &&
+                                journalData.userResponse!
+                                    .trim()
+                                    .isNotEmpty) ...[
+                              _buildYourRespondSection(
+                                journalData.userResponse!,
+                              ),
                               const SizedBox(height: 28),
                             ],
 
@@ -434,7 +489,17 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
 
   // ─── App Bar ─────────────────────────────────────────────────────────────────
 
-  Widget _buildAppBar(BuildContext context) {
+  Widget _buildAppBar(
+    BuildContext context, {
+    required String title,
+    required String subtitleText,
+    required String summary,
+    required String meaning,
+    String? userResponse,
+    required List<Map<String, dynamic>> emotions,
+    required List<Map<String, dynamic>> careItems,
+    required List<String> symbolTags,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -470,15 +535,33 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
           ],
         ),
         // Share/iOS share button
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: _cardBg,
-            shape: BoxShape.circle,
-            border: Border.all(color: _borderColor, width: 1),
-          ),
-          child: const Icon(Icons.share, color: _white, size: 16),
+        Builder(
+          builder: (context) {
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _shareInterpretation(
+                context,
+                title: title,
+                subtitleText: subtitleText,
+                summary: summary,
+                meaning: meaning,
+                userResponse: userResponse,
+                emotions: emotions,
+                careItems: careItems,
+                symbolTags: symbolTags,
+              ),
+              child: Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: _cardBg,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: _borderColor, width: 1),
+                ),
+                child: const Icon(Icons.share, color: _white, size: 16),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -621,10 +704,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
             border: Border.all(color: _borderColor, width: 1),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 14,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Text(
               userResponse,
               style: const TextStyle(color: _white, fontSize: 14, height: 1.5),
@@ -856,6 +936,77 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
           }).toList(),
         ),
       ],
+    );
+  }
+
+  void _shareInterpretation(
+    BuildContext context, {
+    required String title,
+    required String subtitleText,
+    required String summary,
+    required String meaning,
+    String? userResponse,
+    required List<Map<String, dynamic>> emotions,
+    required List<Map<String, dynamic>> careItems,
+    required List<String> symbolTags,
+  }) {
+    final buffer = StringBuffer();
+    buffer.writeln('✨ Dream Interpretation: $title ✨');
+    buffer.writeln('📅 $subtitleText');
+    buffer.writeln();
+    buffer.writeln('📝 Summary:');
+    buffer.writeln(summary);
+    buffer.writeln();
+    buffer.writeln('💡 Meaning:');
+    buffer.writeln(meaning);
+
+    if (emotions.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('📊 Emotional Landscape:');
+      for (var emotion in emotions) {
+        final label = emotion['label'] ?? '';
+        final percent = emotion['percent'] ?? 0;
+        if (label.isNotEmpty) {
+          buffer.writeln('• $label: $percent%');
+        }
+      }
+    }
+
+    if (careItems.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('🧘 Care & Reflection:');
+      for (var care in careItems) {
+        final t = care['title'] ?? '';
+        final st = care['subtitle'] ?? '';
+        if (t.isNotEmpty) {
+          buffer.writeln(st.isNotEmpty ? '• $t ($st)' : '• $t');
+        }
+      }
+    }
+
+    if (symbolTags.isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('🏷️ Symbol Tags:');
+      buffer.writeln(symbolTags.join(', '));
+    }
+
+    if (userResponse != null && userResponse.trim().isNotEmpty) {
+      buffer.writeln();
+      buffer.writeln('💭 My Response:');
+      buffer.writeln(userResponse);
+    }
+
+    final box = context.findRenderObject() as RenderBox?;
+    final sharePositionOrigin = box != null
+        ? (box.localToGlobal(Offset.zero) & box.size)
+        : null;
+
+    SharePlus.instance.share(
+      ShareParams(
+        text: buffer.toString(),
+        subject: 'Dream Interpretation: $title',
+        sharePositionOrigin: sharePositionOrigin,
+      ),
     );
   }
 }
