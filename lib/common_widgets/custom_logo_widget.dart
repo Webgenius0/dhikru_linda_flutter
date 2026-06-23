@@ -1,4 +1,3 @@
-
 import 'package:dhikru_linda_flutter/assets_helper/app_images.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,8 +14,8 @@ class CustomLogoWidget extends StatelessWidget {
       borderRadius: BorderRadius.circular(16.r),
       child: Image.asset(
         AppImages.logo,
-        height: height ?? 78.h,
-        width: width ?? 78.h,
+        height: height ?? 80.h,
+        width: width ?? 80.h,
         fit: BoxFit.cover,
       ),
     );
