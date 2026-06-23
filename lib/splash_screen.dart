@@ -1,3 +1,4 @@
+import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/helper_methods.dart';
@@ -87,10 +88,9 @@ class _SplashScreenState extends State<SplashScreen>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(
+                  CustomLogoWidget(
                     width: 46.w,
                     height: 46.w,
-                    child: CustomPaint(painter: _CrescentMoonPainter()),
                   ),
 
                   SizedBox(width: 14.w),
@@ -114,36 +114,4 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
-class _CrescentMoonPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    //--------------- Create Layer ---------------
-    canvas.saveLayer(Rect.fromLTWH(0, 0, size.width, size.height), Paint());
 
-    // --------------- Moon Circle ---------------
-    final moonPaint = Paint()..color = const Color(0xFF8B7AE8);
-
-    canvas.drawCircle(
-      Offset(size.width * 0.46, size.height * 0.5),
-      size.width * 0.44,
-      moonPaint,
-    );
-
-    // --------------- Crescent Cut ---------------
-    final cutPaint = Paint()
-      ..color = Colors.black
-      ..blendMode = BlendMode.clear;
-
-    canvas.drawCircle(
-      Offset(size.width * 0.68, size.height * 0.36),
-      size.width * 0.37,
-      cutPaint,
-    );
-
-    //--------------- Restore Canvas Layer ---------------
-    canvas.restore();
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

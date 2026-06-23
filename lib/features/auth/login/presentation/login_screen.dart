@@ -1,3 +1,4 @@
+import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
@@ -98,6 +99,10 @@ class _LoginScreenState extends State<LoginScreen>
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       SizedBox(height: 72.h),
+
+                      // --------------- Logo Widget ---------------
+                      const CustomLogoWidget(height: 72, width: 72),
+                      SizedBox(height: 24.h),
 
                       // --------------- Title ---------------
                       Text(
