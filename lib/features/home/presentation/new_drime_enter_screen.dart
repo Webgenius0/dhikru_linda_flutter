@@ -36,7 +36,7 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
 
   final Set<int> _selectedTagIds = {};
   bool _isVoiceEntry = false;
- 
+
   @override
   void initState() {
     super.initState();
@@ -285,19 +285,12 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
         decoration: BoxDecoration(
           color: _voiceBg,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: _accentPurple.withOpacity(0.4),
-            width: 1,
-          ),
+          border: Border.all(color: _accentPurple.withOpacity(0.4), width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: const [
-            Icon(
-              Icons.mic_rounded,
-              color: _accentPurple,
-              size: 14,
-            ),
+            Icon(Icons.mic_rounded, color: _accentPurple, size: 14),
             const SizedBox(width: 5),
             Text(
               'Voice',
@@ -332,8 +325,11 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
         StreamBuilder<TagsModel>(
           stream: tagsRxObj.getTagsStream,
           builder: (context, snapshot) {
-            final isLoading = snapshot.connectionState == ConnectionState.waiting;
-            final tagsList = snapshot.hasData ? (snapshot.data?.data ?? []) : [];
+            final isLoading =
+                snapshot.connectionState == ConnectionState.waiting;
+            final tagsList = snapshot.hasData
+                ? (snapshot.data?.data ?? [])
+                : [];
 
             if (isLoading) {
               return Wrap(
@@ -381,7 +377,9 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                         _selectedTagIds.add(tagId);
                       }
                     });
-                    debugPrint("Selected tags IDs: ${_selectedTagIds.toList()}");
+                    debugPrint(
+                      "Selected tags IDs: ${_selectedTagIds.toList()}",
+                    );
                   },
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
@@ -390,7 +388,9 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: selected ? _accentPurple.withOpacity(0.18) : _tagBg,
+                      color: selected
+                          ? _accentPurple.withOpacity(0.18)
+                          : _tagBg,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: selected ? _accentPurple : _tagBorder,
@@ -402,7 +402,9 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                       style: TextStyle(
                         color: selected ? _accentPurple : _tagText,
                         fontSize: 13,
-                        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+                        fontWeight: selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
                       ),
                     ),
                   ),
@@ -412,6 +414,123 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
           },
         ),
       ],
+    );
+  }
+
+  // ─── Sensitive Content Verification ─────────────────────────────────────────
+
+  bool _containsSensitiveContent(String title, String content) {
+    final sensitiveKeywords = [
+      'suicide',
+      'suicidal',
+      'kill myself',
+      'killing myself',
+      'self-harm',
+      'harm myself',
+      'hurt myself',
+      'end my life',
+      'ending my life',
+      'extremely low',
+      'want to die',
+      'wishing to die',
+      'depression',
+      'depressed',
+      'abuse',
+      'murder',
+      'violence',
+    ];
+
+    final lowerTitle = title.toLowerCase();
+    final lowerContent = content.toLowerCase();
+
+    return sensitiveKeywords.any(
+      (keyword) =>
+          lowerTitle.contains(keyword) || lowerContent.contains(keyword),
+    );
+  }
+
+  Future<bool?> _showSensitiveWarningDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Soft peach circle with white warning icon
+              Container(
+                width: 76,
+                height: 76,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEEBD0), // Soft orange/peach circle
+                  shape: BoxShape.circle,
+                ),
+                child: const Center(
+                  child: Icon(
+                    Icons.warning_rounded,
+                    color: Colors.white,
+                    size: 40,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              const Text(
+                'Sensitive Content',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF1D1D3A), // Muted purplish grey text
+                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+              // Dialog text
+              const Text(
+                'This dream contains intense themes. Would you like to proceed?',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Color(0xFF8C8CA8), // Muted purplish grey text
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              // Action buttons (Cancel only)
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7B6EF6),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text(
+                    'Cancel',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -434,14 +553,25 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                 final content = _descController.text.trim();
 
                 if (title.isEmpty) {
-                  ToastUtil.showShortToast("Please enter a title for your dream.");
+                  ToastUtil.showShortToast(
+                    "Please enter a title for your dream.",
+                  );
                   return;
                 }
 
                 if (content.isEmpty) {
-                  ToastUtil.showShortToast("Please describe your dream or record your voice.");
+                  ToastUtil.showShortToast(
+                    "Please describe your dream or record your voice.",
+                  );
                   return;
                 }
+
+                bool proceed = true;
+                if (_containsSensitiveContent(title, content)) {
+                  proceed = await _showSensitiveWarningDialog(context) ?? false;
+                }
+
+                if (!proceed) return;
 
                 final success = await newJournalEntryRxObj.addNewJournalEntry(
                   title: title,
@@ -451,7 +581,8 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                 );
 
                 if (success && mounted) {
-                  final entryModel = newJournalEntryRxObj.dataFetcher.valueOrNull;
+                  final entryModel =
+                      newJournalEntryRxObj.dataFetcher.valueOrNull;
                   if (entryModel != null && entryModel.data != null) {
                     NavigationService.navigateTo(
                       Routes.interpretationScren,
@@ -482,7 +613,10 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                     ),
                     const SizedBox(width: 10),
                   ] else ...[
-                    const Text('✦', style: TextStyle(fontSize: 16, color: Colors.white)),
+                    const Text(
+                      '✦',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                     const SizedBox(width: 8),
                   ],
                   const Text(
@@ -513,10 +647,13 @@ class _VoiceRecordingBottomSheetContent extends StatefulWidget {
   });
 
   @override
-  State<_VoiceRecordingBottomSheetContent> createState() => _VoiceRecordingBottomSheetContentState();
+  State<_VoiceRecordingBottomSheetContent> createState() =>
+      _VoiceRecordingBottomSheetContentState();
 }
 
-class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottomSheetContent> with SingleTickerProviderStateMixin {
+class _VoiceRecordingBottomSheetContentState
+    extends State<_VoiceRecordingBottomSheetContent>
+    with SingleTickerProviderStateMixin {
   late final SpeechToText _speech;
   bool _isListening = false;
   late final String _originalText;
@@ -567,14 +704,20 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Speech recognition is not available or permission denied.')),
+            const SnackBar(
+              content: Text(
+                'Speech recognition is not available or permission denied.',
+              ),
+            ),
           );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to initialize speech recognition: $e')),
+          SnackBar(
+            content: Text('Failed to initialize speech recognition: $e'),
+          ),
         );
       }
     }
@@ -623,16 +766,17 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
     final bool isEmpty = widget.controller.text.isEmpty;
 
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, MediaQuery.of(context).padding.bottom + 24),
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.of(context).padding.bottom + 24,
+      ),
       decoration: const BoxDecoration(
         color: Color(0xFF131325),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black54,
-            blurRadius: 20,
-            spreadRadius: 5,
-          )
+          BoxShadow(color: Colors.black54, blurRadius: 20, spreadRadius: 5),
         ],
       ),
       child: Column(
@@ -665,7 +809,9 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFFEE4444).withOpacity(0.5 * _pulseController.value),
+                            color: const Color(
+                              0xFFEE4444,
+                            ).withOpacity(0.5 * _pulseController.value),
                             blurRadius: 6,
                             spreadRadius: 2,
                           ),
@@ -704,7 +850,9 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
               child: Text(
                 displayText,
                 style: TextStyle(
-                  color: isEmpty ? Colors.white.withOpacity(0.35) : Colors.white,
+                  color: isEmpty
+                      ? Colors.white.withOpacity(0.35)
+                      : Colors.white,
                   fontSize: 14,
                   height: 1.6,
                   fontStyle: isEmpty ? FontStyle.italic : FontStyle.normal,
@@ -737,13 +885,15 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
                           height: 84 * _pulseController.value,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: const Color(0xFF7B6EF6).withOpacity(0.15 * (1.0 - _pulseController.value + 0.3)),
+                            color: const Color(0xFF7B6EF6).withOpacity(
+                              0.15 * (1.0 - _pulseController.value + 0.3),
+                            ),
                             boxShadow: [
                               BoxShadow(
                                 color: const Color(0xFF7B6EF6).withOpacity(0.2),
                                 blurRadius: 20,
                                 spreadRadius: 5,
-                              )
+                              ),
                             ],
                           ),
                         );
@@ -757,13 +907,20 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
                       gradient: LinearGradient(
                         colors: _isListening
                             ? [const Color(0xFFFF5252), const Color(0xFFFF1744)]
-                            : [const Color(0xFF9E85F5), const Color(0xFF634DF2)],
+                            : [
+                                const Color(0xFF9E85F5),
+                                const Color(0xFF634DF2),
+                              ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: (_isListening ? const Color(0xFFFF1744) : const Color(0xFF634DF2)).withOpacity(0.4),
+                          color:
+                              (_isListening
+                                      ? const Color(0xFFFF1744)
+                                      : const Color(0xFF634DF2))
+                                  .withOpacity(0.4),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -793,7 +950,9 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: Color(0xFF252545)),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 15),
                   ),
                   child: const Text(
@@ -815,7 +974,9 @@ class _VoiceRecordingBottomSheetContentState extends State<_VoiceRecordingBottom
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7B6EF6),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 15),
                     elevation: 0,
                   ),
