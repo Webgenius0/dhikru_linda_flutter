@@ -2,7 +2,7 @@
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="dhikru_linda_flutter"
+        android:label="Dream Trace"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

@@ -11,10 +11,14 @@ class CustomLogoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      AppImages.logo_with_color,
-      height: height ?? 78.h,
-      width: width ?? 58.5.w,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16.r),
+      child: Image.asset(
+        AppImages.logo,
+        height: height ?? 78.h,
+        width: width ?? 78.h,
+        fit: BoxFit.cover,
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:dhikru_linda_flutter/features/auth/forgot_password/data/rx_forgot_password/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/forgot_password/data/rx_forgot_password_verify_otp/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/forgot_password/model/forgot_password_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/forgot_password/model/forgot_password_verify_otp_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/login/data/rx_login/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/login/model/login_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/logout/rx.dart';
@@ -72,6 +74,12 @@ ResendOtpRx resendOtpRxObj = ResendOtpRx(
 ForgotPasswordRx forgotPasswordRxObj = ForgotPasswordRx(
   empty: ForgetPasswordModel(),
   dataFetcher: BehaviorSubject<ForgetPasswordModel>(),
+);
+
+// ------------- Forgot Password Verify OTP Api Access -------------
+ForgotPasswordVerifyOtpRx forgotPasswordVerifyOtpRxObj = ForgotPasswordVerifyOtpRx(
+  empty: ForgotPasswordVerifyOtpModel(),
+  dataFetcher: BehaviorSubject<ForgotPasswordVerifyOtpModel>(),
 );
 
 // _____________ Reset Password Api Access _____________

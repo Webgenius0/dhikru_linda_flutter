@@ -107,4 +107,9 @@ final class Endpoints {
   // -------------------Add Journal end-------------------
 
 
+  // -------------------Verify Otp start-----------------
+  static String forgetPasswordVerifyOtp() => "/user/verify-otp";
+  // -------------------Verify Otp end-------------------
+
+
 }

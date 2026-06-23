@@ -21,6 +21,7 @@ final class ResetPasswordApi {
       final Map<String, dynamic> formDataMap = {
         "email": email,
         "reset_token": resetToken,
+        "token": resetToken,
         "password": password,
         "password_confirmation": passwordConfirmation,
       };

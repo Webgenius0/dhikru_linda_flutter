@@ -83,17 +83,26 @@ class _ForgetPasswordVerifyOtpScreenState
     }
 
     setState(() => _isLoading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
+    final bool success = await forgotPasswordVerifyOtpRxObj.forgotPasswordVerifyOtpRx(
+      email: widget.email,
+      otp: code,
+    );
     setState(() => _isLoading = false);
 
-    // Go to set new password screen
-    NavigationService.navigateToReplacement(
-      Routes.setNewPassword,
-      arguments: {
-        'email': widget.email,
-        'resetToken': code,
-      },
-    );
+    if (success && mounted) {
+      final token = forgotPasswordVerifyOtpRxObj.dataFetcher.hasValue
+          ? (forgotPasswordVerifyOtpRxObj.dataFetcher.value.data?.resetToken ??
+             forgotPasswordVerifyOtpRxObj.dataFetcher.value.data?.token)
+          : null;
+      // Go to set new password screen
+      NavigationService.navigateToReplacement(
+        Routes.setNewPassword,
+        arguments: {
+          'email': widget.email,
+          'resetToken': token ?? code,
+        },
+      );
+    }
   }
 
   @override
