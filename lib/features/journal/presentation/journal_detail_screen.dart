@@ -776,7 +776,7 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    item['title'] as String,
+                    item['subtitle'] as String,
                     style: const TextStyle(
                       color: _white,
                       fontSize: 13,
@@ -785,8 +785,9 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    item['subtitle'] as String,
+                    item['title'] as String,
                     style: const TextStyle(color: _subtleText, fontSize: 11),
+
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
