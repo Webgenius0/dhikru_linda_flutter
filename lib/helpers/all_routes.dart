@@ -67,7 +67,7 @@ final class RouteGenerator {
       case Routes.logInScreen:
         return Platform.isAndroid
             ? _FadedTransitionRoute(widget: LoginScreen(), settings: settings)
-            : CupertinoPageRoute(builder: (context) => LoginScreen());
+            : CupertinoPageRoute(builder: (context) => LoginScreen(), settings: settings);
 
       case Routes.newDrimeEnterScreen:
         return Platform.isAndroid
@@ -77,6 +77,7 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => const NewDrimeEnterScreen(),
+                settings: settings,
               );
 
       case Routes.interpretationScren:
@@ -87,6 +88,7 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => const InterpretationScren(),
+                settings: settings,
               );
 
       case Routes.userNavigationMenu:
@@ -95,7 +97,7 @@ final class RouteGenerator {
                 widget: const NavigationMenu(),
                 settings: settings,
               )
-            : CupertinoPageRoute(builder: (context) => const NavigationMenu());
+            : CupertinoPageRoute(builder: (context) => const NavigationMenu(), settings: settings);
 
       case Routes.registerScreen:
         return Platform.isAndroid
@@ -103,7 +105,7 @@ final class RouteGenerator {
                 widget: const RegisterScreen(),
                 settings: settings,
               )
-            : CupertinoPageRoute(builder: (context) => const RegisterScreen());
+            : CupertinoPageRoute(builder: (context) => const RegisterScreen(), settings: settings);
 
       case Routes.registerVerifyScreen:
         final email = (settings.arguments as String?) ?? "";
@@ -114,6 +116,7 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => RegisterVerifyScreen(email: email),
+                settings: settings,
               );
 
       case Routes.forgetPasswordScreen:
@@ -124,6 +127,7 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => const ForgetPasswordScreen(),
+                settings: settings,
               );
 
       case Routes.forgetPasswordVerifyOtpScreen:
@@ -135,6 +139,7 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => ForgetPasswordVerifyOtpScreen(email: email),
+                settings: settings,
               );
 
       case Routes.setNewPassword:
@@ -148,6 +153,7 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => SetNewPassword(email: email, resetToken: resetToken),
+                settings: settings,
               );
 
       default:
