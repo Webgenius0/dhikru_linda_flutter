@@ -6,6 +6,7 @@ import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart'
     hide Data;
 import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/presentation/journal_detail_screen.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
@@ -94,22 +95,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // ─── Top Bar ────────────────────────────────────────────────────────────────
 
+  Map<String, String> _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return {'text': 'Good morning ', 'icon': '🌅'};
+    } else if (hour >= 12 && hour < 17) {
+      return {'text': 'Good afternoon ', 'icon': '☀️'};
+    } else if (hour >= 17 && hour < 20) {
+      return {'text': 'Good evening ', 'icon': '🌆'};
+    } else {
+      return {'text': 'Good night ', 'icon': '🌙'};
+    }
+  }
+
   Widget _buildTopBar() {
+    final greeting = _getGreeting();
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Row(
-          children: const [
+          children: [
             Text(
-              'Good night ',
-              style: TextStyle(
+              greeting['text'] ?? 'Good night ',
+              style: const TextStyle(
                 color: _white,
                 fontSize: 15,
                 fontWeight: FontWeight.w400,
               ),
             ),
-            Text('🌙', style: TextStyle(fontSize: 15)),
+            Text(
+              greeting['icon'] ?? '🌙',
+              style: const TextStyle(fontSize: 15),
+            ),
           ],
         ),
         Row(
@@ -124,29 +142,38 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildStreakBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: _streakBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFF3D2010), width: 1),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: const [
-          Text('🔥', style: TextStyle(fontSize: 13)),
-          SizedBox(width: 5),
-          Text(
-            '7 DAY STREAK',
-            style: TextStyle(
-              color: _streakText,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
+    return StreamBuilder<HomeDataModel>(
+      stream: homeDataRxObj.getHomeDataStream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data?.data?.stats?.streak != true) {
+          return const SizedBox.shrink();
+        }
+        final count = snapshot.data?.data?.stats?.streakCount ?? 0;
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: _streakBg,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFF3D2010), width: 1),
           ),
-        ],
-      ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🔥', style: TextStyle(fontSize: 13)),
+              const SizedBox(width: 5),
+              Text(
+                '$count DAY STREAK',
+                style: const TextStyle(
+                  color: _streakText,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.5,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -653,125 +680,146 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     }
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Stack(
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-            decoration: BoxDecoration(
-              color: _cardBg,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: const Color(0xFF22223A), width: 1),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: _accentPurple.withOpacity(0.12),
-                        borderRadius: BorderRadius.circular(8),
+    return GestureDetector(
+      onTap: () {
+        final dreamMap = {
+          'id': dream.id,
+          'title': dream.title ?? 'Untitled Dream',
+          'date': dream.timeAgo ?? '',
+          'badge': dream.moodDisplay ?? 'DREAM',
+          'badgeColor': const Color(0xFF221144),
+          'badgeTextColor': const Color(0xFFFFD0FF),
+          'description': dream.summary ?? '',
+          'tags': dream.emotionalTags ?? <String>[],
+          'leftAccent': const Color(0xFF7B6EF6),
+        };
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => JournalDetailScreen(dream: dreamMap),
+          ),
+        );
+      },
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+              decoration: BoxDecoration(
+                color: _cardBg,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF22223A), width: 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 34,
+                        height: 34,
+                        decoration: BoxDecoration(
+                          color: _accentPurple.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Center(
+                          child: Text(
+                            emoji,
+                            style: const TextStyle(fontSize: 18),
+                          ),
+                        ),
                       ),
-                      child: Center(
+                      const SizedBox(width: 10),
+                      Expanded(
                         child: Text(
-                          emoji,
-                          style: const TextStyle(fontSize: 18),
+                          dream.title ?? 'Untitled Dream',
+                          style: const TextStyle(
+                            color: _white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: -0.2,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        dream.title ?? 'Untitled Dream',
+                      const SizedBox(width: 8),
+                      Text(
+                        dream.timeAgo ?? '',
                         style: const TextStyle(
-                          color: _white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.2,
+                          color: _subtleText,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    dream.summary ?? '',
+                    style: const TextStyle(
+                      color: Color(0xFFAAAAAC),
+                      fontSize: 13.5,
+                      height: 1.5,
+                      letterSpacing: 0.1,
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      dream.timeAgo ?? '',
-                      style: const TextStyle(
-                        color: _subtleText,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
+                  ),
+                  if (dream.emotionalTags != null &&
+                      dream.emotionalTags!.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      child: Row(
+                        children: dream.emotionalTags!.map((tag) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _tagBg,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Text(
+                                tag,
+                                style: const TextStyle(
+                                  color: _tagText,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     ),
                   ],
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  dream.summary ?? '',
-                  style: const TextStyle(
-                    color: Color(0xFFAAAAAC),
-                    fontSize: 13.5,
-                    height: 1.5,
-                    letterSpacing: 0.1,
-                  ),
-                ),
-                if (dream.emotionalTags != null &&
-                    dream.emotionalTags!.isNotEmpty) ...[
-                  const SizedBox(height: 12),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    child: Row(
-                      children: dream.emotionalTags!.map((tag) {
-                        return Padding(
-                          padding: const EdgeInsets.only(right: 8),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _tagBg,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              tag,
-                              style: const TextStyle(
-                                color: _tagText,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
                 ],
-              ],
+              ),
             ),
-          ),
-          Positioned(
-            left: 0,
-            top: 0,
-            bottom: 0,
-            child: Container(
-              width: 4,
-              decoration: const BoxDecoration(
-                color: _accentPurple,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  bottomLeft: Radius.circular(16),
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 4,
+                decoration: const BoxDecoration(
+                  color: _accentPurple,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(16),
+                    bottomLeft: Radius.circular(16),
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

@@ -139,22 +139,30 @@ class Stats {
     int? totalDreams;
     int? dreamsThisWeek;
     String? avgMood;
+    bool? streak;
+    int? streakCount;
 
     Stats({
         this.totalDreams,
         this.dreamsThisWeek,
         this.avgMood,
+        this.streak,
+        this.streakCount,
     });
 
     Stats copyWith({
         int? totalDreams,
         int? dreamsThisWeek,
         String? avgMood,
+        bool? streak,
+        int? streakCount,
     }) => 
         Stats(
             totalDreams: totalDreams ?? this.totalDreams,
             dreamsThisWeek: dreamsThisWeek ?? this.dreamsThisWeek,
             avgMood: avgMood ?? this.avgMood,
+            streak: streak ?? this.streak,
+            streakCount: streakCount ?? this.streakCount,
         );
 
     factory Stats.fromRawJson(String str) => Stats.fromJson(json.decode(str));
@@ -165,12 +173,16 @@ class Stats {
         totalDreams: json["total_dreams"],
         dreamsThisWeek: json["dreams_this_week"],
         avgMood: json["avg_mood"],
+        streak: json["streak"],
+        streakCount: json["streak_count"],
     );
 
     Map<String, dynamic> toJson() => {
         "total_dreams": totalDreams,
         "dreams_this_week": dreamsThisWeek,
         "avg_mood": avgMood,
+        "streak": streak,
+        "streak_count": streakCount,
     };
 }
 
