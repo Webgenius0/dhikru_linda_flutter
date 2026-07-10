@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:lottie/lottie.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart' hide Data;
+import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart'
+    hide Data;
 import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/networks/endpoints.dart' as endpoints;
@@ -118,8 +120,9 @@ class HomeAvatar extends StatelessWidget {
       onTap: onGoProfile,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        width: 38,
-        height: 38,
+        width: 48.w,
+        height: 48.w,
+        padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(color: _accentPurple, width: 2),
@@ -132,8 +135,8 @@ class HomeAvatar extends StatelessWidget {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return Lottie.asset(
                   'assets/lottie/loader_animation.json',
-                  width: 38,
-                  height: 38,
+                  width: 48.w,
+                  height: 48.w,
                   fit: BoxFit.cover,
                 );
               }
@@ -147,24 +150,16 @@ class HomeAvatar extends StatelessWidget {
                 }
                 return CachedNetworkImage(
                   imageUrl: fullImageUrl,
-                  width: 38,
-                  height: 38,
+                  width: 48.w,
+                  height: 48.w,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Shimmer.fromColors(
                     baseColor: Colors.white.withOpacity(0.05),
                     highlightColor: Colors.white.withOpacity(0.1),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      color: Colors.white,
-                    ),
+                    child: Container(color: Colors.white),
                   ),
-                  errorWidget: (context, url, error) => Image.asset(
-                    'assets/icons/user.png',
-                    width: 38,
-                    height: 38,
-                    fit: BoxFit.cover,
-                  ),
+                  errorWidget: (context, url, error) =>
+                      Image.asset('assets/icons/user.png', fit: BoxFit.cover),
                 );
               }
               return Container(
@@ -172,8 +167,6 @@ class HomeAvatar extends StatelessWidget {
                 padding: const EdgeInsets.all(6),
                 child: Image.asset(
                   'assets/icons/user.png',
-                  height: 22,
-                  width: 22,
                   fit: BoxFit.contain,
                 ),
               );
