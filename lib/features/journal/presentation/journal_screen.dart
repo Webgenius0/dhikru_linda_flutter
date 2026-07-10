@@ -4,6 +4,7 @@ import 'package:dhikru_linda_flutter/features/journal/model/tags_model.dart'
     hide Datum;
 import 'package:dhikru_linda_flutter/features/journal/model/get_all_journal_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:shimmer/shimmer.dart';
 
 class JournalScreen extends StatefulWidget {
@@ -186,7 +187,11 @@ class _JournalScreenState extends State<JournalScreen> {
 
                       if (isLoading) {
                         return ListView.separated(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          padding: const EdgeInsets.only(
+                            left: 20,
+                            right: 20,
+                            bottom: 25,
+                          ),
                           itemCount: journalList.isEmpty
                               ? 4
                               : journalList.length,
@@ -216,9 +221,13 @@ class _JournalScreenState extends State<JournalScreen> {
                       }
 
                       return ListView.separated(
-                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        padding: const EdgeInsets.only(
+                          left: 20,
+                          right: 20,
+                          bottom: 35,
+                        ),
                         itemCount: filteredList.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        separatorBuilder: (_, _) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
                           final item = filteredList[index];
                           final dreamMap = _mapDatumToDreamMap(item);
@@ -251,8 +260,8 @@ class _JournalScreenState extends State<JournalScreen> {
             }
           },
           child: Container(
-            width: 34,
-            height: 34,
+            width: 40.w,
+            height: 40.w,
             decoration: BoxDecoration(
               color: _cardBg,
               shape: BoxShape.circle,

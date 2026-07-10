@@ -44,7 +44,10 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                   // Loading indicator
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 24.h,
+                      ),
                       child: _buildShimmerLoader(),
                     );
                   }
@@ -54,7 +57,10 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
                     return Center(
                       child: Text(
                         'Failed to load FAQs. Please try again.',
-                        style: GoogleFonts.inter(color: Colors.redAccent, fontSize: 14.sp),
+                        style: GoogleFonts.inter(
+                          color: Colors.redAccent,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     );
                   }
@@ -71,7 +77,10 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
 
                   return ListView.builder(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 24.h,
+                    ),
                     itemCount: dataList.length,
                     itemBuilder: (context, index) {
                       final faq = dataList[index];
@@ -104,8 +113,8 @@ class _HelpAndSupportScreenState extends State<HelpAndSupportScreen> {
               if (Navigator.canPop(context)) Navigator.pop(context);
             },
             child: Container(
-              width: 34,
-              height: 34,
+              width: 40.w,
+              height: 40.h,
               decoration: BoxDecoration(
                 color: _cardBg,
                 shape: BoxShape.circle,
@@ -268,7 +277,9 @@ class _FAQItemWidgetState extends State<FAQItemWidget> {
           color: const Color(0xFF111720),
           borderRadius: BorderRadius.circular(16.r),
           border: Border.all(
-            color: _isExpanded ? const Color(0xFF7C5CF6) : const Color(0xFF252F3D),
+            color: _isExpanded
+                ? const Color(0xFF7C5CF6)
+                : const Color(0xFF252F3D),
             width: 1,
           ),
           boxShadow: _isExpanded
@@ -277,7 +288,7 @@ class _FAQItemWidgetState extends State<FAQItemWidget> {
                     color: const Color(0xFF7C5CF6).withOpacity(0.08),
                     blurRadius: 10,
                     spreadRadius: 1,
-                  )
+                  ),
                 ]
               : null,
         ),
@@ -303,7 +314,9 @@ class _FAQItemWidgetState extends State<FAQItemWidget> {
                   duration: const Duration(milliseconds: 200),
                   child: Icon(
                     Icons.keyboard_arrow_down_rounded,
-                    color: _isExpanded ? const Color(0xFF9D7FF7) : const Color(0xFF8993A4),
+                    color: _isExpanded
+                        ? const Color(0xFF9D7FF7)
+                        : const Color(0xFF8993A4),
                     size: 22.sp,
                   ),
                 ),

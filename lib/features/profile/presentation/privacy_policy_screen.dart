@@ -99,7 +99,10 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                   // Loading state
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 24.h,
+                      ),
                       child: _buildShimmerLoader(),
                     );
                   }
@@ -109,7 +112,10 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                     return Center(
                       child: Text(
                         'Failed to load Privacy Policy. Please try again.',
-                        style: GoogleFonts.inter(color: Colors.redAccent, fontSize: 14.sp),
+                        style: GoogleFonts.inter(
+                          color: Colors.redAccent,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     );
                   }
@@ -118,18 +124,26 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                   final content = pageData?.content;
 
                   // Empty content check
-                  if (pageData == null || content == null || content.trim().isEmpty) {
+                  if (pageData == null ||
+                      content == null ||
+                      content.trim().isEmpty) {
                     return Center(
                       child: Text(
                         'No content available.',
-                        style: GoogleFonts.inter(color: _mutedText, fontSize: 14.sp),
+                        style: GoogleFonts.inter(
+                          color: _mutedText,
+                          fontSize: 14.sp,
+                        ),
                       ),
                     );
                   }
 
                   return SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 24.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 24.h,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: _parseHtmlToWidgets(content),
@@ -158,8 +172,8 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               if (Navigator.canPop(context)) Navigator.pop(context);
             },
             child: Container(
-              width: 34,
-              height: 34,
+              width: 40.w,
+              height: 40.w,
               decoration: BoxDecoration(
                 color: _cardBg,
                 shape: BoxShape.circle,

@@ -47,7 +47,14 @@ class CustomProfileHeaderWidget extends StatelessWidget {
     if (v == 'married') return 'Married';
     if (v == 'divorced') return 'Divorced';
     if (v == 'prefer not to say') return 'Prefer not to say';
-    return v.split(' ').map((word) => word.isNotEmpty ? '${word[0].toUpperCase()}${word.substring(1)}' : '').join(' ');
+    return v
+        .split(' ')
+        .map(
+          (word) => word.isNotEmpty
+              ? '${word[0].toUpperCase()}${word.substring(1)}'
+              : '',
+        )
+        .join(' ');
   }
 
   @override
@@ -134,13 +141,21 @@ class CustomProfileHeaderWidget extends StatelessWidget {
                   ),
                 ),
               )
-            : Text(
-                name ?? '',
-                style: GoogleFonts.inter(
-                  color: Colors.white,
-                  fontSize: 24.sp,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -0.5,
+            : Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  child: Text(
+                    name ?? '',
+                    maxLines: 1,
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
                 ),
               ),
 
