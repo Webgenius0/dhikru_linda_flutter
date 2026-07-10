@@ -37,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               HomeTopBar(onGoProfile: widget.onGoProfile),
-              const SizedBox(height: 6),
+              const SizedBox(height: 2),
               const HomeGreetingName(),
               const SizedBox(height: 24),
               const HomePortalCard(),

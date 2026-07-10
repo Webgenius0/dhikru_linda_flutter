@@ -99,33 +99,67 @@ class _NavigationMenuState extends State<NavigationMenu> {
           child: Scaffold(
             body: _pages[_currentIndex],
 
-          bottomNavigationBar: CurvedNavigationBar(
-            index: _currentIndex,
-            height: 65,
-            backgroundColor: Color(0xFF0A0B1A),
-
-            color: const Color(0xFF191A28),
-
-            buttonBackgroundColor: const Color(0xFF39345A),
-            animationDuration: const Duration(milliseconds: 300),
-
-            items: [
-              _buildNavItem("Home", "assets/icons/home.png", 0),
-              _buildNavItem("Journal", "assets/icons/Icon.png", 1),
-              _buildNavItem("Insights", "assets/icons/Button.png", 2),
-              _buildNavItem("Profile", "assets/icons/user.png", 3),
-            ],
-
-            onTap: (index) {
-              setState(() {
-                _currentIndex = index;
-              });
-            },
+            bottomNavigationBar: Container(
+              decoration: const BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black26,
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CurvedNavigationBar(
+                    index: _currentIndex,
+                    height: 65,
+                    backgroundColor: const Color(0xFF0A0B1A),
+                    color: const Color(0xFF191A28),
+                    buttonBackgroundColor: const Color(0xFF39345A),
+                    animationDuration: const Duration(milliseconds: 300),
+                    items: [
+                      _buildNavItem("Home", "assets/icons/home.png", 0),
+                      _buildNavItem("Journal", "assets/icons/Icon.png", 1),
+                      _buildNavItem("Insights", "assets/icons/Button.png", 2),
+                      _buildNavItem("Profile", "assets/icons/user.png", 3),
+                    ],
+                    onTap: (index) {
+                      setState(() {
+                        _currentIndex = index;
+                      });
+                    },
+                  ),
+                  Positioned(
+                    left: 0,
+                    top: 0,
+                    child: CustomPaint(
+                      size: Size(20.r, 20.r),
+                      painter: _CornerMaskPainter(
+                        color: const Color(0xFF0A0B1A),
+                        isLeft: true,
+                      ),
+                    ),
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: CustomPaint(
+                      size: Size(20.r, 20.r),
+                      painter: _CornerMaskPainter(
+                        color: const Color(0xFF0A0B1A),
+                        isLeft: false,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   CurvedNavigationBarItem _buildNavItem(
@@ -149,4 +183,43 @@ class _NavigationMenuState extends State<NavigationMenu> {
       ),
     );
   }
+}
+
+class _CornerMaskPainter extends CustomPainter {
+  final Color color;
+  final bool isLeft;
+
+  _CornerMaskPainter({required this.color, required this.isLeft});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final path = Path();
+    if (isLeft) {
+      path.moveTo(0, 0);
+      path.lineTo(size.width, 0);
+      path.arcToPoint(
+        Offset(0, size.height),
+        radius: Radius.circular(size.width),
+        clockwise: false,
+      );
+      path.close();
+    } else {
+      path.moveTo(size.width, 0);
+      path.lineTo(0, 0);
+      path.arcToPoint(
+        Offset(size.width, size.height),
+        radius: Radius.circular(size.width),
+        clockwise: true,
+      );
+      path.close();
+    }
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

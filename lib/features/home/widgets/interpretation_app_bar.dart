@@ -55,8 +55,8 @@ class InterpretationAppBar extends StatelessWidget {
           behavior: HitTestBehavior.opaque,
           onTap: onShareTap,
           child: Container(
-            width: 34,
-            height: 34,
+            width: 40.w,
+            height: 40.w,
             decoration: BoxDecoration(
               color: _cardBg,
               shape: BoxShape.circle,
