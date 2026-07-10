@@ -42,6 +42,7 @@ class EditProfileNameField extends StatelessWidget {
               fontWeight: FontWeight.w400,
             ),
             cursorColor: _accentPurpleLight,
+            cursorRadius: const Radius.circular(6),
             decoration: InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(

@@ -23,7 +23,7 @@ final class DeleteAccountRx extends RxResponseInt<DeleteAccountModel> {
       DeleteAccountModel data = await api.deleteAccountApi();
       handleSuccessWithReturn(data);
 
-      ToastUtil.showShortToast(data.message ?? "Account deleted successfully.");
+      ToastUtil.showShortToast(data.message ?? "Account deleted successfully.", forceShow: true);
 
       await appData.write(kKeyIsLoggedIn, false);
       await appData.remove(kKeyAccessToken);
@@ -47,6 +47,7 @@ final class DeleteAccountRx extends RxResponseInt<DeleteAccountModel> {
           error.type == DioExceptionType.sendTimeout) {
         ToastUtil.showShortToast(
           "Network error. Please check your connection.",
+          forceShow: true,
         );
         return false;
       }
@@ -54,14 +55,14 @@ final class DeleteAccountRx extends RxResponseInt<DeleteAccountModel> {
       if (error.response != null) {
         final message = error.response!.data["message"];
         if (message is String) {
-          ToastUtil.showShortToast(message);
+          ToastUtil.showShortToast(message, forceShow: true);
           return false;
         }
 
         if (message is Map) {
           final errorMessage =
               message.values.whereType<List>().map((e) => e.first).join("\n");
-          ToastUtil.showShortToast(errorMessage);
+          ToastUtil.showShortToast(errorMessage, forceShow: true);
           return false;
         }
 
@@ -70,22 +71,24 @@ final class DeleteAccountRx extends RxResponseInt<DeleteAccountModel> {
           case 400:
             ToastUtil.showShortToast(
               "Invalid request. Please try again.",
+              forceShow: true,
             );
             break;
           case 401:
             ToastUtil.showShortToast(
               "Unauthorized. Please log in again.",
+              forceShow: true,
             );
             break;
           default:
-            ToastUtil.showShortToast("Server error. Please try again later.");
+            ToastUtil.showShortToast("Server error. Please try again later.", forceShow: true);
         }
         return false;
       }
     }
 
     final defaultMessage = "An unexpected error occurred. Please try again.";
-    ToastUtil.showShortToast(defaultMessage);
+    ToastUtil.showShortToast(defaultMessage, forceShow: true);
     return false;
   }
 }

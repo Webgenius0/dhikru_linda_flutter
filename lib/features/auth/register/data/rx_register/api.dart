@@ -30,7 +30,7 @@ final class RegisterApi {
 
       if (response.statusCode == 201) {
         final data = RegisterModel.fromRawJson(json.encode(response.data));
-        ToastUtil.showShortToast(response.data['message']);
+        ToastUtil.showShortToast(response.data['message'], forceShow: true);
         return data;
       } else {
         throw DataSource.DEFAULT.getFailure();

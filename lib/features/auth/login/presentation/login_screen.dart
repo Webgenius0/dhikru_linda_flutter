@@ -243,6 +243,7 @@ class _LoginScreenState extends State<LoginScreen>
         color: Colors.white.withOpacity(0.85),
         fontSize: 14.sp,
       ),
+      cursorRadius: const Radius.circular(6),
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,

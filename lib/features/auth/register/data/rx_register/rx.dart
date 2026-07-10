@@ -54,7 +54,7 @@ final class RegisterRx extends RxResponseInt<RegisterModel> {
           if (errorMap is Map && errorMap.isNotEmpty) {
             final firstErrorList = errorMap.values.first;
             if (firstErrorList is List && firstErrorList.isNotEmpty) {
-              ToastUtil.showShortToast(firstErrorList.first.toString());
+              ToastUtil.showShortToast(firstErrorList.first.toString(), forceShow: true);
               log(error.toString());
               dataFetcher.sink.addError(error);
               return;
@@ -65,7 +65,7 @@ final class RegisterRx extends RxResponseInt<RegisterModel> {
         // 2. Fallback to the top-level server message
         final message = responseData['message'];
         if (message != null && message.toString().isNotEmpty) {
-          ToastUtil.showShortToast(message.toString());
+          ToastUtil.showShortToast(message.toString(), forceShow: true);
           log(error.toString());
           dataFetcher.sink.addError(error);
           return;

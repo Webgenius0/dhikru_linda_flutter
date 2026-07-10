@@ -104,21 +104,34 @@ class InsightsThemeFrequencyCard extends StatelessWidget {
                             ),
                             Positioned.fill(
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 crossAxisAlignment: CrossAxisAlignment.end,
-                                children: List.generate(barPercentages.length, (index) {
-                                  return FractionallySizedBox(
-                                    heightFactor: barPercentages[index],
-                                    child: Container(
-                                      width: 28.w,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(8.r),
-                                        ),
-                                        gradient: const LinearGradient(
-                                          colors: [_accentTeal, _accentPurple],
-                                          begin: Alignment.bottomCenter,
-                                          end: Alignment.topCenter,
+                                children: List.generate(barPercentages.length, (
+                                  index,
+                                ) {
+                                  return Expanded(
+                                    child: FractionallySizedBox(
+                                      heightFactor: barPercentages[index],
+                                      child: Center(
+                                        child: Container(
+                                          width: 28.w,
+                                          constraints: BoxConstraints(
+                                            maxWidth: 28.w,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            borderRadius: BorderRadius.vertical(
+                                              top: Radius.circular(8.r),
+                                            ),
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                _accentTeal,
+                                                _accentPurple,
+                                              ],
+                                              begin: Alignment.bottomCenter,
+                                              end: Alignment.topCenter,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -138,6 +151,8 @@ class InsightsThemeFrequencyCard extends StatelessWidget {
                                 child: Text(
                                   label,
                                   textAlign: TextAlign.center,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.inter(
                                     color: _mutedText.withOpacity(0.6),
                                     fontSize: 11.sp,

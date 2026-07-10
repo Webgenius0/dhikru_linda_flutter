@@ -39,7 +39,7 @@ final class LoginApi {
           appData.write(kKeyName, data.data!.user!.name);
           appData.write(kKeyEmail, data.data!.user!.email);
         }
-        ToastUtil.showShortToast(data.message ?? "Logged in successfully.");
+        ToastUtil.showShortToast(data.message ?? "Logged in successfully.", forceShow: true);
         return data;
       } else {
         throw DataSource.DEFAULT.getFailure();

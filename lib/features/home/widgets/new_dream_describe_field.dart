@@ -52,6 +52,7 @@ class NewDreamDescribeField extends StatelessWidget {
             controller: controller,
             maxLines: 6,
             style: const TextStyle(color: _white, fontSize: 14, height: 1.55),
+            cursorRadius: const Radius.circular(6),
             decoration: const InputDecoration(
               hintText: 'I was flying over a vast violet ocean, when suddenly...',
               hintStyle: TextStyle(

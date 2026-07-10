@@ -36,6 +36,7 @@ class InterpretationRespondSection extends StatelessWidget {
             controller: controller,
             maxLines: 3,
             style: const TextStyle(color: _white, fontSize: 14, height: 1.5),
+            cursorRadius: const Radius.circular(6),
             decoration: const InputDecoration(
               hintText: 'Write your respond ...',
               hintStyle: TextStyle(color: _subtleText, fontSize: 14),
