@@ -56,7 +56,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       return;
     }
     if (confirmPassword != newPassword) {
-      ToastUtil.showShortToast("The new password field confirmation does not match.");
+      ToastUtil.showShortToast(
+        "The new password field confirmation does not match.",
+      );
       return;
     }
 
@@ -102,10 +104,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     SizedBox(height: 8.h),
                     _buildPasswordField(
                       controller: _oldPasswordController,
-                      hintText: 'Enter your old password',
+                      hintText: 'Enter old password',
                       obscureText: _obscureOldPassword,
-                      onToggleVisibility: () =>
-                          setState(() => _obscureOldPassword = !_obscureOldPassword),
+                      onToggleVisibility: () => setState(
+                        () => _obscureOldPassword = !_obscureOldPassword,
+                      ),
                     ),
 
                     SizedBox(height: 20.h),
@@ -115,10 +118,11 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     SizedBox(height: 8.h),
                     _buildPasswordField(
                       controller: _newPasswordController,
-                      hintText: 'Enter your new password',
+                      hintText: 'Enter new password',
                       obscureText: _obscureNewPassword,
-                      onToggleVisibility: () =>
-                          setState(() => _obscureNewPassword = !_obscureNewPassword),
+                      onToggleVisibility: () => setState(
+                        () => _obscureNewPassword = !_obscureNewPassword,
+                      ),
                     ),
 
                     SizedBox(height: 20.h),
@@ -128,10 +132,12 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                     SizedBox(height: 8.h),
                     _buildPasswordField(
                       controller: _confirmPasswordController,
-                      hintText: 'Confirm your new password',
+                      hintText: 'Confirm new password',
                       obscureText: _obscureConfirmPassword,
                       onToggleVisibility: () => setState(
-                          () => _obscureConfirmPassword = !_obscureConfirmPassword),
+                        () =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword,
+                      ),
                     ),
 
                     SizedBox(height: 40.h),
@@ -164,8 +170,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               if (Navigator.canPop(context)) Navigator.pop(context);
             },
             child: Container(
-              width: 34,
-              height: 34,
+              width: 40.w,
+              height: 40.h,
               decoration: BoxDecoration(
                 color: _cardBg,
                 shape: BoxShape.circle,
@@ -243,13 +249,18 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                   vertical: 16.h,
                 ),
                 hintText: hintText,
-                hintStyle: GoogleFonts.inter(color: _mutedText, fontSize: 15.sp),
+                hintStyle: GoogleFonts.inter(
+                  color: _mutedText,
+                  fontSize: 15.sp,
+                ),
               ),
             ),
           ),
           IconButton(
             icon: Icon(
-              obscureText ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+              obscureText
+                  ? Icons.visibility_off_rounded
+                  : Icons.visibility_rounded,
               color: _mutedText,
               size: 20.sp,
             ),

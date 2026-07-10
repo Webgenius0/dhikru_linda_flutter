@@ -94,11 +94,15 @@ class ProfileAvatar extends StatelessWidget {
   }
 
   Widget _buildPlaceholder(double size) {
-    return Image.asset(
-      'assets/images/person_img.png',
-      width: size,
-      height: size,
-      fit: BoxFit.cover,
+    return Container(
+      color: const Color(0xFF5A3A80),
+      padding: EdgeInsets.all(size * 0.15),
+      child: Image.asset(
+        'assets/icons/user.png',
+        width: size,
+        height: size,
+        fit: BoxFit.contain,
+      ),
     );
   }
 }
