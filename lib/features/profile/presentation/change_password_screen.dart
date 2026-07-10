@@ -48,16 +48,17 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
     // Local validation
     if (oldPassword.isEmpty) {
-      ToastUtil.showShortToast("The old password field is required.");
+      ToastUtil.showShortToast("The old password field is required.", forceShow: true);
       return;
     }
     if (newPassword.isEmpty) {
-      ToastUtil.showShortToast("The new password field is required.");
+      ToastUtil.showShortToast("The new password field is required.", forceShow: true);
       return;
     }
     if (confirmPassword != newPassword) {
       ToastUtil.showShortToast(
         "The new password field confirmation does not match.",
+        forceShow: true,
       );
       return;
     }
@@ -242,6 +243,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 fontWeight: FontWeight.w400,
               ),
               cursorColor: _accentPurpleLight,
+              cursorRadius: const Radius.circular(6),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 contentPadding: EdgeInsets.symmetric(

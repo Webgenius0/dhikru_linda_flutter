@@ -25,7 +25,7 @@ final class RegisterVerifyOtpApi {
 
       if (response.statusCode == 200) {
         final verifyModel = RegisterVerifyOtpModel.fromRawJson(json.encode(response.data));
-        ToastUtil.showShortToast(response.data['message']);
+        ToastUtil.showShortToast(response.data['message'], forceShow: true);
         return verifyModel;
       } else {
         throw DataSource.DEFAULT.getFailure();

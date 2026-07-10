@@ -23,7 +23,7 @@ final class ResendOtpApi {
 
       if (response.statusCode == 200) {
         final resendModel = ResendOtpModel.fromRawJson(json.encode(response.data));
-        ToastUtil.showShortToast(response.data['message']);
+        ToastUtil.showShortToast(response.data['message'], forceShow: true);
         return resendModel;
       } else {
         throw DataSource.DEFAULT.getFailure();

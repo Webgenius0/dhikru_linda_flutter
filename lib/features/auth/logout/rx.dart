@@ -1,4 +1,3 @@
-
 import 'package:dhikru_linda_flutter/helpers/di.dart';
 import 'package:dhikru_linda_flutter/constants/app_constants.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
@@ -22,6 +21,11 @@ final class LogOutRx extends RxResponseInt<Map> {
     try {
       Map data = await api.logout();
       handleSuccessWithReturn(data);
+
+      ToastUtil.showShortToast(
+        data['message']?.toString() ?? "Logged out successfully.",
+        forceShow: true,
+      );
 
       await appData.write(kKeyIsLoggedIn, false);
       await appData.remove(kKeyAccessToken);
@@ -51,6 +55,7 @@ final class LogOutRx extends RxResponseInt<Map> {
           error.type == DioExceptionType.sendTimeout) {
         ToastUtil.showShortToast(
           "Network error. Please check your connection.",
+          forceShow: true,
         );
         return false;
       }
@@ -58,20 +63,22 @@ final class LogOutRx extends RxResponseInt<Map> {
       if (error.response != null) {
         // Check for 401 first to treat as success
         if (error.response!.statusCode == 401) {
-          ToastUtil.showShortToast("Logged out successfully.");
+          ToastUtil.showShortToast("Logged out successfully.", forceShow: true);
           return true;
         }
 
         final message = error.response!.data["message"];
         if (message is String) {
-          ToastUtil.showShortToast(message);
+          ToastUtil.showShortToast(message, forceShow: true);
           return false;
         }
 
         if (message is Map) {
-          final errorMessage =
-              message.values.whereType<List>().map((e) => e.first).join("\n");
-          ToastUtil.showShortToast(errorMessage);
+          final errorMessage = message.values
+              .whereType<List>()
+              .map((e) => e.first)
+              .join("\n");
+          ToastUtil.showShortToast(errorMessage, forceShow: true);
           return false;
         }
 
@@ -80,22 +87,27 @@ final class LogOutRx extends RxResponseInt<Map> {
           case 400:
             ToastUtil.showShortToast(
               "Invalid input. Please check your details.",
+              forceShow: true,
             );
             break;
           case 409:
             ToastUtil.showShortToast(
               "User already exists with this email or phone.",
+              forceShow: true,
             );
             break;
           default:
-            ToastUtil.showShortToast("Server error. Please try again later.");
+            ToastUtil.showShortToast(
+              "Server error. Please try again later.",
+              forceShow: true,
+            );
         }
         return false;
       }
     }
 
     final defaultMessage = "An unexpected error occurred. Please try again.";
-    ToastUtil.showShortToast(defaultMessage);
+    ToastUtil.showShortToast(defaultMessage, forceShow: true);
     return false;
   }
 }

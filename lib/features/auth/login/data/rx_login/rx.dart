@@ -48,7 +48,7 @@ final class LoginRx extends RxResponseInt<LoginModel> {
           if (errorMap is Map && errorMap.isNotEmpty) {
             final firstErrorList = errorMap.values.first;
             if (firstErrorList is List && firstErrorList.isNotEmpty) {
-              ToastUtil.showShortToast(firstErrorList.first.toString());
+              ToastUtil.showShortToast(firstErrorList.first.toString(), forceShow: true);
               log(error.toString());
               dataFetcher.sink.addError(error);
               return;
@@ -66,7 +66,7 @@ final class LoginRx extends RxResponseInt<LoginModel> {
             if (errorMap is Map && errorMap.isNotEmpty) {
               final firstErrorList = errorMap.values.first;
               if (firstErrorList is List && firstErrorList.isNotEmpty) {
-                ToastUtil.showShortToast(firstErrorList.first.toString());
+                ToastUtil.showShortToast(firstErrorList.first.toString(), forceShow: true);
                 log(error.toString());
                 dataFetcher.sink.addError(error);
                 return;
@@ -77,7 +77,7 @@ final class LoginRx extends RxResponseInt<LoginModel> {
           if (dataMap.containsKey('error')) {
             final errorMsg = dataMap['error'];
             if (errorMsg is String && errorMsg.isNotEmpty) {
-              ToastUtil.showShortToast(errorMsg);
+              ToastUtil.showShortToast(errorMsg, forceShow: true);
               log(error.toString());
               dataFetcher.sink.addError(error);
               return;
@@ -88,7 +88,7 @@ final class LoginRx extends RxResponseInt<LoginModel> {
         // 3. Fallback to top-level server message
         final message = responseData['message'];
         if (message != null && message.toString().isNotEmpty) {
-          ToastUtil.showShortToast(message.toString());
+          ToastUtil.showShortToast(message.toString(), forceShow: true);
           log(error.toString());
           dataFetcher.sink.addError(error);
           return;

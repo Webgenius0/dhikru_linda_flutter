@@ -5,7 +5,6 @@ import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
 import 'package:dhikru_linda_flutter/features/journal/presentation/journal_detail_screen.dart';
 
 const Color _cardBg = Color(0xFF161628);
-const Color _accentPurple = Color(0xFF7B6EF6);
 const Color _accentGreen = Color(0xFF4ECFB5);
 const Color _subtleText = Color(0xFF8888AA);
 const Color _tagBg = Color(0xFF1E1E35);
@@ -164,7 +163,7 @@ class HomeRecentDreamsSection extends StatelessWidget {
             padding: EdgeInsets.only(
               bottom: index < dreams.length - 1 ? 12 : 0,
             ),
-            child: HomeDreamCard(dream: dreams[index]),
+            child: HomeDreamCard(dream: dreams[index], index: index),
           );
         }),
       ],
@@ -174,12 +173,29 @@ class HomeRecentDreamsSection extends StatelessWidget {
 
 class HomeDreamCard extends StatelessWidget {
   final RecentDream dream;
+  final int index;
 
-  const HomeDreamCard({super.key, required this.dream});
+  const HomeDreamCard({
+    super.key,
+    required this.dream,
+    required this.index,
+  });
+
+  Color _getAccentColor(int idx) {
+    const colors = [
+      Color(0xFF22CEE9), // 1st
+      Color(0xFF49D97E), // 2nd
+      Color(0xFF7B6EF6), // 3rd
+      Color(0xFFEEAA44), // 4th
+      Color(0xFFEE6688), // 5th
+    ];
+    return colors[idx % colors.length];
+  }
 
   @override
   Widget build(BuildContext context) {
     final moodStr = dream.moodDisplay ?? '';
+    final accentColor = _getAccentColor(index);
     String emoji = '😴';
     if (moodStr.isNotEmpty) {
       final parts = moodStr.split(' ');
@@ -199,7 +215,7 @@ class HomeDreamCard extends StatelessWidget {
           'badgeTextColor': const Color(0xFFFFD0FF),
           'description': dream.summary ?? '',
           'tags': dream.emotionalTags ?? <String>[],
-          'leftAccent': const Color(0xFF7B6EF6),
+          'leftAccent': accentColor,
         };
         Navigator.push(
           context,
@@ -230,7 +246,7 @@ class HomeDreamCard extends StatelessWidget {
                         width: 34,
                         height: 34,
                         decoration: BoxDecoration(
-                          color: _accentPurple.withOpacity(0.12),
+                          color: accentColor.withOpacity(0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
@@ -317,9 +333,9 @@ class HomeDreamCard extends StatelessWidget {
               bottom: 0,
               child: Container(
                 width: 4,
-                decoration: const BoxDecoration(
-                  color: _accentPurple,
-                  borderRadius: BorderRadius.only(
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(16),
                     bottomLeft: Radius.circular(16),
                   ),
