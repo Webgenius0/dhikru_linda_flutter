@@ -69,7 +69,6 @@ ResendOtpRx resendOtpRxObj = ResendOtpRx(
   dataFetcher: BehaviorSubject<ResendOtpModel>(),
 );
 
-
 // _____________ Forgot Password Api Access _____________
 ForgotPasswordRx forgotPasswordRxObj = ForgotPasswordRx(
   empty: ForgetPasswordModel(),
@@ -77,10 +76,11 @@ ForgotPasswordRx forgotPasswordRxObj = ForgotPasswordRx(
 );
 
 // ------------- Forgot Password Verify OTP Api Access -------------
-ForgotPasswordVerifyOtpRx forgotPasswordVerifyOtpRxObj = ForgotPasswordVerifyOtpRx(
-  empty: ForgotPasswordVerifyOtpModel(),
-  dataFetcher: BehaviorSubject<ForgotPasswordVerifyOtpModel>(),
-);
+ForgotPasswordVerifyOtpRx forgotPasswordVerifyOtpRxObj =
+    ForgotPasswordVerifyOtpRx(
+      empty: ForgotPasswordVerifyOtpModel(),
+      dataFetcher: BehaviorSubject<ForgotPasswordVerifyOtpModel>(),
+    );
 
 // _____________ Reset Password Api Access _____________
 ResetPasswordRx resetPasswordRxObj = ResetPasswordRx(
@@ -99,7 +99,6 @@ GetProfileRx getProfileRxObj = GetProfileRx(
   empty: GetProfileModel(),
   dataFetcher: BehaviorSubject<GetProfileModel>(),
 );
-
 
 // //_________________Update Password Api Access ______________________//
 // UpdatePasswordRx updatePasswordRxObj =
@@ -188,4 +187,3 @@ SaveJournalResponseRx saveJournalResponseRxObj = SaveJournalResponseRx(
   empty: SaveJournalResponseModel(),
   dataFetcher: BehaviorSubject<SaveJournalResponseModel>(),
 );
-
