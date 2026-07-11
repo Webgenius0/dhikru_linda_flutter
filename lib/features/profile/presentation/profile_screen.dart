@@ -98,17 +98,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 },
               ),
             ),
-            SliverToBoxAdapter(
-              child: ProfileTierBadge(tier: _tier, isPremium: _isPremium),
-            ),
-            SliverToBoxAdapter(child: SizedBox(height: 24.h)),
-            if (!_isPremium)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  child: const ProfilePremiumCard(),
-                ),
-              ),
+            // SliverToBoxAdapter(
+            //   child: ProfileTierBadge(tier: _tier, isPremium: _isPremium),
+            // ),
+            // SliverToBoxAdapter(child: SizedBox(height: 24.h)),
+            // if (!_isPremium)
+            //   SliverToBoxAdapter(
+            //     child: Padding(
+            //       padding: EdgeInsets.symmetric(horizontal: 20.w),
+            //       child: const ProfilePremiumCard(),
+            //     ),
+            //   ),
             SliverToBoxAdapter(child: SizedBox(height: 28.h)),
             SliverToBoxAdapter(
               child: Padding(

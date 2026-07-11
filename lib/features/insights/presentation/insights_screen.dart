@@ -158,13 +158,13 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   ),
                 ],
 
-                const SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                    child: InsightsPremiumCard(),
-                  ),
-                ),
-                SliverToBoxAdapter(child: SizedBox(height: 10.h)),
+                // const SliverToBoxAdapter(
+                //   child: Padding(
+                //     padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                //     child: InsightsPremiumCard(),
+                //   ),
+                // ),
+                SliverToBoxAdapter(child: SizedBox(height: 15.h)),
               ],
             );
           },

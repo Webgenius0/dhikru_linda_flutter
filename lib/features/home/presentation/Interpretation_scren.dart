@@ -122,6 +122,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                   if (text.isEmpty) {
                     ToastUtil.showShortToast(
                       "The user response field is required.",
+                      forceShow: true,
                     );
                     return;
                   }

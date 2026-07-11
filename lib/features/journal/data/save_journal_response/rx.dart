@@ -26,7 +26,7 @@ final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel
         userResponse: userResponse,
       );
       handleSuccessWithReturn(data);
-      ToastUtil.showShortToast(data.message ?? "Response saved successfully!");
+      ToastUtil.showShortToast(data.message ?? "Response saved successfully!", forceShow: true);
       return true;
     } catch (error) {
       handleErrorWithReturn(error);
@@ -57,20 +57,20 @@ final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel
             }
           });
           if (allErrors.isNotEmpty) {
-            ToastUtil.showShortToast(allErrors.join("\n"));
+            ToastUtil.showShortToast(allErrors.join("\n"), forceShow: true);
             dataFetcher.sink.addError(error);
             return false;
           }
         }
 
         if (message != null && message.toString().isNotEmpty) {
-          ToastUtil.showShortToast(message.toString());
+          ToastUtil.showShortToast(message.toString(), forceShow: true);
           dataFetcher.sink.addError(error);
           return false;
         }
       }
     }
-    ToastUtil.showShortToast("Failed to save response. Please try again.");
+    ToastUtil.showShortToast("Failed to save response. Please try again.", forceShow: true);
     dataFetcher.sink.addError(error);
     return false;
   }
