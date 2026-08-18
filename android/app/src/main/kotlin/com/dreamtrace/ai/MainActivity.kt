@@ -1,4 +1,4 @@
-package com.example.dhikru_linda_flutter
+package com.dreamtrace.ai
 
 import io.flutter.embedding.android.FlutterActivity
 
