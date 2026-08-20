@@ -26,6 +26,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final bool _isPremium = false;
   File? _imageFile;
   String? _imageUrl;
+  int _versionTapCount = 0;
+  bool _showRemoteConfig = false;
+
+  void _onVersionTap() {
+    setState(() {
+      _versionTapCount++;
+      if (_versionTapCount >= 5) {
+        _versionTapCount = 0;
+        _showRemoteConfig = !_showRemoteConfig;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              _showRemoteConfig
+                  ? 'Remote config option enabled'
+                  : 'Remote config option hidden',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -125,9 +147,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             SliverToBoxAdapter(child: SizedBox(height: 12.h)),
-            const SliverToBoxAdapter(child: ProfileMenuSection()),
-            const SliverToBoxAdapter(
-              child: AppVersionFooter(version: 'DreamTrace App v1.0.0'),
+            SliverToBoxAdapter(
+              child: ProfileMenuSection(
+                showRemoteConfig: _showRemoteConfig,
+              ),
+            ),
+            SliverToBoxAdapter(
+              child: AppVersionFooter(
+                version: 'DreamTrace App v1.0.0',
+                onTap: _onVersionTap,
+              ),
             ),
             SliverToBoxAdapter(child: SizedBox(height: 15.h)),
           ],
