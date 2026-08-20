@@ -3,6 +3,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
 import 'package:dhikru_linda_flutter/features/journal/presentation/journal_detail_screen.dart';
+import 'package:dhikru_linda_flutter/features/journal/widgets/journal_dream_card.dart';
 
 const Color _cardBg = Color(0xFF161628);
 const Color _accentGreen = Color(0xFF4ECFB5);
@@ -194,15 +195,9 @@ class HomeDreamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final moodStr = dream.moodDisplay ?? '';
+    final moodAssets = MoodHelper.getMoodAssets(dream.moodDisplay);
     final accentColor = _getAccentColor(index);
-    String emoji = '😴';
-    if (moodStr.isNotEmpty) {
-      final parts = moodStr.split(' ');
-      if (parts.isNotEmpty) {
-        emoji = parts.first;
-      }
-    }
+    final emoji = moodAssets['emoji'] as String;
 
     return GestureDetector(
       onTap: () {

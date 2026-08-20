@@ -67,7 +67,8 @@ dependencies:
 flutter_icons:
   android: true
   ios: true
-  image_path: "assets/icons/DreamTraceLogo.png"
+  image_path: "assets/images/logo.png"
+
 
   # Optional
   integrations:

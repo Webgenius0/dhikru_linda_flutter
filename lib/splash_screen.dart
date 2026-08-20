@@ -88,16 +88,13 @@ class _SplashScreenState extends State<SplashScreen>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  CustomLogoWidget(
-                    width: 46.w,
-                    height: 46.w,
-                  ),
+                  CustomLogoWidget(width: 46.w, height: 46.w),
 
                   SizedBox(width: 14.w),
 
                   // --------------- App Name ---------------
                   Text(
-                    'Dream Trace',
+                    'Dream Trace AI',
                     style: GoogleFonts.cormorantGaramond(
                       color: Colors.white,
                       fontSize: 30.sp,
@@ -113,5 +110,3 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 }
-
-
