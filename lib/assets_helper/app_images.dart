@@ -2,12 +2,12 @@ class AppImages {
   static const String imageRoute = 'assets/images';
   static const String iconRoute = 'assets/icons';
 
-  static const String logo = '$imageRoute/logo.jpg';
+  static const String logo = '$imageRoute/logo.png';
   static const String bg = '$imageRoute/bg.png';
-  static const String logo_with_name = '$imageRoute/logo.jpg';
-  static const String logo_with_color = '$imageRoute/logo.jpg';
+  static const String logo_with_name = '$imageRoute/logo.png';
+  static const String logo_with_color = '$imageRoute/logo.png';
   static const String logo_with_name_with_color =
-      '$imageRoute/logo.jpg';
+      '$imageRoute/logo.png';
   static const String bg_image = '$imageRoute/bg_image.png';
 
   // onboarding screen images
