@@ -12,6 +12,9 @@ import 'helpers/language.dart';
 import 'helpers/navigation_service.dart';
 import 'helpers/register_provider.dart';
 import 'networks/dio/dio.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,6 +25,12 @@ void main() async {
   await GetStorage.init();
   diSetup();
   // initiInternetChecker();
+
+
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   DioSingleton.instance.create();
 
   // Set status bar color

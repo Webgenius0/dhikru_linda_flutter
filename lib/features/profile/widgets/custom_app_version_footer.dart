@@ -6,12 +6,14 @@ class AppVersionFooter extends StatelessWidget {
   final String version;
   final Color textColor;
   final double? fontSize;
+  final VoidCallback? onTap;
 
   const AppVersionFooter({
     super.key,
     required this.version,
     this.textColor = const Color(0xFF8993A4),
     this.fontSize,
+    this.onTap,
   });
 
   @override
@@ -22,12 +24,16 @@ class AppVersionFooter extends StatelessWidget {
         bottom: 8.h,
       ),
       child: Center(
-        child: Text(
-          version,
-          style: GoogleFonts.inter(
-            color: textColor.withOpacity(0.5),
-            fontSize: fontSize ?? 12.sp,
-            fontWeight: FontWeight.w400,
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: HitTestBehavior.opaque,
+          child: Text(
+            version,
+            style: GoogleFonts.inter(
+              color: textColor.withOpacity(0.5),
+              fontSize: fontSize ?? 12.sp,
+              fontWeight: FontWeight.w400,
+            ),
           ),
         ),
       ),
