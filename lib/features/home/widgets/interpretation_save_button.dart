@@ -6,64 +6,140 @@ const Color _accentPurple = Color(0xFF7B6EF6);
 const Color _white = Colors.white;
 
 class InterpretationSaveButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback onSend;
+  final VoidCallback? onExit;
 
-  const InterpretationSaveButton({super.key, required this.onPressed});
+  const InterpretationSaveButton({
+    super.key,
+    required this.onSend,
+    this.onExit,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
-      valueListenable: saveJournalResponseRxObj.isLoading,
-      builder: (context, isLoading, child) {
-        return Container(
-          color: _bgColor,
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
-          child: SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
-              onPressed: isLoading ? null : onPressed,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _accentPurple,
-                foregroundColor: _white,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
+      valueListenable: sendJournalMessageRxObj.isLoading,
+      builder: (context, isSendLoading, child) {
+        return ValueListenableBuilder<bool>(
+          valueListenable: saveJournalResponseRxObj.isLoading,
+          builder: (context, isExitLoading, child) {
+            return Container(
+              color: _bgColor,
+              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  if (isLoading) ...[
-                    const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        color: Colors.white,
-                        strokeWidth: 2,
+                  // Exit Button (Left)
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed:
+                            (isExitLoading || isSendLoading)
+                                ? null
+                                : (onExit ?? () => Navigator.maybePop(context)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF1E1E38),
+                          foregroundColor: _white,
+                          elevation: 0,
+                          side: const BorderSide(
+                            color: Color(0xFF33335A),
+                            width: 1,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isExitLoading) ...[
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ] else ...[
+                              const Icon(
+                                Icons.close_rounded,
+                                size: 18,
+                                color: Color(0xFFAAAAAA),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            const Text(
+                              'Exit',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 10),
-                  ] else ...[
-                    const Icon(
-                      Icons.bookmark_border_rounded,
-                      size: 20,
-                      color: Colors.white,
-                    ),
-                    const SizedBox(width: 8),
-                  ],
-                  const Text(
-                    'Save to Journal',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.2,
+                  ),
+                  const SizedBox(width: 14),
+                  // Send Button (Right)
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed:
+                            (isExitLoading || isSendLoading) ? null : onSend,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _accentPurple,
+                          foregroundColor: _white,
+                          disabledBackgroundColor: _accentPurple.withValues(
+                            alpha: 0.6,
+                          ),
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            if (isSendLoading) ...[
+                              const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                            ] else ...[
+                              const Icon(
+                                Icons.send_rounded,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            const Text(
+                              'Send',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                letterSpacing: 0.2,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
+            );
+          },
         );
       },
     );

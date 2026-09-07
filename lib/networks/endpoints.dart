@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names, unnecessary_string_interpolations
 
-const String url = "https://dashboard.thrivearc.ai/api";
+// const String url = "https://dashboard.thrivearc.ai/api";
+const String url = "https://feranpage.thesyndicates.team/api";
 const String imageUrl = "${url}";
 
 final class NetworkConstants {
@@ -108,4 +109,9 @@ final class Endpoints {
   // -------------------Verify Otp start-----------------
   static String forgetPasswordVerifyOtp() => "/user/verify-otp";
   // -------------------Verify Otp end-------------------
+
+  // -------------------Send Journal Message start-----------------
+  static String sendJournalMessage({required int journalId}) =>
+      "/journal-entries/$journalId/messages";
+  // -------------------Send Journal Message end-------------------
 }

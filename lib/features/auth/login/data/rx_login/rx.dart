@@ -26,7 +26,6 @@ final class LoginRx extends RxResponseInt<LoginModel> {
         email: email,
         password: password,
       );
-
       handleSuccessWithReturn(data);
       return data;
     } catch (error) {

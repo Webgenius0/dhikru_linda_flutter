@@ -3,6 +3,7 @@ import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/new_journal_entry_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/send_journal_message_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/home/widgets/home_widgets.dart';
 import 'package:share_plus/share_plus.dart';
@@ -16,6 +17,8 @@ class InterpretationScren extends StatefulWidget {
 
 class _InterpretationScrenState extends State<InterpretationScren> {
   final TextEditingController _respondController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  final List<ChatMessage> _messages = [];
   Data? _dreamData;
   bool _isInitialized = false;
   bool _isLoading = true;
@@ -39,8 +42,14 @@ class _InterpretationScrenState extends State<InterpretationScren> {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Data) {
         _dreamData = args;
-        if (_dreamData!.userResponse != null) {
-          _respondController.text = _dreamData!.userResponse!;
+        if (_dreamData!.userResponse != null &&
+            _dreamData!.userResponse!.isNotEmpty) {
+          _messages.add(
+            ChatMessage(
+              sender: 'user',
+              message: _dreamData!.userResponse!,
+            ),
+          );
         }
       }
       _isInitialized = true;
@@ -50,6 +59,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
   @override
   void dispose() {
     _respondController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -69,6 +79,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
               child: _isLoading
                   ? InterpretationShimmer(appBar: appBar)
                   : SingleChildScrollView(
+                      controller: _scrollController,
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,10 +104,6 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                             body: _dreamData?.meaning ?? '',
                           ),
                           const SizedBox(height: 28),
-                          InterpretationRespondSection(
-                            controller: _respondController,
-                          ),
-                          const SizedBox(height: 28),
                           InterpretationCareReflection(dreamData: _dreamData),
                           const SizedBox(height: 28),
                           InterpretationEmotionalLandscape(
@@ -104,6 +111,14 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                           ),
                           const SizedBox(height: 28),
                           InterpretationSymbolTags(dreamData: _dreamData),
+                          if (_messages.isNotEmpty) ...[
+                            const SizedBox(height: 28),
+                            InterpretationChatBubbles(messages: _messages),
+                          ],
+                          const SizedBox(height: 28),
+                          InterpretationRespondSection(
+                            controller: _respondController,
+                          ),
                           const SizedBox(height: 25),
                         ],
                       ),
@@ -115,9 +130,37 @@ class _InterpretationScrenState extends State<InterpretationScren> {
       bottomNavigationBar: _isLoading
           ? const SizedBox.shrink()
           : Padding(
-              padding: const EdgeInsets.only(bottom: 45),
+              padding: const EdgeInsets.only(bottom: 20),
               child: InterpretationSaveButton(
-                onPressed: () async {
+                onExit: () async {
+                  final journalId = _dreamData?.id ?? 0;
+                  String responseText = _respondController.text.trim();
+
+                  if (responseText.isEmpty && _messages.isNotEmpty) {
+                    final userMsgs = _messages.where(
+                      (m) =>
+                          m.sender == 'user' &&
+                          (m.message?.trim().isNotEmpty ?? false),
+                    );
+                    if (userMsgs.isNotEmpty) {
+                      responseText = userMsgs.last.message!.trim();
+                    }
+                  }
+
+                  if (journalId != 0 && responseText.isNotEmpty) {
+                    await saveJournalResponseRxObj.saveJournalResponse(
+                      journalId: journalId,
+                      userResponse: responseText,
+                    );
+                  }
+
+                  if (mounted) {
+                    NavigationService.navigateToUntilReplacement(
+                      Routes.userNavigationMenu,
+                    );
+                  }
+                },
+                onSend: () async {
                   final text = _respondController.text.trim();
                   if (text.isEmpty) {
                     ToastUtil.showShortToast(
@@ -127,15 +170,41 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                     return;
                   }
                   final journalId = _dreamData?.id ?? 0;
-                  final success = await saveJournalResponseRxObj
-                      .saveJournalResponse(
-                        journalId: journalId,
-                        userResponse: text,
-                      );
-                  if (success && mounted) {
-                    NavigationService.navigateToUntilReplacement(
-                      Routes.userNavigationMenu,
+                  if (journalId == 0) {
+                    ToastUtil.showShortToast(
+                      "Invalid journal entry ID.",
+                      forceShow: true,
                     );
+                    return;
+                  }
+                  final response = await sendJournalMessageRxObj.sendMessage(
+                    journalId: journalId,
+                    message: text,
+                  );
+                  if (response != null && response.success == true) {
+                    _respondController.clear();
+                    setState(() {
+                      if (response.data?.messages != null &&
+                          response.data!.messages!.isNotEmpty) {
+                        _messages.addAll(response.data!.messages!);
+                      } else {
+                        if (response.data?.userMessage != null) {
+                          _messages.add(response.data!.userMessage!);
+                        }
+                        if (response.data?.aiMessage != null) {
+                          _messages.add(response.data!.aiMessage!);
+                        }
+                      }
+                    });
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (_scrollController.hasClients) {
+                        _scrollController.animateTo(
+                          _scrollController.position.maxScrollExtent,
+                          duration: const Duration(milliseconds: 400),
+                          curve: Curves.easeOut,
+                        );
+                      }
+                    });
                   }
                 },
               ),
