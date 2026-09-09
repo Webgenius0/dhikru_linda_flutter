@@ -17,7 +17,7 @@ class InterpretationRespondSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'YOUR RESPOND',
+          'Chat with AI',
           style: TextStyle(
             color: _labelText,
             fontSize: 11,

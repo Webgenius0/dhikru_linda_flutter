@@ -16,3 +16,5 @@ export 'interpretation_care_reflection.dart';
 export 'interpretation_emotional_landscape.dart';
 export 'interpretation_symbol_tags.dart';
 export 'interpretation_save_button.dart';
+export 'interpretation_chat_bubbles.dart';
+
