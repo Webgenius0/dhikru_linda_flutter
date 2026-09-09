@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/home/widgets/home_widgets.dart';
+
+import 'package:dhikru_linda_flutter/features/home/presentation/Interpretation_scren.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class NewDrimeEnterScreen extends StatefulWidget {
   const NewDrimeEnterScreen({super.key});
@@ -155,8 +159,8 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
     final lowerTitle = title.toLowerCase();
     final lowerContent = content.toLowerCase();
     return sensitiveKeywords.any(
-      (keyword) =>
-          lowerTitle.contains(keyword) || lowerContent.contains(keyword),
+          (keyword) =>
+      lowerTitle.contains(keyword) || lowerContent.contains(keyword),
     );
   }
 
@@ -188,15 +192,14 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               const Text(
                 'Sensitive Content',
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFF1D1D3A),
-                  fontSize: 24,
-                  fontWeight: FontWeight.w500,
-                  height: 1.5,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
                 ),
               ),
               const SizedBox(height: 12),
@@ -205,33 +208,61 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: Color(0xFF8C8CA8),
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.w500,
                   height: 1.5,
                 ),
               ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7B6EF6),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+              const SizedBox(height: 28),
+              Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFE0E0EA)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: Color(0xFF1D1D3A),
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  child: const Text(
-                    'Cancel',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: SizedBox(
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF7B6EF6),
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: const Text(
+                          'Proceed',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -239,6 +270,8 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
       ),
     );
   }
+
+  // ─── Bottom Interpret Button ─────────────────────────────────────────────────
 
   Widget _buildInterpretButton() {
     return ValueListenableBuilder<bool>(
