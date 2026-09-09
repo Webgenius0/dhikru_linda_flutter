@@ -23,10 +23,16 @@ class InterpretationSaveButton extends StatelessWidget {
         return ValueListenableBuilder<bool>(
           valueListenable: saveJournalResponseRxObj.isLoading,
           builder: (context, isExitLoading, child) {
-            return Container(
-              color: _bgColor,
-              padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
-              child: Row(
+            return SafeArea(
+              top: false,
+              bottom: true,
+              child: Container(
+                color: _bgColor,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                child: Row(
                 children: [
                   // Exit Button (Left)
                   Expanded(
@@ -138,6 +144,7 @@ class InterpretationSaveButton extends StatelessWidget {
                   ),
                 ],
               ),
+            ),
             );
           },
         );

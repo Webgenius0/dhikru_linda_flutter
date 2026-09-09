@@ -129,10 +129,8 @@ class _InterpretationScrenState extends State<InterpretationScren> {
       ),
       bottomNavigationBar: _isLoading
           ? const SizedBox.shrink()
-          : Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: InterpretationSaveButton(
-                onExit: () async {
+          : InterpretationSaveButton(
+              onExit: () async {
                   final journalId = _dreamData?.id ?? 0;
                   String responseText = _respondController.text.trim();
 
@@ -208,7 +206,6 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                   }
                 },
               ),
-            ),
     );
   }
 
