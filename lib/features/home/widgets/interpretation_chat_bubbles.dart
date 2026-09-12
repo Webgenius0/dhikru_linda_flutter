@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/send_journal_message_model.dart';
 
 const Color _cardBg = Color(0xFF131325);
@@ -84,12 +85,45 @@ class InterpretationChatBubbles extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          Text(
-            msg.message ?? '',
-            style: TextStyle(
-              color: isAi ? const Color(0xFFE8E8F5) : Colors.white,
-              fontSize: 14,
-              height: 1.5,
+          MarkdownBody(
+            data: msg.message ?? '',
+            selectable: false,
+            styleSheet: MarkdownStyleSheet(
+              p: TextStyle(
+                color: isAi ? const Color(0xFFE8E8F5) : Colors.white,
+                fontSize: 14,
+                height: 1.5,
+              ),
+              strong: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+              em: TextStyle(
+                color: isAi ? const Color(0xFFE8E8F5) : Colors.white,
+                fontStyle: FontStyle.italic,
+                fontSize: 14,
+              ),
+              h1: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              h2: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+              h3: const TextStyle(
+                color: Colors.white,
+                fontSize: 14.5,
+                fontWeight: FontWeight.bold,
+              ),
+              listBullet: TextStyle(
+                color: isAi ? const Color(0xFFE8E8F5) : Colors.white,
+                fontSize: 14,
+              ),
+              blockSpacing: 8.0,
             ),
           ),
         ],

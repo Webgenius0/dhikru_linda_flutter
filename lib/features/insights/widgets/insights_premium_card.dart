@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+
 const Color _accentPurple = Color(0xFF7C5CF6);
 const Color _accentPurpleLight = Color(0xFF9D7FF7);
 
@@ -21,12 +24,12 @@ class InsightsPremiumCard extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: _accentPurple.withOpacity(0.12),
+            color: _accentPurple.withValues(alpha: 0.12),
             blurRadius: 16,
             spreadRadius: 2,
           ),
         ],
-        border: Border.all(color: _accentPurple.withOpacity(0.25), width: 1),
+        border: Border.all(color: _accentPurple.withValues(alpha: 0.25), width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -53,7 +56,7 @@ class InsightsPremiumCard extends StatelessWidget {
           Text(
             'Get unlimited AI interpretations, deep symbol analysis, and weekly pattern reports.',
             style: GoogleFonts.inter(
-              color: Colors.white.withOpacity(0.65),
+              color: Colors.white.withValues(alpha: 0.65),
               fontSize: 13.sp,
               fontWeight: FontWeight.w400,
               height: 1.5,
@@ -62,7 +65,7 @@ class InsightsPremiumCard extends StatelessWidget {
           SizedBox(height: 18.h),
           GestureDetector(
             onTap: () {
-              // TODO: navigate to subscription
+              NavigationService.navigateTo(Routes.subscriptionScreen);
             },
             child: Container(
               width: double.infinity,
@@ -77,7 +80,7 @@ class InsightsPremiumCard extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: _accentPurple.withOpacity(0.35),
+                    color: _accentPurple.withValues(alpha: 0.35),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
