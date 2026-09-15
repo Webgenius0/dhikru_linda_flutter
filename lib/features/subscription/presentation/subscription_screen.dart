@@ -21,6 +21,38 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     getSubscriptionRxObj.getSubscriptionStatus();
   }
 
+  String _formatDate(dynamic dateStr) {
+    if (dateStr == null) return 'N/A';
+    try {
+      final dt = DateTime.parse(dateStr.toString()).toLocal();
+      final months = [
+        'Jan',
+        'Feb',
+        'Mar',
+        'Apr',
+        'May',
+        'Jun',
+        'Jul',
+        'Aug',
+        'Sep',
+        'Oct',
+        'Nov',
+        'Dec',
+      ];
+      return '${months[dt.month - 1]} ${dt.day}, ${dt.year}';
+    } catch (_) {
+      return dateStr.toString();
+    }
+  }
+
+  String _formatPlatform(dynamic platform) {
+    if (platform == null) return 'App Store';
+    final p = platform.toString().toLowerCase();
+    if (p == 'apple' || p == 'ios') return 'Apple App Store';
+    if (p == 'google' || p == 'android') return 'Google Play Store';
+    return platform.toString();
+  }
+
   IconData _getBenefitIcon(String text) {
     final lower = text.toLowerCase();
     if (lower.contains('psychological') ||
@@ -49,6 +81,186 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     } else {
       return Icons.auto_awesome_rounded;
     }
+  }
+
+  Widget _buildInfoRow({
+    required String label,
+    required String value,
+    required IconData icon,
+  }) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          size: 16,
+          color: const Color(0xFF8888AA),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          label,
+          style: TextStyle(
+            color: const Color(0xFF8888AA),
+            fontSize: 12.5.sp,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const Spacer(),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActiveSubscriptionCard(Data subData) {
+    String planName = 'Premium Plan';
+    if (subData.productId != null && subData.plans != null) {
+      final match = subData.plans!.firstWhere(
+        (p) => p.id == subData.productId,
+        orElse: () => Plan(name: subData.productId.toString()),
+      );
+      if (match.name != null && match.name!.isNotEmpty) {
+        planName = match.name!;
+      }
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFF1A1A35),
+            Color(0xFF121226),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: const Color(0xFF7B6EF6).withValues(alpha: 0.35),
+          width: 1.2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF7B6EF6).withValues(alpha: 0.15),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF7B6EF6), Color(0xFF9D7FF7)],
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(
+                      Icons.workspace_premium_rounded,
+                      color: Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        planName,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Container(
+                            width: 7,
+                            height: 7,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF4CAF50),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 5),
+                          Text(
+                            'Active',
+                            style: TextStyle(
+                              color: const Color(0xFF4CAF50),
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF4CAF50).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFF4CAF50).withValues(alpha: 0.4),
+                    width: 1,
+                  ),
+                ),
+                child: Text(
+                  'PAID',
+                  style: TextStyle(
+                    color: const Color(0xFF4CAF50),
+                    fontSize: 10.sp,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(color: Color(0xFF252545), height: 1),
+          const SizedBox(height: 14),
+          _buildInfoRow(
+            label: 'Platform',
+            value: _formatPlatform(subData.platform),
+            icon: Icons.storefront_rounded,
+          ),
+          const SizedBox(height: 10),
+          _buildInfoRow(
+            label: 'Expires / Renews',
+            value: _formatDate(subData.expiresAt),
+            icon: Icons.calendar_today_rounded,
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -243,9 +455,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   const SizedBox(height: 8),
                                   Text(
                                     isPremium
-                                        ? (subData?.expiresAt != null
-                                              ? 'Your subscription is active until ${subData!.expiresAt}'
-                                              : 'You have full access to all companion & dream interpretation features.')
+                                        ? 'You have full access to all companion & dream interpretation features.'
                                         : 'Gain deeper clarity with unlimited conversational AI, emotion breakdown & dream insights.',
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
@@ -255,10 +465,32 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                     ),
                                   ),
 
-                                  const SizedBox(height: 24),
+                                  const SizedBox(height: 20),
 
-                                  // Features / Benefits List Card from API
-                                  if (benefits.isNotEmpty)
+                                  // If Active Subscription, show Active Plan Details Card
+                                  if (isPremium && subData != null) ...[
+                                    _buildActiveSubscriptionCard(subData),
+                                    const SizedBox(height: 24),
+                                  ],
+
+                                  // Features / Benefits Header
+                                  if (benefits.isNotEmpty) ...[
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        isPremium
+                                            ? 'YOUR PREMIUM BENEFITS'
+                                            : 'INCLUDED FEATURES',
+                                        style: const TextStyle(
+                                          color: Color(0xFF8888AA),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1.4,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    // Features / Benefits List Card from API
                                     Container(
                                       padding: const EdgeInsets.symmetric(
                                         horizontal: 16,
@@ -293,30 +525,48 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                     height: 36,
                                                     alignment: Alignment.center,
                                                     decoration: BoxDecoration(
-                                                      color: const Color(
-                                                        0xFF7B6EF6,
-                                                      ).withValues(alpha: 0.16),
+                                                      color: (isPremium
+                                                              ? const Color(
+                                                                  0xFF4CAF50,
+                                                                )
+                                                              : const Color(
+                                                                  0xFF7B6EF6,
+                                                                ))
+                                                          .withValues(
+                                                            alpha: 0.16,
+                                                          ),
                                                       borderRadius:
                                                           BorderRadius.circular(
                                                             10,
                                                           ),
                                                       border: Border.all(
-                                                        color:
-                                                            const Color(
-                                                              0xFF7B6EF6,
-                                                            ).withValues(
+                                                        color: (isPremium
+                                                                ? const Color(
+                                                                    0xFF4CAF50,
+                                                                  )
+                                                                : const Color(
+                                                                    0xFF7B6EF6,
+                                                                  ))
+                                                            .withValues(
                                                               alpha: 0.3,
                                                             ),
                                                         width: 0.8,
                                                       ),
                                                     ),
                                                     child: Icon(
-                                                      _getBenefitIcon(
-                                                        benefitText,
-                                                      ),
-                                                      color: const Color(
-                                                        0xFF9D7FF7,
-                                                      ),
+                                                      isPremium
+                                                          ? Icons
+                                                              .check_circle_rounded
+                                                          : _getBenefitIcon(
+                                                              benefitText,
+                                                            ),
+                                                      color: isPremium
+                                                          ? const Color(
+                                                              0xFF66BB6A,
+                                                            )
+                                                          : const Color(
+                                                              0xFF9D7FF7,
+                                                            ),
                                                       size: 18,
                                                     ),
                                                   ),
@@ -341,11 +591,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                         ),
                                       ),
                                     ),
+                                  ],
 
-                                  const SizedBox(height: 24),
-
-                                  // Plans Header
+                                  // Plans Header & List if not premium
                                   if (!isPremium && plans.isNotEmpty) ...[
+                                    const SizedBox(height: 24),
                                     const Align(
                                       alignment: Alignment.centerLeft,
                                       child: Text(
@@ -436,7 +686,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
                       String buttonText = 'Unlock Access';
                       if (isPremium) {
-                        buttonText = 'Premium Active';
+                        buttonText = 'Close';
                       } else if (plans.isNotEmpty &&
                           _selectedPlanIndex < plans.length) {
                         final plan = plans[_selectedPlanIndex];
@@ -480,7 +730,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                shadowColor: const Color(0xFF7B6EF6),
+                                shadowColor: isPremium
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFF7B6EF6),
                               ),
                               child: _isProcessing
                                   ? const SizedBox(
@@ -497,8 +749,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                       children: [
                                         Icon(
                                           isPremium
-                                              ? Icons
-                                                    .check_circle_outline_rounded
+                                              ? Icons.check_circle_rounded
                                               : Icons.lock_open_rounded,
                                           size: 18,
                                           color: Colors.white,
@@ -518,7 +769,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                           ),
                           const SizedBox(height: 10),
                           Text(
-                            'Recurring billing. Cancel anytime in account settings.\nBy subscribing, you agree to our Terms & Privacy Policy.',
+                            isPremium
+                                ? 'Your subscription is managed through your app store account.'
+                                : 'Recurring billing. Cancel anytime in account settings.\nBy subscribing, you agree to our Terms & Privacy Policy.',
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: const Color(0xFF666688),
