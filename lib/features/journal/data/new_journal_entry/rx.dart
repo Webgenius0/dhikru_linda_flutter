@@ -31,6 +31,13 @@ final class NewJournalEntryRx extends RxResponseInt<NewJournalEntryModel> {
         contentVoice: contentVoice,
         tagIds: tagIds,
       );
+      if (data.success == false) {
+        if (data.message != null && data.message!.isNotEmpty) {
+          ToastUtil.showShortToast(data.message!, forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
+        return false;
+      }
       handleSuccessWithReturn(data);
       ToastUtil.showShortToast(data.message ?? "Dream logged successfully!");
       return true;

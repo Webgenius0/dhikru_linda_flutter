@@ -38,10 +38,14 @@ final class Logger extends Interceptor {
       final data = response.data as Map<String, dynamic>;
       final code = data['code'];
       final message = data['message']?.toString() ?? '';
+      final msgLower = message.toLowerCase();
       final isPremiumRestriction = code == 403 ||
           (data['success'] == false &&
-              (message.toLowerCase().contains('premium') ||
-                  message.toLowerCase().contains('upgrade')));
+              (code == 403 ||
+                  msgLower.contains('premium') ||
+                  msgLower.contains('upgrade') ||
+                  msgLower.contains('companion') ||
+                  msgLower.contains('unlock')));
 
       if (isPremiumRestriction) {
         if (message.isNotEmpty) {
@@ -89,9 +93,12 @@ final class Logger extends Interceptor {
       final data = err.response!.data as Map<String, dynamic>;
       final code = data['code'];
       final message = data['message']?.toString() ?? '';
+      final msgLower = message.toLowerCase();
       if (code == 403 ||
-          message.toLowerCase().contains('premium') ||
-          message.toLowerCase().contains('upgrade')) {
+          msgLower.contains('premium') ||
+          msgLower.contains('upgrade') ||
+          msgLower.contains('companion') ||
+          msgLower.contains('unlock')) {
         if (message.isNotEmpty) {
           ToastUtil.showShortToast(message, forceShow: true);
         }

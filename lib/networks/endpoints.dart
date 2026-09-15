@@ -114,4 +114,8 @@ final class Endpoints {
   static String sendJournalMessage({required int journalId}) =>
       "/journal-entries/$journalId/messages";
   // -------------------Send Journal Message end-------------------
+
+  // -------------------Get Subscription Status start-----------------
+  static String getSubscriptionStatus() => "/subscription/status";
+  // -------------------Get Subscription Status end-------------------
 }
