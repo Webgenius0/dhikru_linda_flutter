@@ -1,3 +1,4 @@
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:flutter/material.dart';
 
 final class NavigationService {
@@ -7,9 +8,24 @@ final class NavigationService {
   static NavigationService get instance => _navigationService;
 
   static GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static bool _isNavigatingToSubscription = false;
 
-  static Future<dynamic> navigateTo(String routeName, {Object? arguments}) =>
-      navigatorKey.currentState!.pushNamed(routeName, arguments: arguments);
+  static Future<dynamic>? navigateTo(String routeName, {Object? arguments}) {
+    if (routeName == Routes.subscriptionScreen) {
+      if (_isNavigatingToSubscription) return null;
+      _isNavigatingToSubscription = true;
+      return navigatorKey.currentState
+          ?.pushNamed(routeName, arguments: arguments)
+          .then((value) {
+        _isNavigatingToSubscription = false;
+        return value;
+      }).catchError((err) {
+        _isNavigatingToSubscription = false;
+        throw err;
+      });
+    }
+    return navigatorKey.currentState?.pushNamed(routeName, arguments: arguments);
+  }
 
   static Future<dynamic> navigateToReplacement(String routeName,
           {Object? arguments}) =>

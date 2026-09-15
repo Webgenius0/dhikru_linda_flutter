@@ -29,6 +29,13 @@ final class SendJournalMessageRx
         journalId: journalId,
         message: message,
       );
+      if (data.success == false) {
+        if (data.message != null && data.message!.isNotEmpty) {
+          ToastUtil.showShortToast(data.message!, forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
+        return null;
+      }
       handleSuccessWithReturn(data);
       return data;
     } catch (error) {

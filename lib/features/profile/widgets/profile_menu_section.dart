@@ -7,6 +7,7 @@ import 'package:dhikru_linda_flutter/features/profile/presentation/change_passwo
 import 'package:dhikru_linda_flutter/features/profile/presentation/help_and_support_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
+import 'package:dhikru_linda_flutter/features/subscription/presentation/subscription_screen.dart';
 
 import '../../remote_confing/remote_confing_test.dart';
 
@@ -35,6 +36,21 @@ class ProfileMenuSection extends StatelessWidget {
         ),
         child: Column(
           children: [
+            _buildMenuItem(
+              icon: Icons.workspace_premium_outlined,
+              iconColor: Colors.white70,
+              label: 'Subscription',
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const SubscriptionScreen(),
+                  ),
+                );
+              },
+            ),
+            _buildDivider(),
+
             _buildMenuItem(
               icon: Icons.shield_outlined,
               iconColor: Colors.white70,
@@ -163,7 +179,7 @@ class ProfileMenuSection extends StatelessWidget {
               width: 38.w,
               height: 38.h,
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: iconColor, size: 20.sp),
