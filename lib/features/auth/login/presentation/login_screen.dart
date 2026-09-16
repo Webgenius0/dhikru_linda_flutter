@@ -1,10 +1,13 @@
 import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
+import 'package:dhikru_linda_flutter/features/auth/gogle/services_screeen.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
+import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -115,7 +118,7 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       ),
 
-                      SizedBox(height: 80.h),
+                      SizedBox(height: 40.h),
 
                       // --------------- Email Field ---------------
                       _buildLabel('EMAIL ADDRESS'),
@@ -193,7 +196,17 @@ class _LoginScreenState extends State<LoginScreen>
                         ),
                       ),
 
-                      SizedBox(height: 120.h),
+                      SizedBox(height: 32.h),
+
+                      // --------------- Social Divider ---------------
+                      _buildSocialDivider(),
+
+                      SizedBox(height: 24.h),
+
+                      // --------------- Social Login Buttons ---------------
+                      // _buildSocialButtons(),
+
+                      SizedBox(height: 40.h),
 
                       // --------------- Sign Up Row ---------------
                       _buildSignUpRow(),
@@ -210,6 +223,147 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // --------------- Social Actions ---------------
+  void _onGoogleSignIn() async {
+    setState(() => _isLoading = true);
+    try {
+      final tokens = await AuthService.instance.signInWithGoogle();
+      if (tokens != null) {
+        final user = AuthService.instance.currentUser;
+        ToastUtil.showShortToast(
+          'Welcome ${user?.displayName ?? user?.email ?? 'User'}',
+        );
+        NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+      }
+    } catch (e) {
+      ToastUtil.showShortToast('Google Sign-In failed');
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _onAppleSignIn() {
+    ToastUtil.showShortToast('Apple Sign-In tapped');
+  }
+
+  // --------------- Social Divider Widget ---------------
+  Widget _buildSocialDivider() {
+    return Row(
+      children: [
+        Expanded(
+          child: Divider(
+            color: Colors.white.withValues(alpha: 0.2),
+            thickness: 1,
+          ),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Text(
+            'Or sign in with',
+            style: GoogleFonts.inter(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12.sp,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Divider(
+            color: Colors.white.withValues(alpha: 0.2),
+            thickness: 1,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // --------------- Social Buttons Widget ---------------
+  // Widget _buildSocialButtons() {
+  //   return Row(
+  //     children: [
+  //       // Google Sign In
+  //       Expanded(
+  //         child: GestureDetector(
+  //           onTap: _onGoogleSignIn,
+  //           child: Container(
+  //             height: 50.h,
+  //             decoration: BoxDecoration(
+  //               color: Colors.white.withValues(alpha: 0.08),
+  //               borderRadius: BorderRadius.circular(30.r),
+  //               border: Border.all(
+  //                 color: Colors.white.withValues(alpha: 0.15),
+  //                 width: 1,
+  //               ),
+  //             ),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.center,
+  //               children: [
+  //                 SvgPicture.asset(
+  //                   'assets/icons/google.svg',
+  //                   width: 22.w,
+  //                   height: 22.h,
+  //                 ),
+  //                 SizedBox(width: 10.w),
+  //                 Text(
+  //                   'Google',
+  //                   style: GoogleFonts.inter(
+  //                     color: Colors.white,
+  //                     fontSize: 14.sp,
+  //                     fontWeight: FontWeight.w500,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //       SizedBox(width: 16.w),
+  //       // Apple Sign In
+  //       Expanded(
+  //         child: GestureDetector(
+  //           onTap: _onAppleSignIn,
+  //           child: Container(
+  //             height: 50.h,
+  //             decoration: BoxDecoration(
+  //               color: Colors.white.withValues(alpha: 0.08),
+  //               borderRadius: BorderRadius.circular(30.r),
+  //               border: Border.all(
+  //                 color: Colors.white.withValues(alpha: 0.15),
+  //                 width: 1,
+  //               ),
+  //             ),
+  //             child: Row(
+  //               mainAxisAlignment: MainAxisAlignment.center,
+  //               children: [
+  //                 SvgPicture.asset(
+  //                   'assets/icons/apple.svg',
+  //                   width: 20.w,
+  //                   height: 20.h,
+  //                   colorFilter: const ColorFilter.mode(
+  //                     Colors.white,
+  //                     BlendMode.srcIn,
+  //                   ),
+  //                 ),
+  //                 SizedBox(width: 10.w),
+  //                 Text(
+  //                   'Apple',
+  //                   style: GoogleFonts.inter(
+  //                     color: Colors.white,
+  //                     fontSize: 14.sp,
+  //                     fontWeight: FontWeight.w500,
+  //                   ),
+  //                 ),
+  //               ],
+  //             ),
+  //           ),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   // --------------- Label Widget ---------------
   Widget _buildLabel(String text) {
     return Align(
@@ -217,7 +371,7 @@ class _LoginScreenState extends State<LoginScreen>
       child: Text(
         text,
         style: GoogleFonts.inter(
-          color: Colors.white.withOpacity(0.55),
+          color: Colors.white.withValues(alpha: 0.55),
           fontSize: 11.sp,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
@@ -240,7 +394,7 @@ class _LoginScreenState extends State<LoginScreen>
       keyboardType: keyboardType,
       obscureText: obscureText,
       style: GoogleFonts.inter(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white.withValues(alpha: 0.85),
         fontSize: 14.sp,
       ),
       cursorRadius: const Radius.circular(6),
@@ -248,7 +402,7 @@ class _LoginScreenState extends State<LoginScreen>
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.inter(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           fontSize: 14.sp,
         ),
         suffixIcon: suffixIcon,
@@ -258,7 +412,7 @@ class _LoginScreenState extends State<LoginScreen>
         ),
         enabledBorder: UnderlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.25),
+            color: Colors.white.withValues(alpha: 0.25),
             width: 1,
           ),
         ),
@@ -290,9 +444,9 @@ class _LoginScreenState extends State<LoginScreen>
         onPressed: _isLoading ? null : _onLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF8B7AE8),
-          disabledBackgroundColor: const Color(0xFF8B7AE8).withOpacity(0.6),
+          disabledBackgroundColor: const Color(0xFF8B7AE8).withValues(alpha: 0.6),
           elevation: 0,
-          shadowColor: const Color(0xFF8B7AE8).withOpacity(0.5),
+          shadowColor: const Color(0xFF8B7AE8).withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30.r),
           ),
@@ -327,7 +481,7 @@ class _LoginScreenState extends State<LoginScreen>
         Text(
           "Don't have an account ? ",
           style: GoogleFonts.inter(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontSize: 13.sp,
             fontWeight: FontWeight.w400,
           ),

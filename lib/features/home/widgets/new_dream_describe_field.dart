@@ -50,6 +50,7 @@ class NewDreamDescribeField extends StatelessWidget {
           ),
           child: TextField(
             controller: controller,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             maxLines: 6,
             style: const TextStyle(color: _white, fontSize: 14, height: 1.55),
             cursorRadius: const Radius.circular(6),
@@ -75,6 +76,7 @@ class NewDreamDescribeField extends StatelessWidget {
   Widget _buildVoiceButton(BuildContext context) {
     return GestureDetector(
       onTap: () {
+        FocusScope.of(context).unfocus();
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,

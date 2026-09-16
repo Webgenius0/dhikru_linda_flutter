@@ -4,8 +4,8 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   file_selector_windows
+  firebase_auth
   firebase_core
-  firebase_remote_config
   share_plus
   speech_to_text_windows
   url_launcher_windows

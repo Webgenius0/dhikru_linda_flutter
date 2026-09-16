@@ -1,6 +1,7 @@
 // ignore_for_file: constant_identifier_names, unnecessary_string_interpolations
 
-const String url = "https://stevenchris.thesyndicates.team/api";
+const String url = "https://dashboard.thrivearc.ai/api";
+// const String url = "https://stevenchris.thesyndicates.team/api";
 const String imageUrl = "${url}";
 
 final class NetworkConstants {
@@ -90,7 +91,7 @@ final class Endpoints {
 
   // -------------------Tags start-----------------
   static String getAllJournal({int? tagId}) =>
-      tagId != null ? "/journal-entries?tag=$tagId" : "/journal-entries";
+      tagId != null ? "/journal-entries?tag=$tagId": "/journal-entries";
   // -------------------Tags end-------------------
 
   // -------------------Show Journal start-----------------

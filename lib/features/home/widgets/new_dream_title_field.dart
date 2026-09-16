@@ -34,6 +34,7 @@ class NewDreamTitleField extends StatelessWidget {
           ),
           child: TextField(
             controller: controller,
+            onTapOutside: (_) => FocusManager.instance.primaryFocus?.unfocus(),
             style: const TextStyle(color: _white, fontSize: 14),
             cursorRadius: const Radius.circular(6),
             decoration: const InputDecoration(

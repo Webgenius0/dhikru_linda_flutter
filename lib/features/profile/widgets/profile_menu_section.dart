@@ -8,8 +8,6 @@ import 'package:dhikru_linda_flutter/features/profile/presentation/help_and_supp
 import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
 
-import '../../remote_confing/remote_confing_test.dart';
-
 const Color _cardBg = Color(0xFF111720);
 const Color _dividerColor = Color(0xFF1E2730);
 const Color _mutedText = Color(0xFF8993A4);
@@ -95,19 +93,19 @@ class ProfileMenuSection extends StatelessWidget {
             ),
             if (showRemoteConfig) ...[
               _buildDivider(),
-              _buildMenuItem(
-                icon: Icons.lock_outline_rounded,
-                iconColor: Colors.white70,
-                label: 'remote confing',
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const RemoteConfingTest(),
-                    ),
-                  );
-                },
-              ),
+              // _buildMenuItem(
+              //   icon: Icons.lock_outline_rounded,
+              //   iconColor: Colors.white70,
+              //   label: 'remote confing',
+              //   onTap: () {
+              //     Navigator.push(
+              //       context,
+              //       MaterialPageRoute(
+              //         builder: (_) => const RemoteConfingTest(),
+              //       ),
+              //     );
+              //   },
+              // ),
             ],
             _buildDivider(),
 
