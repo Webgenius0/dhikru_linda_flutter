@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 final class ToastUtil {
   ToastUtil._();
   
-  static void showLongToast(String message, {bool forceShow = false}) {
+  static void showLongToast(String message, {bool forceShow = true}) {
     if (!forceShow) return;
     String trn = message.tr;
     Fluttertoast.showToast(
@@ -13,7 +13,7 @@ final class ToastUtil {
     );
   }
 
-  static void showShortToast(String message, {bool forceShow = false}) {
+  static void showShortToast(String message, {bool forceShow = true}) {
     if (!forceShow) return;
     Fluttertoast.showToast(
       msg: message.tr,
@@ -21,7 +21,7 @@ final class ToastUtil {
     );
   }
 
-  static void showNoInternetToast({bool forceShow = false}) {
+  static void showNoInternetToast({bool forceShow = true}) {
     if (!forceShow) return;
     Fluttertoast.showToast(
       msg: "Please check your internet connection".tr,
@@ -29,7 +29,7 @@ final class ToastUtil {
     );
   }
 
-  static void showNotLoggedInToast({bool forceShow = false}) {
+  static void showNotLoggedInToast({bool forceShow = true}) {
     if (!forceShow) return;
     Fluttertoast.showToast(
       msg: "Please login to perform this operation".tr,

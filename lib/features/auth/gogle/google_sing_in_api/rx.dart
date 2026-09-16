@@ -5,6 +5,7 @@ import 'package:dhikru_linda_flutter/networks/rx_base.dart';
 import 'package:flutter/foundation.dart';
 import 'package:dio/dio.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:dhikru_linda_flutter/networks/exception_handler/data_source.dart';
 import 'api.dart';
 
 final class GoogleSignInRx extends RxResponseInt<LoginModel> {
@@ -47,11 +48,27 @@ final class GoogleSignInRx extends RxResponseInt<LoginModel> {
               log(error.toString());
               dataFetcher.sink.addError(error);
               return;
+            } else if (firstErrorList != null) {
+              ToastUtil.showShortToast(firstErrorList.toString(), forceShow: true);
+              log(error.toString());
+              dataFetcher.sink.addError(error);
+              return;
             }
           }
         }
 
-        // 2. Check for errors under 'data' object
+        // 2. Check for root-level 'error' string
+        if (responseData.containsKey('error')) {
+          final errorVal = responseData['error'];
+          if (errorVal is String && errorVal.isNotEmpty) {
+            ToastUtil.showShortToast(errorVal, forceShow: true);
+            log(error.toString());
+            dataFetcher.sink.addError(error);
+            return;
+          }
+        }
+
+        // 3. Check for errors under 'data' object
         if (responseData.containsKey('data') &&
             responseData['data'] is Map<String, dynamic>) {
           final dataMap = responseData['data'];
@@ -62,6 +79,11 @@ final class GoogleSignInRx extends RxResponseInt<LoginModel> {
               final firstErrorList = errorMap.values.first;
               if (firstErrorList is List && firstErrorList.isNotEmpty) {
                 ToastUtil.showShortToast(firstErrorList.first.toString(), forceShow: true);
+                log(error.toString());
+                dataFetcher.sink.addError(error);
+                return;
+              } else if (firstErrorList != null) {
+                ToastUtil.showShortToast(firstErrorList.toString(), forceShow: true);
                 log(error.toString());
                 dataFetcher.sink.addError(error);
                 return;
@@ -80,8 +102,8 @@ final class GoogleSignInRx extends RxResponseInt<LoginModel> {
           }
         }
 
-        // 3. Fallback to top-level server message
-        final message = responseData['message'];
+        // 4. Check for top-level server message
+        final message = responseData['message'] ?? responseData['detail'] ?? responseData['msg'];
         if (message != null && message.toString().isNotEmpty) {
           ToastUtil.showShortToast(message.toString(), forceShow: true);
           log(error.toString());
@@ -89,6 +111,17 @@ final class GoogleSignInRx extends RxResponseInt<LoginModel> {
           return;
         }
       }
+
+      // 5. Fallback via ErrorHandler for connection/timeout/status errors
+      final failure = ErrorHandler.handle(error).failure;
+      if (failure.responseMessage.isNotEmpty) {
+        ToastUtil.showShortToast(failure.responseMessage, forceShow: true);
+        log(error.toString());
+        dataFetcher.sink.addError(error);
+        return;
+      }
+    } else {
+      ToastUtil.showShortToast(error.toString(), forceShow: true);
     }
     log(error.toString());
     dataFetcher.sink.addError(error);

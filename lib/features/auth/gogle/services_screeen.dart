@@ -13,7 +13,15 @@ class AuthService {
   static final AuthService instance = AuthService._();
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email']);
+
+  // Web Client ID from google-services.json (client_type: 3)
+  static const String defaultServerClientId =
+      '388524370985-p5hml61a7bv5ctb5umg1ttc40bo4323u.apps.googleusercontent.com';
+
+  late final GoogleSignIn _googleSignIn = GoogleSignIn(
+    scopes: ['email'],
+    serverClientId: defaultServerClientId,
+  );
 
   Stream<User?> get userChanges => _auth.authStateChanges();
   User? get currentUser => _auth.currentUser;
@@ -26,9 +34,11 @@ class AuthService {
         await _googleSignIn.signOut();
       } catch (_) {}
 
-      final GoogleSignIn googleSignInInstance = serverClientId != null
-          ? GoogleSignIn(scopes: ['email'], serverClientId: serverClientId)
-          : _googleSignIn;
+      final effectiveClientId = serverClientId ?? defaultServerClientId;
+      final GoogleSignIn googleSignInInstance = GoogleSignIn(
+        scopes: ['email'],
+        serverClientId: effectiveClientId,
+      );
 
       final googleUser = await googleSignInInstance.signIn();
       if (googleUser == null) {
