@@ -6,8 +6,14 @@ import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:dio/dio.dart' show DioException, DioExceptionType;
+import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException;
 import 'package:flutter/cupertino.dart'
-    show CupertinoAlertDialog, CupertinoDialogAction, showCupertinoDialog;
+    show
+        CupertinoActivityIndicator,
+        CupertinoAlertDialog,
+        CupertinoDialogAction,
+        showCupertinoDialog;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -31,6 +37,7 @@ class _LoginScreenState extends State<LoginScreen>
   // --------------- State ---------------
   bool _obscurePassword = true;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   // --------------- Animation ---------------
   late final AnimationController _animController;
@@ -69,22 +76,36 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _onLogin() async {
+    if (_isLoading || _isGoogleLoading) return;
     if (!_formKey.currentState!.validate()) return;
     final isOnline = await _hasInternetConnection();
     if (!isOnline) {
       if (mounted) {
+        ToastUtil.showShortToast(
+          'Please check your internet connection and try again.',
+          forceShow: true,
+        );
         _showNoInternetDialog(onRetry: _onLogin);
       }
       return;
     }
     setState(() => _isLoading = true);
-    final response = await loginRxObj.loginRx(
-      email: _emailController.text.trim(),
-      password: _passwordController.text,
-    );
-    setState(() => _isLoading = false);
-    if (response != null) {
-      NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+    try {
+      final response = await loginRxObj.loginRx(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+      if (response != null && mounted) {
+        NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorToast(e, defaultMessage: 'Login failed. Please try again.');
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -283,63 +304,168 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // --------------- Error Toast Handler ---------------
+  void _showErrorToast(
+    dynamic error, {
+    String defaultMessage = 'An unexpected error occurred. Please try again.',
+  }) {
+    String message = defaultMessage;
+
+    if (error is FirebaseAuthException) {
+      switch (error.code) {
+        case 'account-exists-with-different-credential':
+          message =
+              'An account already exists with the same email using a different login provider.';
+          break;
+        case 'invalid-credential':
+          message = 'Invalid sign-in credentials. Please try again.';
+          break;
+        case 'user-disabled':
+          message = 'This user account has been disabled.';
+          break;
+        case 'operation-not-allowed':
+          message = 'Sign-in method is not enabled. Please contact support.';
+          break;
+        case 'network-request-failed':
+          message = 'Network error. Please check your internet connection.';
+          break;
+        default:
+          message = error.message ?? defaultMessage;
+      }
+    } else if (error is PlatformException) {
+      if (error.code == 'sign_in_canceled' || error.code == '12501') {
+        // User voluntarily dismissed Google Sign-In prompt
+        return;
+      } else if (error.code == 'network_error' || error.code == '7') {
+        message = 'Network error during Google sign in. Please verify your connection.';
+      } else if (error.code == 'sign_in_failed' || error.code == '10') {
+        message = 'Google Sign-In configuration error. Please try again later.';
+      } else {
+        message = error.message ?? 'Google Sign-In error (${error.code})';
+      }
+    } else if (error is DioException) {
+      final resData = error.response?.data;
+      if (resData is Map<String, dynamic>) {
+        if (resData['message'] != null &&
+            resData['message'].toString().isNotEmpty) {
+          message = resData['message'].toString();
+        } else if (resData['error'] != null &&
+            resData['error'].toString().isNotEmpty) {
+          message = resData['error'].toString();
+        } else if (resData['errors'] is Map &&
+            (resData['errors'] as Map).isNotEmpty) {
+          final first = (resData['errors'] as Map).values.first;
+          if (first is List && first.isNotEmpty) {
+            message = first.first.toString();
+          } else {
+            message = first.toString();
+          }
+        }
+      } else if (error.type == DioExceptionType.connectionTimeout ||
+          error.type == DioExceptionType.receiveTimeout ||
+          error.type == DioExceptionType.sendTimeout) {
+        message = 'Connection timeout. Please check your internet connection.';
+      } else if (error.type == DioExceptionType.connectionError) {
+        message = 'Server connection failed. Please check your internet connection.';
+      }
+    } else if (error is SocketException) {
+      message = 'No internet connection. Please verify your network.';
+    } else if (error is TimeoutException) {
+      message = 'Request timed out. Please try again.';
+    } else if (error != null) {
+      final str = error.toString();
+      message = str.startsWith('Exception: ') ? str.substring(11) : str;
+    }
+
+    ToastUtil.showShortToast(message, forceShow: true);
+  }
+
   // --------------- Social Actions ---------------
   void _onGoogleSignIn() async {
+    if (_isGoogleLoading || _isLoading) return;
+
     // 1. Quick internet check before launching Google Sign-In
     final isOnline = await _hasInternetConnection();
     if (!isOnline) {
       if (mounted) {
+        ToastUtil.showShortToast(
+          'Please check your internet connection and try again.',
+          forceShow: true,
+        );
         _showNoInternetDialog(onRetry: _onGoogleSignIn);
       }
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => _isGoogleLoading = true);
     try {
       final tokens = await AuthService.instance.signInWithGoogle();
-      if (tokens != null) {
-        final tokenToSend = tokens["googleAccessToken"]?.isNotEmpty == true
-            ? tokens["googleAccessToken"]!
-            : (tokens["googleIdToken"] ?? "");
+      if (tokens == null) {
+        // User dismissed Google sign in sheet
+        return;
+      }
 
-        final response = await googleSignInRxObj.googleSignInRx(
-          accessToken: tokenToSend,
-        );
+      final tokenToSend = tokens["googleAccessToken"]?.isNotEmpty == true
+          ? tokens["googleAccessToken"]!
+          : (tokens["googleIdToken"] ?? "");
 
-        if (response != null && mounted) {
-          NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+      if (tokenToSend.isEmpty) {
+        if (mounted) {
+          ToastUtil.showShortToast(
+            'Failed to get authorization token from Google. Please try again.',
+            forceShow: true,
+          );
         }
+        return;
+      }
+
+      final response = await googleSignInRxObj.googleSignInRx(
+        accessToken: tokenToSend,
+      );
+
+      if (response != null && mounted) {
+        NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        _showErrorToast(e);
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        _showErrorToast(e);
       }
     } catch (e) {
       final errStr = e.toString().toLowerCase();
       final isNetworkError = e is SocketException ||
           e is TimeoutException ||
-          (e is PlatformException &&
-              (e.code == 'network_error' ||
-                  e.code.contains('network') ||
-                  (e.message?.contains('7:') ?? false))) ||
           errStr.contains('network_error') ||
           errStr.contains('apiexception: 7') ||
           errStr.contains('socketexception') ||
-          errStr.contains('failed host lookup') ||
-          !(await _hasInternetConnection());
+          errStr.contains('failed host lookup');
 
       if (mounted) {
         if (isNetworkError) {
+          ToastUtil.showShortToast(
+            'Network error during Google Sign-In. Please check your connection.',
+            forceShow: true,
+          );
           _showNoInternetDialog(onRetry: _onGoogleSignIn);
         } else {
-          ToastUtil.showShortToast('Google Sign-In failed');
+          _showErrorToast(
+            e,
+            defaultMessage: 'Google Sign-In failed. Please try again.',
+          );
         }
       }
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _isGoogleLoading = false);
       }
     }
   }
 
   void _onAppleSignIn() {
-    ToastUtil.showShortToast('Apple Sign-In tapped');
+    ToastUtil.showShortToast('Apple Sign-In is coming soon', forceShow: true);
   }
 
   // --------------- Social Divider Widget ---------------
@@ -375,12 +501,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   // --------------- Social Buttons Widget ---------------
   Widget _buildSocialButtons() {
+    final bool isSocialDisabled = _isLoading || _isGoogleLoading;
     return Row(
       children: [
         // Google Sign In
         Expanded(
           child: GestureDetector(
-            onTap: _onGoogleSignIn,
+            onTap: isSocialDisabled ? null : _onGoogleSignIn,
             child: Container(
               height: 50.h,
               decoration: BoxDecoration(
@@ -391,25 +518,31 @@ class _LoginScreenState extends State<LoginScreen>
                   width: 1,
                 ),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  SvgPicture.asset(
-                    'assets/icons/google.svg',
-                    width: 22.w,
-                    height: 22.h,
-                  ),
-                  SizedBox(width: 10.w),
-                  Text(
-                    'Google',
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 14.sp,
-                      fontWeight: FontWeight.w500,
+              child: _isGoogleLoading
+                  ? const Center(
+                      child: CupertinoActivityIndicator(
+                        color: Colors.white,
+                      ),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        SvgPicture.asset(
+                          'assets/icons/google.svg',
+                          width: 22.w,
+                          height: 22.h,
+                        ),
+                        SizedBox(width: 10.w),
+                        Text(
+                          'Google',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
@@ -417,7 +550,7 @@ class _LoginScreenState extends State<LoginScreen>
         // Apple Sign In
         Expanded(
           child: GestureDetector(
-            onTap: _onAppleSignIn,
+            onTap: isSocialDisabled ? null : _onAppleSignIn,
             child: Container(
               height: 50.h,
               decoration: BoxDecoration(
@@ -534,7 +667,7 @@ class _LoginScreenState extends State<LoginScreen>
       width: double.infinity,
       height: 54.h,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _onLogin,
+        onPressed: (_isLoading || _isGoogleLoading) ? null : _onLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF8B7AE8),
           disabledBackgroundColor: const Color(0xFF8B7AE8).withValues(alpha: 0.6),
