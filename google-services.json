@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "388524370985",
+    "project_id": "dreamtrace-ai-test",
+    "storage_bucket": "dreamtrace-ai-test.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388524370985:android:a4ab603ec2e54f97928038",
+        "android_client_info": {
+          "package_name": "com.dreamtrace.ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "388524370985-n069h376k92tvijpuompgi3seqdfkcd0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dreamtrace.ai",
+            "certificate_hash": "659f098b9f6c17b286a99f21f5c06d9434cbaf8b"
+          }
+        },
+        {
+          "client_id": "388524370985-p5hml61a7bv5ctb5umg1ttc40bo4323u.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDU-RTkmeoEqPzuBMkgf0gtzF9Wgt_16NQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "388524370985-p5hml61a7bv5ctb5umg1ttc40bo4323u.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "388524370985-fd60dk31qtds79tkdbe47rlhqvl91jij.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.dreamtrace.ai"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

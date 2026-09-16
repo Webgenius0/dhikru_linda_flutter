@@ -1,8 +1,8 @@
 // ignore_for_file: constant_identifier_names, unnecessary_string_interpolations
 
-// const String url = "https://dashboard.thrivearc.ai/api";
-const String url = "https://feranpage.thesyndicates.team/api";
-const String imageUrl = "${url}";
+// const String url = "https://dashboard.thrivearc.ai/api"; // real url
+  const String url = "https://feranpage.thesyndicates.team/api";
+const String imageUrl = url;
 
 final class NetworkConstants {
   NetworkConstants._();
@@ -30,6 +30,11 @@ final class Endpoints {
   // -------------------Login start-------------------
   static String login() => "/user/login";
   // -------------------Login end-------------------
+
+  // -------------------Google & Apple Login start-------------------
+  static String googleLogin() => "/login/google";
+  static String appleLogin() => "/login/apple";
+  // -------------------Google & Apple Login end-------------------
 
   // -------------------Logout start-------------------
   static String logout() => "/user/logout";
@@ -89,7 +94,7 @@ final class Endpoints {
 
   // -------------------Tags start-----------------
   static String getAllJournal({int? tagId}) =>
-      tagId != null ? "/journal-entries?tag=$tagId" : "/journal-entries";
+      tagId != null ? "/journal-entries?tag=$tagId": "/journal-entries";
   // -------------------Tags end-------------------
 
   // -------------------Show Journal start-----------------

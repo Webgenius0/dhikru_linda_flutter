@@ -4,6 +4,8 @@ import 'package:dhikru_linda_flutter/features/auth/forgot_password/model/forgot_
 import 'package:dhikru_linda_flutter/features/auth/forgot_password/model/forgot_password_verify_otp_model.dart';
 import 'package:dhikru_linda_flutter/features/auth/login/data/rx_login/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/login/model/login_model.dart';
+import 'package:dhikru_linda_flutter/features/auth/gogle/google_sing_in_api/rx.dart';
+import 'package:dhikru_linda_flutter/features/auth/gogle/apple_sign_in/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/logout/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register/rx.dart';
 import 'package:dhikru_linda_flutter/features/auth/register/data/rx_register_verify_otp/rx.dart';
@@ -60,6 +62,18 @@ RegisterVerifyOtpRx registerVerifyOtpRxObj = RegisterVerifyOtpRx(
 
 // ------------- Login Api Access -----------------//
 LoginRx loginRxObj = LoginRx(
+  empty: LoginModel(),
+  dataFetcher: BehaviorSubject<LoginModel>(),
+);
+
+// ------------- Google Sign In Api Access -------------
+GoogleSignInRx googleSignInRxObj = GoogleSignInRx(
+  empty: LoginModel(),
+  dataFetcher: BehaviorSubject<LoginModel>(),
+);
+
+// ------------- Apple Sign In Api Access -------------
+AppleSignInRx appleSignInRxObj = AppleSignInRx(
   empty: LoginModel(),
   dataFetcher: BehaviorSubject<LoginModel>(),
 );

@@ -17,7 +17,10 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      return web;
+      throw UnsupportedError(
+        'DefaultFirebaseOptions have not been configured for web - '
+        'you can reconfigure this by running the FlutterFire CLI again.',
+      );
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -40,16 +43,6 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyAZgd6gv-vT2o9aa3nSp_-urQwFMc8RJAE',
-    appId: '1:388524370985:web:70672aa9210cf934928038',
-    messagingSenderId: '388524370985',
-    projectId: 'dreamtrace-ai-test',
-    authDomain: 'dreamtrace-ai-test.firebaseapp.com',
-    storageBucket: 'dreamtrace-ai-test.firebasestorage.app',
-    measurementId: 'G-NDLN7XXL0F',
-  );
-
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDU-RTkmeoEqPzuBMkgf0gtzF9Wgt_16NQ',
     appId: '1:388524370985:android:a4ab603ec2e54f97928038',
@@ -64,6 +57,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '388524370985',
     projectId: 'dreamtrace-ai-test',
     storageBucket: 'dreamtrace-ai-test.firebasestorage.app',
+    androidClientId: '388524370985-n069h376k92tvijpuompgi3seqdfkcd0.apps.googleusercontent.com',
+    iosClientId: '388524370985-fd60dk31qtds79tkdbe47rlhqvl91jij.apps.googleusercontent.com',
     iosBundleId: 'com.dreamtrace.ai',
   );
 
@@ -73,6 +68,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '388524370985',
     projectId: 'dreamtrace-ai-test',
     storageBucket: 'dreamtrace-ai-test.firebasestorage.app',
+    androidClientId: '388524370985-n069h376k92tvijpuompgi3seqdfkcd0.apps.googleusercontent.com',
+    iosClientId: '388524370985-ur86ncf8vr73eps2f8r1kbod8o1675rv.apps.googleusercontent.com',
     iosBundleId: 'com.example.dhikruLindaFlutter',
   );
 

@@ -41,60 +41,67 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0D0D1A),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildAppBar(context),
-                    const SizedBox(height: 24),
-                    const NewDreamDatePicker(),
-                    const SizedBox(height: 24),
-                    NewDreamTitleField(controller: _titleController),
-                    const SizedBox(height: 24),
-                    NewDreamDescribeField(
-                      controller: _descController,
-                      isVoiceEntry: _isVoiceEntry,
-                      onVoiceEntryChanged: (isVoice) {
-                        setState(() {
-                          _isVoiceEntry = isVoice;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 26),
-                    NewDreamQuickTags(
-                      selectedTagIds: _selectedTagIds,
-                      onTagTapped: (tagId, selected) {
-                        setState(() {
-                          if (selected) {
-                            _selectedTagIds.remove(tagId);
-                          } else {
-                            _selectedTagIds.add(tagId);
-                          }
-                        });
-                        debugPrint(
-                          "Selected tags IDs: ${_selectedTagIds.toList()}",
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 25),
-                  ],
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      behavior: HitTestBehavior.opaque,
+      child: Scaffold(
+        backgroundColor: const Color(0xFF0D0D1A),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  keyboardDismissBehavior:
+                      ScrollViewKeyboardDismissBehavior.onDrag,
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      _buildAppBar(context),
+                      const SizedBox(height: 24),
+                      const NewDreamDatePicker(),
+                      const SizedBox(height: 24),
+                      NewDreamTitleField(controller: _titleController),
+                      const SizedBox(height: 24),
+                      NewDreamDescribeField(
+                        controller: _descController,
+                        isVoiceEntry: _isVoiceEntry,
+                        onVoiceEntryChanged: (isVoice) {
+                          setState(() {
+                            _isVoiceEntry = isVoice;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 26),
+                      NewDreamQuickTags(
+                        selectedTagIds: _selectedTagIds,
+                        onTagTapped: (tagId, selected) {
+                          FocusScope.of(context).unfocus();
+                          setState(() {
+                            if (selected) {
+                              _selectedTagIds.remove(tagId);
+                            } else {
+                              _selectedTagIds.add(tagId);
+                            }
+                          });
+                          debugPrint(
+                            "Selected tags IDs: ${_selectedTagIds.toList()}",
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 25),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 45),
-        child: _buildInterpretButton(),
+        bottomNavigationBar: Padding(
+          padding: const EdgeInsets.only(bottom: 45),
+          child: _buildInterpretButton(),
+        ),
       ),
     );
   }
@@ -103,7 +110,10 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            FocusScope.of(context).unfocus();
+            Navigator.pop(context);
+          },
           child: Container(
             width: 40,
             height: 40,
@@ -285,6 +295,7 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
               height: 54,
               child: ElevatedButton(
               onPressed: () async {
+                FocusScope.of(context).unfocus();
                 if (isLoading) return;
                 final title = _titleController.text.trim();
                 final content = _descController.text.trim();
