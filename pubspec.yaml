@@ -41,7 +41,7 @@ dependencies:
   dio: ^5.7.0
   rxdart: ^0.28.0
   google_sign_in: ^6.1.1
-  firebase_auth: ^6.1.2
+  firebase_auth: ^6.7.0
   fl_chart: ^1.2.0
   intl: ^0.20.2
   get_it: ^8.0.0
@@ -60,7 +60,9 @@ dependencies:
   curved_labeled_navigation_bar: ^2.0.6
   speech_to_text: ^7.4.0
   share_plus: ^13.1.0
-  firebase_core: ^4.13.0
+  firebase_core: ^4.15.0
+
+  flutter_markdown: ^0.7.7+1
 
 
 

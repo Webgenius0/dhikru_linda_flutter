@@ -85,23 +85,30 @@ class _SplashScreenState extends State<SplashScreen>
               scale: _scaleAnimation,
 
               // --------------- Logo Row ---------------
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomLogoWidget(width: 46.w, height: 46.w),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24.w),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CustomLogoWidget(width: 46.w, height: 46.w),
 
-                  SizedBox(width: 14.w),
+                      SizedBox(width: 14.w),
 
-                  // --------------- App Name ---------------
-                  Text(
-                    'Dream Trace AI',
-                    style: GoogleFonts.cormorantGaramond(
-                      color: Colors.white,
-                      fontSize: 30.sp,
-                      fontWeight: FontWeight.w500,
-                    ),
+                      // --------------- App Name ---------------
+                      Text(
+                        'Dream Trace AI',
+                        maxLines: 1,
+                        style: GoogleFonts.cormorantGaramond(
+                          color: Colors.white,
+                          fontSize: 30.sp,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
