@@ -38,9 +38,6 @@ class AuthService {
 
       final googleAuth = await googleUser.authentication;
 
-      log('Google idToken: ${googleAuth.idToken != null ? "Present" : "Null"}');
-      log('Google accessToken: ${googleAuth.accessToken != null ? "Present" : "Null"}');
-
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
@@ -54,11 +51,17 @@ class AuthService {
 
       // Save user details & tokens to GetStorage appData
       appData.write(GoogleUserId, user.uid);
-      if (firebaseToken != null) {
-        appData.write('firebaseIdToken', firebaseToken);
+      if (googleAuth.idToken != null) {
+        appData.write('googleIdToken', googleAuth.idToken);
       }
       if (googleAuth.accessToken != null) {
         appData.write('googleAccessToken', googleAuth.accessToken);
+      }
+      if (googleUser.serverAuthCode != null) {
+        appData.write('googleServerAuthCode', googleUser.serverAuthCode);
+      }
+      if (firebaseToken != null) {
+        appData.write('firebaseIdToken', firebaseToken);
       }
       if (user.displayName != null) {
         appData.write(kKeyName, user.displayName);
@@ -67,19 +70,64 @@ class AuthService {
         appData.write(kKeyEmail, user.email);
       }
 
-      log('=== Google Sign-In Tokens ===');
-      log('✅ User UID: ${user.uid}');
-      log('Firebase ID Token: $firebaseToken');
-      log('Google Access Token: ${googleAuth.accessToken}');
+      // -------------------------------------------------------------
+      // PRINT ALL TOKENS (Google ID Token, Google Access Token, Firebase ID Token, etc.)
+      // -------------------------------------------------------------
+      _logTokenHeader('GOOGLE & FIREBASE AUTH TOKENS');
+      log('User UID           : ${user.uid}');
+      log('Google User ID (sub): ${googleUser.id}');
+      log('Email              : ${user.email}');
+      log('Display Name       : ${user.displayName}');
+      log('Server Auth Code   : ${googleUser.serverAuthCode ?? "[None]"}');
+
+      _printFullToken('1. GOOGLE ID TOKEN (OIDC JWT - Use this if backend verifies with Google)', googleAuth.idToken);
+      _printFullToken('2. GOOGLE ACCESS TOKEN (OAuth2 Bearer Token)', googleAuth.accessToken);
+      if (googleUser.serverAuthCode != null) {
+        _printFullToken('3. GOOGLE SERVER AUTH CODE', googleUser.serverAuthCode);
+      }
+      _printFullToken('4. FIREBASE ID TOKEN (Firebase Auth JWT)', firebaseToken);
+      _logTokenFooter();
 
       return {
-        "firebaseIdToken": firebaseToken ?? "",
+        "googleIdToken": googleAuth.idToken ?? "",
         "googleAccessToken": googleAuth.accessToken ?? "",
+        "googleServerAuthCode": googleUser.serverAuthCode ?? "",
+        "firebaseIdToken": firebaseToken ?? "",
+        "userUid": user.uid,
+        "email": user.email ?? "",
+        "displayName": user.displayName ?? "",
+        "photoUrl": user.photoURL ?? "",
       };
     } catch (e, stackTrace) {
       log('Google login error: $e', stackTrace: stackTrace);
       rethrow;
     }
+  }
+
+  /// Helper to print tokens without truncation
+  void _printFullToken(String label, String? token) {
+    if (token == null || token.isEmpty) {
+      log('$label: [NULL / EMPTY]');
+      return;
+    }
+    log('\n================== $label (Length: ${token.length}) ==================');
+    // Print chunked so logcat or Flutter console never truncates
+    const int chunkSize = 800;
+    for (int i = 0; i < token.length; i += chunkSize) {
+      final end = (i + chunkSize < token.length) ? i + chunkSize : token.length;
+      log(token.substring(i, end));
+    }
+    log('================== END OF $label ==================\n');
+  }
+
+  void _logTokenHeader(String title) {
+    log('╔══════════════════════════════════════════════════════════════════════');
+    log('║ 🔑 $title');
+    log('╠══════════════════════════════════════════════════════════════════════');
+  }
+
+  void _logTokenFooter() {
+    log('╚══════════════════════════════════════════════════════════════════════');
   }
 
   /// Sign out from Firebase and Google Sign-In, clear saved tokens

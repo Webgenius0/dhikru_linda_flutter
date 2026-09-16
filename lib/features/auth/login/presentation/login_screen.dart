@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:io';
 import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
 import 'package:dhikru_linda_flutter/features/auth/gogle/services_screeen.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:flutter/cupertino.dart'
+    show CupertinoAlertDialog, CupertinoDialogAction, showCupertinoDialog;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -66,6 +70,13 @@ class _LoginScreenState extends State<LoginScreen>
 
   void _onLogin() async {
     if (!_formKey.currentState!.validate()) return;
+    final isOnline = await _hasInternetConnection();
+    if (!isOnline) {
+      if (mounted) {
+        _showNoInternetDialog(onRetry: _onLogin);
+      }
+      return;
+    }
     setState(() => _isLoading = true);
     final response = await loginRxObj.loginRx(
       email: _emailController.text.trim(),
@@ -204,7 +215,7 @@ class _LoginScreenState extends State<LoginScreen>
                       SizedBox(height: 24.h),
 
                       // --------------- Social Login Buttons ---------------
-                      // _buildSocialButtons(),
+                        _buildSocialButtons(),
 
                       SizedBox(height: 40.h),
 
@@ -223,20 +234,103 @@ class _LoginScreenState extends State<LoginScreen>
     );
   }
 
+  // --------------- Network & Dialog Helpers ---------------
+  Future<bool> _hasInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('google.com').timeout(
+        const Duration(seconds: 4),
+      );
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    } on TimeoutException catch (_) {
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _showNoInternetDialog({VoidCallback? onRetry}) {
+    showCupertinoDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext dialogContext) {
+        return CupertinoAlertDialog(
+          title: const Text('No Internet Connection'),
+          content: const Padding(
+            padding: EdgeInsets.only(top: 8.0),
+            child: Text(
+              'Please check your cellular data or Wi-Fi connection and try again.',
+            ),
+          ),
+          actions: [
+            CupertinoDialogAction(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Cancel'),
+            ),
+            if (onRetry != null)
+              CupertinoDialogAction(
+                isDefaultAction: true,
+                onPressed: () {
+                  Navigator.of(dialogContext).pop();
+                  onRetry();
+                },
+                child: const Text('Try Again'),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
   // --------------- Social Actions ---------------
   void _onGoogleSignIn() async {
+    // 1. Quick internet check before launching Google Sign-In
+    final isOnline = await _hasInternetConnection();
+    if (!isOnline) {
+      if (mounted) {
+        _showNoInternetDialog(onRetry: _onGoogleSignIn);
+      }
+      return;
+    }
+
     setState(() => _isLoading = true);
     try {
       final tokens = await AuthService.instance.signInWithGoogle();
       if (tokens != null) {
-        final user = AuthService.instance.currentUser;
-        ToastUtil.showShortToast(
-          'Welcome ${user?.displayName ?? user?.email ?? 'User'}',
+        final tokenToSend = tokens["googleAccessToken"]?.isNotEmpty == true
+            ? tokens["googleAccessToken"]!
+            : (tokens["googleIdToken"] ?? "");
+
+        final response = await googleSignInRxObj.googleSignInRx(
+          accessToken: tokenToSend,
         );
-        NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+
+        if (response != null && mounted) {
+          NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+        }
       }
     } catch (e) {
-      ToastUtil.showShortToast('Google Sign-In failed');
+      final errStr = e.toString().toLowerCase();
+      final isNetworkError = e is SocketException ||
+          e is TimeoutException ||
+          (e is PlatformException &&
+              (e.code == 'network_error' ||
+                  e.code.contains('network') ||
+                  (e.message?.contains('7:') ?? false))) ||
+          errStr.contains('network_error') ||
+          errStr.contains('apiexception: 7') ||
+          errStr.contains('socketexception') ||
+          errStr.contains('failed host lookup') ||
+          !(await _hasInternetConnection());
+
+      if (mounted) {
+        if (isNetworkError) {
+          _showNoInternetDialog(onRetry: _onGoogleSignIn);
+        } else {
+          ToastUtil.showShortToast('Google Sign-In failed');
+        }
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);
@@ -280,89 +374,88 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   // --------------- Social Buttons Widget ---------------
-  // Widget _buildSocialButtons() {
-  //   return Row(
-  //     children: [
-  //       // Google Sign In
-  //       Expanded(
-  //         child: GestureDetector(
-  //           onTap: _onGoogleSignIn,
-  //           child: Container(
-  //             height: 50.h,
-  //             decoration: BoxDecoration(
-  //               color: Colors.white.withValues(alpha: 0.08),
-  //               borderRadius: BorderRadius.circular(30.r),
-  //               border: Border.all(
-  //                 color: Colors.white.withValues(alpha: 0.15),
-  //                 width: 1,
-  //               ),
-  //             ),
-  //             child: Row(
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               children: [
-  //                 SvgPicture.asset(
-  //                   'assets/icons/google.svg',
-  //                   width: 22.w,
-  //                   height: 22.h,
-  //                 ),
-  //                 SizedBox(width: 10.w),
-  //                 Text(
-  //                   'Google',
-  //                   style: GoogleFonts.inter(
-  //                     color: Colors.white,
-  //                     fontSize: 14.sp,
-  //                     fontWeight: FontWeight.w500,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //       SizedBox(width: 16.w),
-  //       // Apple Sign In
-  //       Expanded(
-  //         child: GestureDetector(
-  //           onTap: _onAppleSignIn,
-  //           child: Container(
-  //             height: 50.h,
-  //             decoration: BoxDecoration(
-  //               color: Colors.white.withValues(alpha: 0.08),
-  //               borderRadius: BorderRadius.circular(30.r),
-  //               border: Border.all(
-  //                 color: Colors.white.withValues(alpha: 0.15),
-  //                 width: 1,
-  //               ),
-  //             ),
-  //             child: Row(
-  //               mainAxisAlignment: MainAxisAlignment.center,
-  //               children: [
-  //                 SvgPicture.asset(
-  //                   'assets/icons/apple.svg',
-  //                   width: 20.w,
-  //                   height: 20.h,
-  //                   colorFilter: const ColorFilter.mode(
-  //                     Colors.white,
-  //                     BlendMode.srcIn,
-  //                   ),
-  //                 ),
-  //                 SizedBox(width: 10.w),
-  //                 Text(
-  //                   'Apple',
-  //                   style: GoogleFonts.inter(
-  //                     color: Colors.white,
-  //                     fontSize: 14.sp,
-  //                     fontWeight: FontWeight.w500,
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
+  Widget _buildSocialButtons() {
+    return Row(
+      children: [
+        // Google Sign In
+        Expanded(
+          child: GestureDetector(
+            onTap: _onGoogleSignIn,
+            child: Container(
+              height: 50.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(30.r),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/google.svg',
+                    width: 22.w,
+                    height: 22.h,
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Google',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: 16.w),
+        // Apple Sign In
+        Expanded(
+          child: GestureDetector(
+            onTap: _onAppleSignIn,
+            child: Container(
+              height: 50.h,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(30.r),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/apple.svg',
+                    width: 20.w,
+                    height: 20.h,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Apple',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   // --------------- Label Widget ---------------
   Widget _buildLabel(String text) {
