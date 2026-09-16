@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:dhikru_linda_flutter/features/journal/model/show_journal_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/journal/widgets/journal_detail_widgets.dart';
+import 'package:dhikru_linda_flutter/features/home/widgets/home_widgets.dart';
 
 class JournalDetailScreen extends StatefulWidget {
   final Map<String, dynamic> dream;
@@ -185,20 +186,26 @@ class _JournalDetailScreenState extends State<JournalDetailScreen> {
                               body: meaning,
                             ),
                             const SizedBox(height: 28),
-                            if (journalData.userResponse != null &&
-                                journalData.userResponse!
-                                    .trim()
-                                    .isNotEmpty) ...[
-                              JournalDetailRespondSection(
-                                userResponse: journalData.userResponse!,
-                              ),
-                              const SizedBox(height: 28),
-                            ],
                             JournalDetailCareReflection(careItems: careItems),
                             const SizedBox(height: 28),
                             JournalDetailEmotionalLandscape(emotions: emotions),
                             const SizedBox(height: 28),
                             JournalDetailSymbolTags(symbolTags: symbolTags),
+                            if (journalData.messages != null &&
+                                journalData.messages!.isNotEmpty) ...[
+                              const SizedBox(height: 28),
+                              InterpretationChatBubbles(
+                                messages: journalData.messages!,
+                              ),
+                            ] else if (journalData.userResponse != null &&
+                                journalData.userResponse!
+                                    .trim()
+                                    .isNotEmpty) ...[
+                              const SizedBox(height: 28),
+                              JournalDetailRespondSection(
+                                userResponse: journalData.userResponse!,
+                              ),
+                            ],
                             const SizedBox(height: 40),
                           ],
                         ),

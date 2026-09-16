@@ -1,4 +1,6 @@
 import 'package:dhikru_linda_flutter/features/journal/model/new_journal_entry_model.dart';
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/rx_base.dart';
 import 'package:dio/dio.dart';
@@ -29,6 +31,13 @@ final class NewJournalEntryRx extends RxResponseInt<NewJournalEntryModel> {
         contentVoice: contentVoice,
         tagIds: tagIds,
       );
+      if (data.success == false) {
+        if (data.message != null && data.message!.isNotEmpty) {
+          ToastUtil.showShortToast(data.message!, forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
+        return false;
+      }
       handleSuccessWithReturn(data);
       ToastUtil.showShortToast(data.message ?? "Dream logged successfully!");
       return true;
@@ -43,11 +52,34 @@ final class NewJournalEntryRx extends RxResponseInt<NewJournalEntryModel> {
   @override
   handleErrorWithReturn(dynamic error) {
     if (error is DioException) {
+      if (error.response?.statusCode == 403) {
+        final resData = error.response?.data;
+        if (resData is Map<String, dynamic> && resData['message'] != null) {
+          ToastUtil.showShortToast(resData['message'].toString(), forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
+        dataFetcher.sink.addError(error);
+        return false;
+      }
+
       final responseData = error.response?.data;
       if (responseData is Map<String, dynamic>) {
         final message = responseData['message'];
         final errors = responseData['errors'];
-        
+        final code = responseData['code'];
+
+        if (code == 403 ||
+            (message != null &&
+                (message.toString().toLowerCase().contains('premium') ||
+                    message.toString().toLowerCase().contains('upgrade')))) {
+          if (message != null && message.toString().isNotEmpty) {
+            ToastUtil.showShortToast(message.toString(), forceShow: true);
+          }
+          NavigationService.navigateTo(Routes.subscriptionScreen);
+          dataFetcher.sink.addError(error);
+          return false;
+        }
+
         if (errors is Map<String, dynamic>) {
           List<String> allErrors = [];
           errors.forEach((key, value) {
@@ -63,7 +95,7 @@ final class NewJournalEntryRx extends RxResponseInt<NewJournalEntryModel> {
             return false;
           }
         }
-        
+
         if (message != null && message.toString().isNotEmpty) {
           ToastUtil.showShortToast(message.toString());
           dataFetcher.sink.addError(error);

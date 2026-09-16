@@ -34,6 +34,27 @@ final class Logger extends Interceptor {
     log("${response.headers}");
     log("${response.extra}");
 
+    if (response.data is Map<String, dynamic>) {
+      final data = response.data as Map<String, dynamic>;
+      final code = data['code'];
+      final message = data['message']?.toString() ?? '';
+      final msgLower = message.toLowerCase();
+      final isPremiumRestriction = code == 403 ||
+          (data['success'] == false &&
+              (code == 403 ||
+                  msgLower.contains('premium') ||
+                  msgLower.contains('upgrade') ||
+                  msgLower.contains('companion') ||
+                  msgLower.contains('unlock')));
+
+      if (isPremiumRestriction) {
+        if (message.isNotEmpty) {
+          ToastUtil.showShortToast(message, forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
+      }
+    }
+
     return super.onResponse(response, handler);
   }
 
@@ -57,6 +78,31 @@ final class Logger extends Interceptor {
         appData.remove(kKeyEmail);
         ToastUtil.showShortToast("Session expired. Please log in again.");
         NavigationService.navigateToUntilReplacement(Routes.logInScreen);
+      }
+    } else if (err.response?.statusCode == 403) {
+      final responseData = err.response?.data;
+      String? msg;
+      if (responseData is Map<String, dynamic>) {
+        msg = responseData['message']?.toString();
+      }
+      if (msg != null && msg.isNotEmpty) {
+        ToastUtil.showShortToast(msg, forceShow: true);
+      }
+      NavigationService.navigateTo(Routes.subscriptionScreen);
+    } else if (err.response?.data is Map<String, dynamic>) {
+      final data = err.response!.data as Map<String, dynamic>;
+      final code = data['code'];
+      final message = data['message']?.toString() ?? '';
+      final msgLower = message.toLowerCase();
+      if (code == 403 ||
+          msgLower.contains('premium') ||
+          msgLower.contains('upgrade') ||
+          msgLower.contains('companion') ||
+          msgLower.contains('unlock')) {
+        if (message.isNotEmpty) {
+          ToastUtil.showShortToast(message, forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
       }
     }
 

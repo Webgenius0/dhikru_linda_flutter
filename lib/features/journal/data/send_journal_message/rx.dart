@@ -1,4 +1,4 @@
-import 'package:dhikru_linda_flutter/features/journal/model/save_journal_response_model.dart';
+import 'package:dhikru_linda_flutter/features/journal/model/send_journal_message_model.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
@@ -8,31 +8,39 @@ import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'api.dart';
 
-final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel> {
-  final api = SaveJournalResponseApi.instance;
+final class SendJournalMessageRx
+    extends RxResponseInt<SendJournalMessageModel> {
+  final api = SendJournalMessageApi.instance;
 
-  SaveJournalResponseRx({required super.empty, required super.dataFetcher});
+  SendJournalMessageRx({required super.empty, required super.dataFetcher});
 
   final ValueNotifier<bool> isLoading = ValueNotifier(false);
 
-  ValueStream<SaveJournalResponseModel> get getSaveJournalResponseStream => dataFetcher.stream;
+  ValueStream<SendJournalMessageModel> get getSendJournalMessageStream =>
+      dataFetcher.stream;
 
-  Future<bool> saveJournalResponse({
+  Future<SendJournalMessageModel?> sendMessage({
     required int journalId,
-    required String userResponse,
+    required String message,
   }) async {
     isLoading.value = true;
     try {
-      final data = await api.saveJournalResponseApi(
+      final data = await api.sendMessageApi(
         journalId: journalId,
-        userResponse: userResponse,
+        message: message,
       );
+      if (data.success == false) {
+        if (data.message != null && data.message!.isNotEmpty) {
+          ToastUtil.showShortToast(data.message!, forceShow: true);
+        }
+        NavigationService.navigateTo(Routes.subscriptionScreen);
+        return null;
+      }
       handleSuccessWithReturn(data);
-      ToastUtil.showShortToast(data.message ?? "Response saved successfully!", forceShow: true);
-      return true;
+      return data;
     } catch (error) {
       handleErrorWithReturn(error);
-      return false;
+      return null;
     } finally {
       isLoading.value = false;
     }
@@ -40,10 +48,14 @@ final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel
 
   @override
   handleErrorWithReturn(dynamic error) {
-    debugPrint("=== saveJournalResponse error: $error");
+    debugPrint("=== sendJournalMessage error: $error");
     if (error is DioException) {
-      debugPrint("=== saveJournalResponse response status: ${error.response?.statusCode}");
-      debugPrint("=== saveJournalResponse response data: ${error.response?.data}");
+      debugPrint(
+        "=== sendJournalMessage response status: ${error.response?.statusCode}",
+      );
+      debugPrint(
+        "=== sendJournalMessage response data: ${error.response?.data}",
+      );
 
       if (error.response?.statusCode == 403) {
         final resData = error.response?.data;
@@ -64,8 +76,7 @@ final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel
         if (code == 403 ||
             (message != null &&
                 (message.toString().toLowerCase().contains('premium') ||
-                    message.toString().toLowerCase().contains('upgrade') ||
-                    message.toString().toLowerCase().contains('companion')))) {
+                    message.toString().toLowerCase().contains('upgrade')))) {
           if (message != null && message.toString().isNotEmpty) {
             ToastUtil.showShortToast(message.toString(), forceShow: true);
           }
@@ -97,7 +108,10 @@ final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel
         }
       }
     }
-    ToastUtil.showShortToast("Failed to save response. Please try again.", forceShow: true);
+    ToastUtil.showShortToast(
+      "Failed to send message. Please try again.",
+      forceShow: true,
+    );
     dataFetcher.sink.addError(error);
     return false;
   }

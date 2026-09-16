@@ -55,21 +55,6 @@ class InterpretationShimmer extends StatelessWidget {
           _shimmerCard(height: 100),
           const SizedBox(height: 28),
 
-          // Shimmer Your Respond Section
-          Shimmer.fromColors(
-            baseColor: Colors.white.withOpacity(0.05),
-            highlightColor: Colors.white.withOpacity(0.1),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _box(width: 100, height: 12),
-                const SizedBox(height: 12),
-                _box(width: double.infinity, height: 80, radius: 14),
-              ],
-            ),
-          ),
-          const SizedBox(height: 28),
-
           // Shimmer Care Reflection Section
           Shimmer.fromColors(
             baseColor: Colors.white.withOpacity(0.05),
@@ -90,6 +75,21 @@ class InterpretationShimmer extends StatelessWidget {
                     return _box(radius: 12);
                   }),
                 ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Shimmer Your Respond Section
+          Shimmer.fromColors(
+            baseColor: Colors.white.withOpacity(0.05),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _box(width: 100, height: 12),
+                const SizedBox(height: 12),
+                _box(width: double.infinity, height: 80, radius: 14),
               ],
             ),
           ),

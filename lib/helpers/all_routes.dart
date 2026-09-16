@@ -7,6 +7,7 @@ import 'package:dhikru_linda_flutter/features/auth/forgot_password/presentation/
 import 'package:dhikru_linda_flutter/features/auth/set_new_password/presentation/set_new_password.dart';
 import 'package:dhikru_linda_flutter/features/home/presentation/Interpretation_scren.dart';
 import 'package:dhikru_linda_flutter/features/home/presentation/new_drime_enter_screen.dart';
+import 'package:dhikru_linda_flutter/features/subscription/presentation/subscription_screen.dart';
 import 'package:dhikru_linda_flutter/navigation_menu.dart';
 import 'package:flutter/cupertino.dart';
 
@@ -20,6 +21,7 @@ final class Routes {
 
   static const String newDrimeEnterScreen = '/newDrimeEnterScreen';
   static const String interpretationScren = '/interpretationScren';
+  static const String subscriptionScreen = '/subscriptionScreen';
 
   static const String onboardingScreenOne = '/onboardingScreenOne';
   static const String onboardingScreenTwo = '/onboardingScreenTwo';
@@ -88,6 +90,17 @@ final class RouteGenerator {
               )
             : CupertinoPageRoute(
                 builder: (context) => const InterpretationScren(),
+                settings: settings,
+              );
+
+      case Routes.subscriptionScreen:
+        return Platform.isAndroid
+            ? _FadedTransitionRoute(
+                widget: const SubscriptionScreen(),
+                settings: settings,
+              )
+            : CupertinoPageRoute(
+                builder: (context) => const SubscriptionScreen(),
                 settings: settings,
               );
 

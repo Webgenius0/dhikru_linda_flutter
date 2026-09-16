@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dhikru_linda_flutter/features/journal/model/send_journal_message_model.dart';
 
 class ShowJournalModel {
     bool? success;
@@ -28,7 +29,7 @@ class ShowJournalModel {
 
     factory ShowJournalModel.fromJson(Map<String, dynamic> json) => ShowJournalModel(
         success: json["success"],
-        message: json["message"],
+        message: json["message"]?.toString(),
         data: json["data"] == null ? null : Data.fromJson(json["data"]),
     );
 
@@ -43,6 +44,7 @@ class Data {
     int? id;
     String? title;
     String? content;
+    String? dreamContent;
     dynamic contentVoice;
     String? formattedDate;
     String? moodDisplay;
@@ -54,12 +56,14 @@ class Data {
     List<String>? symbolTags;
     List<EmotionalLandscape>? emotionalLandscape;
     List<CareReflection>? careReflection;
+    List<ChatMessage>? messages;
     DateTime? createdAt;
 
     Data({
         this.id,
         this.title,
         this.content,
+        this.dreamContent,
         this.contentVoice,
         this.formattedDate,
         this.moodDisplay,
@@ -71,6 +75,7 @@ class Data {
         this.symbolTags,
         this.emotionalLandscape,
         this.careReflection,
+        this.messages,
         this.createdAt,
     });
 
@@ -78,6 +83,7 @@ class Data {
         int? id,
         String? title,
         String? content,
+        String? dreamContent,
         dynamic contentVoice,
         String? formattedDate,
         String? moodDisplay,
@@ -89,12 +95,14 @@ class Data {
         List<String>? symbolTags,
         List<EmotionalLandscape>? emotionalLandscape,
         List<CareReflection>? careReflection,
+        List<ChatMessage>? messages,
         DateTime? createdAt,
     }) => 
         Data(
             id: id ?? this.id,
             title: title ?? this.title,
             content: content ?? this.content,
+            dreamContent: dreamContent ?? this.dreamContent,
             contentVoice: contentVoice ?? this.contentVoice,
             formattedDate: formattedDate ?? this.formattedDate,
             moodDisplay: moodDisplay ?? this.moodDisplay,
@@ -106,6 +114,7 @@ class Data {
             symbolTags: symbolTags ?? this.symbolTags,
             emotionalLandscape: emotionalLandscape ?? this.emotionalLandscape,
             careReflection: careReflection ?? this.careReflection,
+            messages: messages ?? this.messages,
             createdAt: createdAt ?? this.createdAt,
         );
 
@@ -117,6 +126,7 @@ class Data {
         id: json["id"],
         title: json["title"],
         content: json["content"],
+        dreamContent: json["dream_content"],
         contentVoice: json["content_voice"],
         formattedDate: json["formatted_date"],
         moodDisplay: json["mood_display"],
@@ -128,13 +138,15 @@ class Data {
         symbolTags: json["symbol_tags"] == null ? [] : List<String>.from(json["symbol_tags"]!.map((x) => x)),
         emotionalLandscape: json["emotional_landscape"] == null ? [] : List<EmotionalLandscape>.from(json["emotional_landscape"]!.map((x) => EmotionalLandscape.fromJson(x))),
         careReflection: json["care_reflection"] == null ? [] : List<CareReflection>.from(json["care_reflection"]!.map((x) => CareReflection.fromJson(x))),
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
+        messages: json["messages"] == null ? [] : List<ChatMessage>.from(json["messages"]!.map((x) => ChatMessage.fromJson(x))),
+        createdAt: json["created_at"] == null ? null : DateTime.tryParse(json["created_at"].toString()),
     );
 
     Map<String, dynamic> toJson() => {
         "id": id,
         "title": title,
         "content": content,
+        "dream_content": dreamContent,
         "content_voice": contentVoice,
         "formatted_date": formattedDate,
         "mood_display": moodDisplay,
@@ -146,6 +158,7 @@ class Data {
         "symbol_tags": symbolTags == null ? [] : List<dynamic>.from(symbolTags!.map((x) => x)),
         "emotional_landscape": emotionalLandscape == null ? [] : List<dynamic>.from(emotionalLandscape!.map((x) => x.toJson())),
         "care_reflection": careReflection == null ? [] : List<dynamic>.from(careReflection!.map((x) => x.toJson())),
+        "messages": messages == null ? [] : List<dynamic>.from(messages!.map((x) => x.toJson())),
         "created_at": createdAt?.toIso8601String(),
     };
 }

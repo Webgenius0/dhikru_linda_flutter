@@ -284,13 +284,16 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
     return ValueListenableBuilder<bool>(
       valueListenable: newJournalEntryRxObj.isLoading,
       builder: (context, isLoading, child) {
-        return Container(
-          color: const Color(0xFF0D0D1A),
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: SizedBox(
-            width: double.infinity,
-            height: 54,
-            child: ElevatedButton(
+        return SafeArea(
+          top: false,
+          bottom: true,
+          child: Container(
+            color: const Color(0xFF0D0D1A),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
               onPressed: () async {
                 FocusScope.of(context).unfocus();
                 if (isLoading) return;
@@ -374,6 +377,7 @@ class _NewDrimeEnterScreenState extends State<NewDrimeEnterScreen> {
               ),
             ),
           ),
+        ),
         );
       },
     );

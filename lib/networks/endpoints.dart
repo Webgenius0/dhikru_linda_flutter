@@ -9,7 +9,7 @@ final class NetworkConstants {
   static const ACCEPT = "Accept";
   static const APP_KEY = "App-Key";
   static const ACCEPT_LANGUAGE = "Accept-Language";
-  static const ACCEPT_LANGUAGE_VALUE = "pt";
+  static const ACCEPT_LANGUAGE_VALUE = "en";
   static const APP_KEY_VALUE = String.fromEnvironment("APP_KEY_VALUE");
   static const ACCEPT_TYPE = "application/json";
   static const AUTHORIZATION = "Authorization";
@@ -24,7 +24,7 @@ final class Endpoints {
   // -------------------Register end-------------------
 
   // -------------------Register Verify otp start-------------------
-   static String registerVerifyOtp() => "/user/verify-otp";
+  static String registerVerifyOtp() => "/user/verify-otp";
   // -------------------Register Verify otp end-------------------
 
   // -------------------Login start-------------------
@@ -40,18 +40,16 @@ final class Endpoints {
   static String logout() => "/user/logout";
   // -------------------Logout end-------------------
 
-
   // -------------------Resend OTP start-------------------
-   static String resendOtp() => "/user/resend-otp";
+  static String resendOtp() => "/user/resend-otp";
   // -------------------Resend OTP end-------------------
 
   // -------------------Forget Password start-----------------
   static String forgotPassword() => "/user/forget-password";
   // -------------------Forget Password end-------------------
 
-
   // -------------------Reset Password start-----------------
-   static String resetPassword() => "/user/reset-password";
+  static String resetPassword() => "/user/reset-password";
   // -------------------Reset Password end-------------------
 
   // -------------------Delete Account start-----------------
@@ -100,22 +98,29 @@ final class Endpoints {
   // -------------------Tags end-------------------
 
   // -------------------Show Journal start-----------------
-  static String showJournal({required int journalId}) => "/journal-entries/$journalId";
+  static String showJournal({required int journalId}) =>
+      "/journal-entries/$journalId";
   // -------------------Show Journal end-------------------
 
   // -------------------Add Journal start-----------------
   static String journalEntry() => "/journal-entries";
   // -------------------Add Journal end-------------------
 
-
   // -------------------Add Journal start-----------------
-  static String journalEntryResponse({required int journalId}) => "/journal-entries/response/$journalId";
+  static String journalEntryResponse({required int journalId}) =>
+      "/journal-entries/response/$journalId";
   // -------------------Add Journal end-------------------
-
 
   // -------------------Verify Otp start-----------------
   static String forgetPasswordVerifyOtp() => "/user/verify-otp";
   // -------------------Verify Otp end-------------------
 
+  // -------------------Send Journal Message start-----------------
+  static String sendJournalMessage({required int journalId}) =>
+      "/journal-entries/$journalId/messages";
+  // -------------------Send Journal Message end-------------------
 
+  // -------------------Get Subscription Status start-----------------
+  static String getSubscriptionStatus() => "/subscription/status";
+  // -------------------Get Subscription Status end-------------------
 }

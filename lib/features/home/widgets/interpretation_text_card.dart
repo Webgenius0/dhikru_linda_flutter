@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 const Color _cardBg = Color(0xFF131325);
 const Color _borderColor = Color(0xFF252545);
@@ -50,13 +51,47 @@ class InterpretationTextCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            body,
-            style: const TextStyle(
-              color: Color(0xFFAAAAAC),
-              fontSize: 13.5,
-              height: 1.6,
-              letterSpacing: 0.1,
+          MarkdownBody(
+            data: body,
+            selectable: false,
+            styleSheet: MarkdownStyleSheet(
+              p: const TextStyle(
+                color: Color(0xFFAAAAAC),
+                fontSize: 13.5,
+                height: 1.6,
+                letterSpacing: 0.1,
+              ),
+              strong: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 13.5,
+                letterSpacing: 0.1,
+              ),
+              em: const TextStyle(
+                color: Color(0xFFAAAAAC),
+                fontStyle: FontStyle.italic,
+                fontSize: 13.5,
+              ),
+              h1: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              h2: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+              ),
+              h3: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+              listBullet: const TextStyle(
+                color: Color(0xFFAAAAAC),
+                fontSize: 13.5,
+              ),
+              blockSpacing: 10.0,
             ),
           ),
         ],
