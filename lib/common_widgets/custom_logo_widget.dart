@@ -6,17 +6,23 @@ class CustomLogoWidget extends StatelessWidget {
   final double? height;
   final double? width;
 
-  const CustomLogoWidget({Key? key, this.height, this.width}) : super(key: key);
+  const CustomLogoWidget({super.key, this.height, this.width});
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(16.r),
-      child: Image.asset(
-        AppImages.logo,
-        height: height ?? 80.h,
-        width: width ?? 80.h,
-        fit: BoxFit.cover,
+    final logoWidth = width ?? 80.h;
+    final logoHeight = height ?? 80.h;
+    return SizedBox(
+      width: logoWidth,
+      height: logoHeight,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16.r),
+        child: Image.asset(
+          AppImages.logo,
+          width: logoWidth,
+          height: logoHeight,
+          fit: BoxFit.cover,
+        ),
       ),
     );
   }
