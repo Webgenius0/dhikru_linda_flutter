@@ -38,6 +38,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _obscurePassword = true;
   bool _isLoading = false;
   bool _isGoogleLoading = false;
+  bool _isAppleLoading = false;
 
   // --------------- Animation ---------------
   late final AnimationController _animController;
@@ -76,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen>
   }
 
   void _onLogin() async {
-    if (_isLoading || _isGoogleLoading) return;
+    if (_isLoading || _isGoogleLoading || _isAppleLoading) return;
     if (!_formKey.currentState!.validate()) return;
     final isOnline = await _hasInternetConnection();
     if (!isOnline) {
@@ -382,7 +383,7 @@ class _LoginScreenState extends State<LoginScreen>
 
   // --------------- Social Actions ---------------
   void _onGoogleSignIn() async {
-    if (_isGoogleLoading || _isLoading) return;
+    if (_isGoogleLoading || _isLoading || _isAppleLoading) return;
 
     // 1. Quick internet check before launching Google Sign-In
     final isOnline = await _hasInternetConnection();
@@ -464,8 +465,72 @@ class _LoginScreenState extends State<LoginScreen>
     }
   }
 
-  void _onAppleSignIn() {
-    ToastUtil.showShortToast('Apple Sign-In is coming soon', forceShow: true);
+  void _onAppleSignIn() async {
+    if (_isAppleLoading || _isGoogleLoading || _isLoading) return;
+
+    final isOnline = await _hasInternetConnection();
+    if (!isOnline) {
+      if (mounted) {
+        ToastUtil.showShortToast(
+          'Please check your internet connection and try again.',
+          forceShow: true,
+        );
+        _showNoInternetDialog(onRetry: _onAppleSignIn);
+      }
+      return;
+    }
+
+    setState(() => _isAppleLoading = true);
+    try {
+      final tokens = await AuthService.instance.signInWithApple();
+      if (tokens == null) {
+        // User dismissed Apple Sign-In sheet
+        return;
+      }
+
+      final tokenToSend = tokens["appleAccessToken"]?.isNotEmpty == true
+          ? tokens["appleAccessToken"]!
+          : (tokens["appleIdToken"]?.isNotEmpty == true
+              ? tokens["appleIdToken"]!
+              : (tokens["firebaseIdToken"] ?? ""));
+
+      if (tokenToSend.isEmpty) {
+        if (mounted) {
+          ToastUtil.showShortToast(
+            'Failed to get authorization token from Apple. Please try again.',
+            forceShow: true,
+          );
+        }
+        return;
+      }
+
+      final response = await appleSignInRxObj.appleSignInRx(
+        accessToken: tokenToSend,
+      );
+
+      if (response != null && mounted) {
+        NavigationService.navigateToReplacement(Routes.userNavigationMenu);
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        _showErrorToast(e);
+      }
+    } on PlatformException catch (e) {
+      if (mounted) {
+        _showErrorToast(e);
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorToast(
+          e,
+          defaultMessage: 'Apple Sign-In failed. Please try again.',
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isAppleLoading = false);
+      }
+    }
   }
 
   // --------------- Social Divider Widget ---------------
@@ -501,67 +566,90 @@ class _LoginScreenState extends State<LoginScreen>
 
   // --------------- Social Buttons Widget ---------------
   Widget _buildSocialButtons() {
-    final bool isSocialDisabled = _isLoading || _isGoogleLoading;
-    return Row(
-      children: [
-        // Google Sign In
-        Expanded(
-          child: GestureDetector(
-            onTap: isSocialDisabled ? null : _onGoogleSignIn,
-            child: Container(
-              height: 50.h,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(30.r),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1,
-                ),
-              ),
-              child: _isGoogleLoading
-                  ? const Center(
-                      child: CupertinoActivityIndicator(
-                        color: Colors.white,
-                      ),
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SvgPicture.asset(
-                          'assets/icons/google.svg',
-                          width: 22.w,
-                          height: 22.h,
-                        ),
-                        SizedBox(width: 10.w),
-                        Text(
-                          'Google',
-                          style: GoogleFonts.inter(
-                            color: Colors.white,
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ],
-                    ),
-            ),
+    final bool isAndroid = Platform.isAndroid;
+    final bool isApple = Platform.isIOS || Platform.isMacOS;
+
+    if (isAndroid) {
+      return _buildGoogleButton();
+    } else if (isApple) {
+      return _buildAppleButton();
+    } else {
+      return Row(
+        children: [
+          Expanded(child: _buildGoogleButton()),
+          SizedBox(width: 16.w),
+          Expanded(child: _buildAppleButton()),
+        ],
+      );
+    }
+  }
+
+  Widget _buildGoogleButton() {
+    final bool isSocialDisabled =
+        _isLoading || _isGoogleLoading || _isAppleLoading;
+    return GestureDetector(
+      onTap: isSocialDisabled ? null : _onGoogleSignIn,
+      child: Container(
+        height: 50.h,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(30.r),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
           ),
         ),
-        SizedBox(width: 16.w),
-        // Apple Sign In
-        Expanded(
-          child: GestureDetector(
-            onTap: isSocialDisabled ? null : _onAppleSignIn,
-            child: Container(
-              height: 50.h,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(30.r),
-                border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  width: 1,
+        child: _isGoogleLoading
+            ? const Center(
+                child: CupertinoActivityIndicator(
+                  color: Colors.white,
                 ),
+              )
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  SvgPicture.asset(
+                    'assets/icons/google.svg',
+                    width: 22.w,
+                    height: 22.h,
+                  ),
+                  SizedBox(width: 10.w),
+                  Text(
+                    'Google',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
               ),
-              child: Row(
+      ),
+    );
+  }
+
+  Widget _buildAppleButton() {
+    final bool isSocialDisabled =
+        _isLoading || _isGoogleLoading || _isAppleLoading;
+    return GestureDetector(
+      onTap: isSocialDisabled ? null : _onAppleSignIn,
+      child: Container(
+        height: 50.h,
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(30.r),
+          border: Border.all(
+            color: Colors.white.withValues(alpha: 0.15),
+            width: 1,
+          ),
+        ),
+        child: _isAppleLoading
+            ? const Center(
+                child: CupertinoActivityIndicator(
+                  color: Colors.white,
+                ),
+              )
+            : Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset(
@@ -579,14 +667,12 @@ class _LoginScreenState extends State<LoginScreen>
                     style: GoogleFonts.inter(
                       color: Colors.white,
                       fontSize: 14.sp,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
@@ -667,7 +753,7 @@ class _LoginScreenState extends State<LoginScreen>
       width: double.infinity,
       height: 54.h,
       child: ElevatedButton(
-        onPressed: (_isLoading || _isGoogleLoading) ? null : _onLogin,
+        onPressed: (_isLoading || _isGoogleLoading || _isAppleLoading) ? null : _onLogin,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF8B7AE8),
           disabledBackgroundColor: const Color(0xFF8B7AE8).withValues(alpha: 0.6),
