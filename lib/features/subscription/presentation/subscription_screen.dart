@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dhikru_linda_flutter/features/subscription/model/get_subscrition/get_subscription_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -14,11 +15,77 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   int _selectedPlanIndex = 0;
   bool _isProcessing = false;
   bool _hasSetInitialPlan = false;
+  final InAppPurchase _appPurchase = InAppPurchase.instance;
 
+  Future<void> checkStore() async {
+    try {
+      print('========== Google Play Billing Check ==========');
+
+      final available = await _appPurchase.isAvailable();
+
+      if (available) {
+        print('✅ Google Play Billing is available.');
+      } else {
+        print('❌ Google Play Billing is not available.');
+      }
+
+      print('Billing Service Status: $available');
+      print('===============================================');
+    } catch (e) {
+      print('❌ Google Play Billing check failed: $e');
+    }
+  }
+
+
+  Future<void> loadSubscriptionProduct() async {
+    try {
+      const productIds = <String>{
+        'dreamtrace_ai_premium',
+      };
+
+      print(
+        '======================= Loading Subscription ========================',
+      );
+      print('Product IDs: $productIds');
+
+      final response = await _appPurchase.queryProductDetails(productIds);
+
+      if (response.error != null) {
+        print('❌ Product Query Failed');
+        print('Error: ${response.error}');
+        return;
+      }
+
+      if (response.notFoundIDs.isNotEmpty) {
+        print('⚠️ Products Not Found: ${response.notFoundIDs}');
+      }
+
+      if (response.productDetails.isEmpty) {
+        print('⚠️ No Subscription Products Found');
+        return;
+      }
+
+      for (final product in response.productDetails) {
+        print('✅ Subscription Found');
+        print('Product ID: ${product.id}');
+        print('Title: ${product.title}');
+        print('Price: ${product.price}');
+        print('Description: ${product.description}');
+      }
+
+      print(
+        '=====================================================================',
+      );
+    } catch (e) {
+      print('❌ Failed to load subscription product: $e');
+    }
+  }
   @override
   void initState() {
     super.initState();
     getSubscriptionRxObj.getSubscriptionStatus();
+    checkStore();
+    loadSubscriptionProduct();
   }
 
   String _formatDate(dynamic dateStr) {

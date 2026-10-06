@@ -2,6 +2,7 @@
 
 // const String url = "https://dashboard.thrivearc.ai/api"; // real url
   const String url = "https://feranpage.thesyndicates.team/api";
+
 const String imageUrl = url;
 
 final class NetworkConstants {
