@@ -114,6 +114,69 @@ class AuthService {
     }
   }
 
+  /// Sign in with Apple, authenticate with Firebase, store tokens & return tokens map
+  Future<Map<String, String>?> signInWithApple() async {
+    try {
+      final appleProvider = AppleAuthProvider();
+      appleProvider.addScope('email');
+      appleProvider.addScope('name');
+
+      final userCredential = await _auth.signInWithProvider(appleProvider);
+      final user = userCredential.user;
+      if (user == null) return null;
+
+      final firebaseToken = await user.getIdToken();
+      final credential = userCredential.credential;
+      String? appleAccessToken;
+      String? appleIdToken;
+
+      if (credential is OAuthCredential) {
+        appleAccessToken = credential.accessToken;
+        appleIdToken = credential.idToken;
+      }
+
+      appData.write('appleUserId', user.uid);
+      if (appleIdToken != null) {
+        appData.write('appleIdToken', appleIdToken);
+      }
+      if (appleAccessToken != null) {
+        appData.write('appleAccessToken', appleAccessToken);
+      }
+      if (firebaseToken != null) {
+        appData.write('firebaseIdToken', firebaseToken);
+      }
+      if (user.displayName != null) {
+        appData.write(kKeyName, user.displayName);
+      }
+      if (user.email != null) {
+        appData.write(kKeyEmail, user.email);
+      }
+
+      _logTokenHeader('APPLE & FIREBASE AUTH TOKENS');
+      log('User UID           : ${user.uid}');
+      log('Email              : ${user.email}');
+      log('Display Name       : ${user.displayName}');
+      _printFullToken('1. APPLE ID TOKEN', appleIdToken);
+      _printFullToken('2. APPLE ACCESS TOKEN', appleAccessToken);
+      _printFullToken('3. FIREBASE ID TOKEN', firebaseToken);
+      _logTokenFooter();
+
+      return {
+        "appleIdToken": appleIdToken ?? "",
+        "appleAccessToken": appleAccessToken ?? "",
+        "firebaseIdToken": firebaseToken ?? "",
+        "userUid": user.uid,
+        "email": user.email ?? "",
+        "displayName": user.displayName ?? "",
+        "photoUrl": user.photoURL ?? "",
+      };
+    } catch (e, stackTrace) {
+      log('Apple login error: $e', stackTrace: stackTrace);
+      rethrow;
+    }
+  }
+
+
   /// Helper to print tokens without truncation
   void _printFullToken(String label, String? token) {
     if (token == null || token.isEmpty) {
