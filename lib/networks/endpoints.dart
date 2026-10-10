@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names, unnecessary_string_interpolations
 
-// const String url = "https://dashboard.thrivearc.ai/api"; // real url
-  const String url = "https://feranpage.thesyndicates.team/api";
+  const String url = "https://dashboard.thrivearc.ai/api"; // real url
+//   const String url = "https://feranpage.thesyndicates.team/api";
 
 const String imageUrl = url;
 

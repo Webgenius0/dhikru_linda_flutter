@@ -96,11 +96,11 @@ final class RouteGenerator {
       case Routes.subscriptionScreen:
         return Platform.isAndroid
             ? _FadedTransitionRoute(
-                widget: const SubscriptionScreen(),
+                widget:   SubscriptionScreen(),
                 settings: settings,
               )
             : CupertinoPageRoute(
-                builder: (context) => const SubscriptionScreen(),
+                builder: (context) =>   SubscriptionScreen(),
                 settings: settings,
               );
 
