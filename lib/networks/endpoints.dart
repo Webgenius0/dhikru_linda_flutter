@@ -124,4 +124,9 @@ final class Endpoints {
   // -------------------Get Subscription Status start-----------------
   static String getSubscriptionStatus() => "/subscription/status";
   // -------------------Get Subscription Status end-------------------
+
+  // -------------------Verify Google Subscription start-----------------
+  static String verifyGoogleSubscription() => "/subscription/verify-google";
+  // -------------------Verify Google Subscription end-------------------
 }
+

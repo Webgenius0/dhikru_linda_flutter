@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart'
     hide Data;
 import 'package:dhikru_linda_flutter/features/home/model/home_data_model.dart';
+import 'package:dhikru_linda_flutter/features/subscription/model/get_subscrition/get_subscription_model.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/networks/endpoints.dart' as endpoints;
 
@@ -116,64 +117,136 @@ class HomeAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onGoProfile,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        width: 48.w,
-        height: 48.w,
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: _accentPurple, width: 2),
-          color: const Color(0xFF3A2060),
-        ),
-        child: ClipOval(
-          child: StreamBuilder<GetProfileModel>(
-            stream: getProfileRxObj.getProfileData,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Lottie.asset(
-                  'assets/lottie/loader_animation.json',
-                  width: 48.w,
-                  height: 48.w,
-                  fit: BoxFit.cover,
-                );
-              }
-              final user = snapshot.data?.data?.user;
-              final avatar = user?.avatar;
-              if (avatar != null && avatar.isNotEmpty) {
-                String fullImageUrl = avatar;
-                if (!fullImageUrl.startsWith('http')) {
-                  fullImageUrl =
-                      "${endpoints.url}/${fullImageUrl.startsWith('/') ? fullImageUrl.substring(1) : fullImageUrl}";
-                }
-                return CachedNetworkImage(
-                  imageUrl: fullImageUrl,
-                  width: 48.w,
-                  height: 48.w,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Shimmer.fromColors(
-                    baseColor: Colors.white.withOpacity(0.05),
-                    highlightColor: Colors.white.withOpacity(0.1),
-                    child: Container(color: Colors.white),
-                  ),
-                  errorWidget: (context, url, error) =>
-                      Image.asset('assets/icons/user.png', fit: BoxFit.cover),
-                );
-              }
-              return Container(
-                color: const Color(0xFF5A3A80),
-                padding: const EdgeInsets.all(6),
-                child: Image.asset(
-                  'assets/icons/user.png',
-                  fit: BoxFit.contain,
+    return StreamBuilder<GetSubscriptionModel>(
+      stream: getSubscriptionRxObj.getSubscriptionStream,
+      builder: (context, subSnapshot) {
+        final isPremium = subSnapshot.data?.data?.isPremium ?? false;
+
+        return GestureDetector(
+          onTap: onGoProfile,
+          behavior: HitTestBehavior.opaque,
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 48.w,
+                height: 48.w,
+                padding: const EdgeInsets.all(2),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  boxShadow: isPremium
+                      ? [
+                          BoxShadow(
+                            color: const Color(0xFFFFD700).withValues(alpha: 0.45),
+                            blurRadius: 12,
+                            spreadRadius: 2,
+                          )
+                        ]
+                      : null,
+                  gradient: isPremium
+                      ? const LinearGradient(
+                          colors: [Color(0xFFFFD700), Color(0xFFFFA500)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : null,
+                  border: isPremium
+                      ? null
+                      : Border.all(color: _accentPurple, width: 2),
+                  color: const Color(0xFF3A2060),
                 ),
-              );
-            },
+                child: ClipOval(
+                  child: StreamBuilder<GetProfileModel>(
+                    stream: getProfileRxObj.getProfileData,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return Lottie.asset(
+                          'assets/lottie/loader_animation.json',
+                          width: 48.w,
+                          height: 48.w,
+                          fit: BoxFit.cover,
+                        );
+                      }
+                      final user = snapshot.data?.data?.user;
+                      final avatar = user?.avatar;
+                      if (avatar != null && avatar.isNotEmpty) {
+                        String fullImageUrl = avatar;
+                        if (!fullImageUrl.startsWith('http')) {
+                          fullImageUrl =
+                              "${endpoints.url}/${fullImageUrl.startsWith('/') ? fullImageUrl.substring(1) : fullImageUrl}";
+                        }
+                        return CachedNetworkImage(
+                          imageUrl: fullImageUrl,
+                          width: 48.w,
+                          height: 48.w,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Shimmer.fromColors(
+                            baseColor: Colors.white.withOpacity(0.05),
+                            highlightColor: Colors.white.withOpacity(0.1),
+                            child: Container(color: Colors.white),
+                          ),
+                          errorWidget: (context, url, error) =>
+                              Image.asset('assets/icons/user.png', fit: BoxFit.cover),
+                        );
+                      }
+                      return Container(
+                        color: const Color(0xFF5A3A80),
+                        padding: const EdgeInsets.all(6),
+                        child: Image.asset(
+                          'assets/icons/user.png',
+                          fit: BoxFit.contain,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+              if (isPremium)
+                Positioned(
+                  bottom: -2.h,
+                  right: -2.w,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.5.h),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                      ),
+                      borderRadius: BorderRadius.circular(10.r),
+                      border: Border.all(color: const Color(0xFF0B0F14), width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.4),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.workspace_premium_rounded,
+                          color: Colors.black,
+                          size: 9.sp,
+                        ),
+                        SizedBox(width: 2.w),
+                        Text(
+                          'PRO',
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 9.sp,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+            ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
@@ -183,40 +256,92 @@ class HomeGreetingName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<GetProfileModel>(
-      stream: getProfileRxObj.getProfileData,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting ||
-            !snapshot.hasData ||
-            snapshot.data?.data?.user == null) {
-          return Shimmer.fromColors(
-            baseColor: Colors.white.withOpacity(0.05),
-            highlightColor: Colors.white.withOpacity(0.1),
-            child: Container(
-              width: 120,
-              height: 32,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8),
+    return StreamBuilder<GetSubscriptionModel>(
+      stream: getSubscriptionRxObj.getSubscriptionStream,
+      builder: (context, subSnapshot) {
+        final isPremium = subSnapshot.data?.data?.isPremium ?? false;
+
+        return StreamBuilder<GetProfileModel>(
+          stream: getProfileRxObj.getProfileData,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting ||
+                !snapshot.hasData ||
+                snapshot.data?.data?.user == null) {
+              return Shimmer.fromColors(
+                baseColor: Colors.white.withOpacity(0.05),
+                highlightColor: Colors.white.withOpacity(0.1),
+                child: Container(
+                  width: 120,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              );
+            }
+            final name = snapshot.data?.data?.user?.name ?? '';
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 1,
+                    style: const TextStyle(
+                      color: _white,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: -0.5,
+                      height: 1.1,
+                    ),
+                  ),
+                  if (isPremium) ...[
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                        ),
+                        borderRadius: BorderRadius.circular(12.r),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFFD700).withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_rounded,
+                            color: Colors.black,
+                            size: 13.sp,
+                          ),
+                          SizedBox(width: 3.w),
+                          Text(
+                            'PRO',
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ),
-          );
-        }
-        final name = snapshot.data?.data?.user?.name ?? '';
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Text(
-            name,
-            maxLines: 1,
-            style: const TextStyle(
-              color: _white,
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
-              height: 1.1,
-            ),
-          ),
+            );
+          },
         );
       },
     );

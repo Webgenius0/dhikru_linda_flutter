@@ -1,4 +1,6 @@
 import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
@@ -73,7 +75,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'You must agree to the Terms & Conditions to register.',
+            'You must agree to the Terms & Conditions and Privacy Policy to register.',
             style: GoogleFonts.inter(),
           ),
           backgroundColor: const Color(0xFFCF6679),
@@ -232,17 +234,17 @@ class _RegisterScreenState extends State<RegisterScreen>
                         },
                       ),
 
-                      SizedBox(height: 36.h),
-
-                      // --------------- Register Button ---------------
-                      _buildRegisterButton(),
-
                       SizedBox(height: 24.h),
 
                       // --------------- Terms & Conditions Checkbox ---------------
                       _buildTermsCheckbox(),
 
-                      SizedBox(height: 48.h),
+                      SizedBox(height: 24.h),
+
+                      // --------------- Register Button ---------------
+                      _buildRegisterButton(),
+
+                      SizedBox(height: 36.h),
 
                       // --------------- Login Link Row ---------------
                       _buildLoginRow(),
@@ -266,7 +268,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       child: Text(
         text,
         style: GoogleFonts.inter(
-          color: Colors.white.withOpacity(0.55),
+          color: Colors.white.withValues(alpha: 0.55),
           fontSize: 11.sp,
           fontWeight: FontWeight.w600,
           letterSpacing: 1.2,
@@ -289,7 +291,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       keyboardType: keyboardType,
       obscureText: obscureText,
       style: GoogleFonts.inter(
-        color: Colors.white.withOpacity(0.85),
+        color: Colors.white.withValues(alpha: 0.85),
         fontSize: 14.sp,
       ),
       cursorRadius: const Radius.circular(6),
@@ -297,7 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen>
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.inter(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           fontSize: 14.sp,
         ),
         suffixIcon: suffixIcon,
@@ -307,7 +309,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         ),
         enabledBorder: UnderlineInputBorder(
           borderSide: BorderSide(
-            color: Colors.white.withOpacity(0.25),
+            color: Colors.white.withValues(alpha: 0.25),
             width: 1,
           ),
         ),
@@ -332,16 +334,18 @@ class _RegisterScreenState extends State<RegisterScreen>
 
   // --------------- Register Button Widget ---------------
   Widget _buildRegisterButton() {
+    final bool isEnabled = _agreeToTerms && !_isLoading;
     return SizedBox(
       width: double.infinity,
       height: 54.h,
       child: ElevatedButton(
-        onPressed: _isLoading ? null : _onRegister,
+        onPressed: isEnabled ? _onRegister : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF8B7AE8),
-          disabledBackgroundColor: const Color(0xFF8B7AE8).withOpacity(0.6),
+          disabledBackgroundColor: const Color(0xFF8B7AE8).withValues(alpha: 0.35),
+          disabledForegroundColor: Colors.white.withValues(alpha: 0.45),
           elevation: 0,
-          shadowColor: const Color(0xFF8B7AE8).withOpacity(0.5),
+          shadowColor: const Color(0xFF8B7AE8).withValues(alpha: 0.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(30.r),
           ),
@@ -358,7 +362,9 @@ class _RegisterScreenState extends State<RegisterScreen>
             : Text(
                 'Register',
                 style: GoogleFonts.inter(
-                  color: Colors.white,
+                  color: isEnabled
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.45),
                   fontSize: 15.sp,
                   fontWeight: FontWeight.w600,
                   letterSpacing: 0.3,
@@ -368,18 +374,19 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
   }
 
-  // --------------- Terms & Conditions Checkbox Widget ---------------
+  // --------------- Terms & Conditions & Privacy Policy Checkbox Widget ---------------
   Widget _buildTermsCheckbox() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _agreeToTerms = !_agreeToTerms;
-        });
-      },
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            setState(() {
+              _agreeToTerms = !_agreeToTerms;
+            });
+          },
+          child: Container(
             width: 20.w,
             height: 20.w,
             decoration: BoxDecoration(
@@ -400,30 +407,79 @@ class _RegisterScreenState extends State<RegisterScreen>
                   )
                 : null,
           ),
-          SizedBox(width: 12.w),
-          Text(
-            'I agree to ',
-            style: GoogleFonts.inter(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 13.sp,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              // TODO: Navigate to Terms & Conditions
-            },
-            child: Text(
-              'Terms & Conditions',
-              style: GoogleFonts.inter(
-                color: const Color(0xFF8B7AE8),
-                fontSize: 13.sp,
-                fontWeight: FontWeight.w600,
+        ),
+        SizedBox(width: 10.w),
+        Expanded(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    _agreeToTerms = !_agreeToTerms;
+                  });
+                },
+                child: Text(
+                  'I agree to the ',
+                  style: GoogleFonts.inter(
+                    color: Colors.white.withValues(alpha: 0.6),
+                    fontSize: 12.5.sp,
+                    fontWeight: FontWeight.w400,
+                  ),
+                ),
               ),
-            ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const TermsAndConditionScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Terms & Conditions',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF8B7AE8),
+                    fontSize: 12.5.sp,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationColor: const Color(0xFF8B7AE8),
+                  ),
+                ),
+              ),
+              Text(
+                ' and ',
+                style: GoogleFonts.inter(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  fontSize: 12.5.sp,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              GestureDetector(
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PrivacyPolicyScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'Privacy Policy',
+                  style: GoogleFonts.inter(
+                    color: const Color(0xFF8B7AE8),
+                    fontSize: 12.5.sp,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationColor: const Color(0xFF8B7AE8),
+                  ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -435,7 +491,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         Text(
           "Already have an account ? ",
           style: GoogleFonts.inter(
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
             fontSize: 13.sp,
             fontWeight: FontWeight.w400,
           ),

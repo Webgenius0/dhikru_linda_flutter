@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/home/model/get_profile_model.dart';
 import 'package:dhikru_linda_flutter/features/profile/widgets/profile_widgets.dart';
@@ -173,6 +174,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       final picker = ImagePicker();
       final picked = await picker.pickImage(source: source, imageQuality: 85);
       if (picked != null && mounted) {
+        final path = picked.path.toLowerCase();
+        final isVideo = path.endsWith('.mp4') ||
+            path.endsWith('.mov') ||
+            path.endsWith('.avi') ||
+            path.endsWith('.mkv') ||
+            path.endsWith('.webm') ||
+            path.endsWith('.3gp');
+        if (isVideo) {
+          ToastUtil.showShortToast("Please select a valid image file.");
+          return;
+        }
         setState(() => _pickedImage = File(picked.path));
       }
     } catch (_) {}

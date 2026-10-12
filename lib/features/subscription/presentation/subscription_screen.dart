@@ -1,911 +1,74 @@
-// import 'dart:async';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_screenutil/flutter_screenutil.dart';
-// import 'package:dhikru_linda_flutter/features/subscription/model/get_subscrition/get_subscription_model.dart';
-// import 'package:dhikru_linda_flutter/helpers/toast.dart';
-// import 'package:dhikru_linda_flutter/networks/api_acess.dart';
-// import 'package:in_app_purchase/in_app_purchase.dart';
-//
-// class SubscriptionScreen extends StatefulWidget {
-//   const SubscriptionScreen({super.key});
-//
-//   @override
-//   State<SubscriptionScreen> createState() => _SubscriptionScreenState();
-// }
-//
-// class _SubscriptionScreenState extends State<SubscriptionScreen> {
-//   int _selectedPlanIndex = 0;
-//   bool _isProcessing = false;
-//   bool _hasSetInitialPlan = false;
-//
-//   final InAppPurchase _appPurchase = InAppPurchase.instance;
-//   late StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
-//   List<ProductDetails> _products = [];
-//   bool _isStoreAvailable = false;
-//   bool _isLoadingProducts = false;
-//
-//   @override
-//   void initState() {
-//     super.initState();
-//
-//     // 1. Listen to In-App Purchase updates stream
-//     final Stream<List<PurchaseDetails>> purchaseUpdated =
-//         _appPurchase.purchaseStream;
-//     _purchaseSubscription = purchaseUpdated.listen(
-//       _listenToPurchaseUpdated,
-//       onDone: () => _purchaseSubscription.cancel(),
-//       onError: (error) {
-//         debugPrint('❌ Billing Stream Error: $error');
-//         ToastUtil.showShortToast('Billing error: $error');
-//       },
-//     );
-//
-//     // 2. Query Google Play Store products & status
-//     getSubscriptionRxObj.getSubscriptionStatus();
-//     _initStoreAndLoadProducts();
-//   }
-//
-//   @override
-//   void dispose() {
-//     _purchaseSubscription.cancel();
-//     super.dispose();
-//   }
-//
-//   Future<void> _initStoreAndLoadProducts() async {
-//     try {
-//       setState(() => _isLoadingProducts = true);
-//
-//       debugPrint('========== Google Play Billing Check ==========');
-//       final available = await _appPurchase.isAvailable();
-//       _isStoreAvailable = available;
-//       debugPrint('Billing Service Status: $available');
-//
-//       if (!available) {
-//         debugPrint('❌ Google Play Billing is not available.');
-//         if (mounted) setState(() => _isLoadingProducts = false);
-//         return;
-//       }
-//
-//       const productIds = <String>{'dreamtrace_ai_premium'};
-//       debugPrint('================ Loading Subscription Products ================');
-//       debugPrint('Product IDs: $productIds');
-//
-//       final response = await _appPurchase.queryProductDetails(productIds);
-//
-//       if (response.error != null) {
-//         debugPrint('❌ Product Query Failed: ${response.error}');
-//       } else {
-//         if (mounted) {
-//           setState(() {
-//             _products = response.productDetails;
-//           });
-//         }
-//         debugPrint('✅ Found ${_products.length} product(s) in Google Play Store.');
-//         for (final product in _products) {
-//           debugPrint('----------------------------------------');
-//           debugPrint('Product ID: ${product.id}');
-//           debugPrint('Title: ${product.title}');
-//           debugPrint('Price: ${product.price}');
-//           debugPrint('Description: ${product.description}');
-//         }
-//       }
-//     } catch (e) {
-//       debugPrint('❌ Failed to load store products: $e');
-//     } finally {
-//       if (mounted) setState(() => _isLoadingProducts = false);
-//     }
-//   }
-//
-//   Future<void> _listenToPurchaseUpdated(
-//     List<PurchaseDetails> purchaseDetailsList,
-//   ) async {
-//     for (final purchaseDetails in purchaseDetailsList) {
-//       debugPrint(
-//         '🛒 Purchase Update: status=${purchaseDetails.status}, id=${purchaseDetails.productID}',
-//       );
-//
-//       if (purchaseDetails.status == PurchaseStatus.pending) {
-//         if (mounted) setState(() => _isProcessing = true);
-//         ToastUtil.showShortToast('Google Play purchase pending...');
-//       } else {
-//         if (purchaseDetails.status == PurchaseStatus.error) {
-//           if (mounted) setState(() => _isProcessing = false);
-//           ToastUtil.showShortToast(
-//             purchaseDetails.error?.message ?? 'Purchase failed',
-//           );
-//         } else if (purchaseDetails.status == PurchaseStatus.purchased ||
-//             purchaseDetails.status == PurchaseStatus.restored) {
-//           if (mounted) setState(() => _isProcessing = false);
-//           ToastUtil.showLongToast(
-//             '🎉 Purchase Successful! (${purchaseDetails.productID})',
-//           );
-//
-//           debugPrint('================ PURCHASE DETAILS ================');
-//           debugPrint('Product ID: ${purchaseDetails.productID}');
-//           debugPrint('Purchase ID: ${purchaseDetails.purchaseID}');
-//           debugPrint('Transaction Date: ${purchaseDetails.transactionDate}');
-//           debugPrint(
-//             'Verification Data: ${purchaseDetails.verificationData.serverVerificationData}',
-//           );
-//           debugPrint('Source: ${purchaseDetails.verificationData.source}');
-//           debugPrint('==================================================');
-//
-//           // Refresh status from API
-//           getSubscriptionRxObj.getSubscriptionStatus();
-//         } else if (purchaseDetails.status == PurchaseStatus.canceled) {
-//           if (mounted) setState(() => _isProcessing = false);
-//           ToastUtil.showShortToast('Purchase was canceled');
-//         }
-//
-//         if (purchaseDetails.pendingCompletePurchase) {
-//           await _appPurchase.completePurchase(purchaseDetails);
-//         }
-//       }
-//     }
-//   }
-//
-//   Future<void> _buySelectedProduct() async {
-//     if (_isProcessing) return;
-//
-//     if (!_isStoreAvailable) {
-//       ToastUtil.showShortToast('In-App Billing is not available on this device');
-//       return;
-//     }
-//
-//     if (_products.isEmpty) {
-//       ToastUtil.showShortToast('No subscription products found on Google Play');
-//       return;
-//     }
-//
-//     try {
-//       setState(() => _isProcessing = true);
-//
-//       // Select chosen product from Google Play
-//       ProductDetails productToBuy;
-//       if (_products.length > 1 && _selectedPlanIndex < _products.length) {
-//         productToBuy = _products[_selectedPlanIndex];
-//       } else {
-//         productToBuy = _products.first;
-//       }
-//
-//       debugPrint(
-//         '🚀 Launching Google Play purchase: ${productToBuy.id} (${productToBuy.price})',
-//       );
-//
-//       final purchaseParam = PurchaseParam(productDetails: productToBuy);
-//       final success = await _appPurchase.buyNonConsumable(
-//         purchaseParam: purchaseParam,
-//       );
-//
-//       if (!success) {
-//         ToastUtil.showShortToast('Could not launch Google Play Billing sheet');
-//         if (mounted) setState(() => _isProcessing = false);
-//       }
-//     } catch (e) {
-//       debugPrint('❌ Error launching purchase: $e');
-//       ToastUtil.showShortToast('Purchase error: $e');
-//       if (mounted) setState(() => _isProcessing = false);
-//     }
-//   }
-//
-//   IconData _getBenefitIcon(String text) {
-//     final lower = text.toLowerCase();
-//     if (lower.contains('psychological') ||
-//         lower.contains('interpretation') ||
-//         lower.contains('meaning')) {
-//       return Icons.psychology_rounded;
-//     } else if (lower.contains('chat') ||
-//         lower.contains('companion') ||
-//         lower.contains('conversation') ||
-//         lower.contains('conversational')) {
-//       return Icons.chat_bubble_outline_rounded;
-//     } else if (lower.contains('subconscious') ||
-//         lower.contains('insight') ||
-//         lower.contains('symbol') ||
-//         lower.contains('detection') ||
-//         lower.contains('emotion')) {
-//       return Icons.insights_rounded;
-//     } else if (lower.contains('unlimited') ||
-//         lower.contains('dream') ||
-//         lower.contains('log')) {
-//       return Icons.all_inclusive_rounded;
-//     } else if (lower.contains('meditation') ||
-//         lower.contains('care') ||
-//         lower.contains('reflection')) {
-//       return Icons.spa_outlined;
-//     } else {
-//       return Icons.auto_awesome_rounded;
-//     }
-//   }
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       backgroundColor: const Color(0xFF0D0D1A),
-//       body: Stack(
-//         children: [
-//           // Background ambient gradient glow
-//           Positioned(
-//             top: -100,
-//             left: -50,
-//             right: -50,
-//             child: Container(
-//               height: 380,
-//               decoration: BoxDecoration(
-//                 shape: BoxShape.circle,
-//                 gradient: RadialGradient(
-//                   colors: [
-//                     const Color(0xFF7B6EF6).withValues(alpha: 0.28),
-//                     const Color(0xFF9D7FF7).withValues(alpha: 0.12),
-//                     Colors.transparent,
-//                   ],
-//                   stops: const [0.0, 0.45, 1.0],
-//                 ),
-//               ),
-//             ),
-//           ),
-//
-//           SafeArea(
-//             bottom: false,
-//             child: Column(
-//               children: [
-//                 // Top Navigation Bar
-//                 Padding(
-//                   padding: const EdgeInsets.symmetric(
-//                     horizontal: 16,
-//                     vertical: 8,
-//                   ),
-//                   child: Row(
-//                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     children: [
-//                       GestureDetector(
-//                         onTap: () => Navigator.maybePop(context),
-//                         child: Container(
-//                           width: 36,
-//                           height: 36,
-//                           alignment: Alignment.center,
-//                           decoration: BoxDecoration(
-//                             color: Colors.white.withValues(alpha: 0.1),
-//                             shape: BoxShape.circle,
-//                             border: Border.all(
-//                               color: Colors.white.withValues(alpha: 0.15),
-//                               width: 1,
-//                             ),
-//                           ),
-//                           child: const Icon(
-//                             Icons.close_rounded,
-//                             color: Colors.white,
-//                             size: 18,
-//                           ),
-//                         ),
-//                       ),
-//                       // Store connection indicator badge
-//                       Container(
-//                         padding: const EdgeInsets.symmetric(
-//                           horizontal: 10,
-//                           vertical: 4,
-//                         ),
-//                         decoration: BoxDecoration(
-//                           color: _isStoreAvailable
-//                               ? const Color(0xFF4CAF50).withValues(alpha: 0.15)
-//                               : Colors.amber.withValues(alpha: 0.15),
-//                           borderRadius: BorderRadius.circular(16),
-//                           border: Border.all(
-//                             color: _isStoreAvailable
-//                                 ? const Color(0xFF4CAF50).withValues(alpha: 0.4)
-//                                 : Colors.amber.withValues(alpha: 0.4),
-//                             width: 1,
-//                           ),
-//                         ),
-//                         child: Row(
-//                           mainAxisSize: MainAxisSize.min,
-//                           children: [
-//                             Container(
-//                               width: 6,
-//                               height: 6,
-//                               decoration: BoxDecoration(
-//                                 color: _isStoreAvailable
-//                                     ? const Color(0xFF4CAF50)
-//                                     : Colors.amber,
-//                                 shape: BoxShape.circle,
-//                               ),
-//                             ),
-//                             const SizedBox(width: 5),
-//                             Text(
-//                               _isStoreAvailable ? 'Store Ready' : 'Connecting...',
-//                               style: TextStyle(
-//                                 color: _isStoreAvailable
-//                                     ? const Color(0xFF81C784)
-//                                     : Colors.amber,
-//                                 fontSize: 10.5.sp,
-//                                 fontWeight: FontWeight.w600,
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//
-//                 // Main Scrollable Content
-//                 Expanded(
-//                   child: StreamBuilder<GetSubscriptionModel>(
-//                     initialData: getSubscriptionRxObj.dataFetcher.valueOrNull,
-//                     stream: getSubscriptionRxObj.getSubscriptionStream,
-//                     builder: (context, snapshot) {
-//                       final subData = snapshot.data?.data;
-//                       final apiPlans = subData?.plans ?? [];
-//                       final benefits = (subData?.benefits?.isNotEmpty ?? false)
-//                           ? subData!.benefits!
-//                           : [
-//                               "Detailed Psychological Interpretation",
-//                               "Conversational AI Chat Companion",
-//                               "Subconscious Insights & Symbol Detection",
-//                               "Unlimited Dreams Log",
-//                             ];
-//
-//                       // Build plan display items from Google Play products or API plans
-//                       final List<Map<String, dynamic>> displayPlans = [];
-//                       if (_products.isNotEmpty) {
-//                         for (int i = 0; i < _products.length; i++) {
-//                           final p = _products[i];
-//                           final isYearly = i == 1 ||
-//                               p.title.toLowerCase().contains('year') ||
-//                               p.description.toLowerCase().contains('year');
-//                           displayPlans.add({
-//                             'title': isYearly ? 'Yearly Plan' : 'Monthly Plan',
-//                             'price': p.price,
-//                             'billingText': isYearly
-//                                 ? 'Billed annually, best value savings'
-//                                 : 'Billed monthly, cancel anytime',
-//                             'badge': isYearly ? 'BEST VALUE • SAVE 33%' : null,
-//                             'product': p,
-//                           });
-//                         }
-//                       } else if (apiPlans.isNotEmpty) {
-//                         for (int i = 0; i < apiPlans.length; i++) {
-//                           final plan = apiPlans[i];
-//                           final isYearly =
-//                               plan.period?.toLowerCase().contains('year') ??
-//                               false;
-//                           displayPlans.add({
-//                             'title': plan.name ??
-//                                 (isYearly ? 'Yearly Plan' : 'Monthly Plan'),
-//                             'price':
-//                                 '\$${(plan.price ?? 0).toStringAsFixed(2)} / ${plan.period ?? ''}',
-//                             'billingText': isYearly
-//                                 ? 'Billed annually, best value savings'
-//                                 : 'Billed monthly, cancel anytime',
-//                             'badge': isYearly ? 'BEST VALUE • SAVE 33%' : null,
-//                             'product': null,
-//                           });
-//                         }
-//                       } else {
-//                         displayPlans.add({
-//                           'title': 'Monthly Plan',
-//                           'price': '\$4.99 / month',
-//                           'billingText': 'Billed monthly, cancel anytime',
-//                           'badge': null,
-//                           'product': null,
-//                         });
-//                         displayPlans.add({
-//                           'title': 'Yearly Plan',
-//                           'price': '\$35.99 / year',
-//                           'billingText': 'Billed annually, best value savings',
-//                           'badge': 'BEST VALUE • SAVE 33%',
-//                           'product': null,
-//                         });
-//                       }
-//
-//                       // Auto-select yearly plan if available on initial load
-//                       if (!_hasSetInitialPlan && displayPlans.length > 1) {
-//                         _hasSetInitialPlan = true;
-//                         _selectedPlanIndex = 1;
-//                       }
-//
-//                       return RefreshIndicator(
-//                         color: const Color(0xFF7B6EF6),
-//                         backgroundColor: const Color(0xFF131325),
-//                         onRefresh: () async {
-//                           await Future.wait([
-//                             getSubscriptionRxObj.getSubscriptionStatus(),
-//                             _initStoreAndLoadProducts(),
-//                           ]);
-//                         },
-//                         child: SingleChildScrollView(
-//                           physics: const BouncingScrollPhysics(
-//                             parent: AlwaysScrollableScrollPhysics(),
-//                           ),
-//                           padding: const EdgeInsets.symmetric(
-//                             horizontal: 22,
-//                           ),
-//                           child: Column(
-//                             children: [
-//                               const SizedBox(height: 8),
-//
-//                               // Header Badge
-//                               Container(
-//                                 padding: const EdgeInsets.symmetric(
-//                                   horizontal: 14,
-//                                   vertical: 6,
-//                                 ),
-//                                 decoration: BoxDecoration(
-//                                   gradient: const LinearGradient(
-//                                     colors: [
-//                                       Color(0xFF7B6EF6),
-//                                       Color(0xFF9D7FF7),
-//                                     ],
-//                                   ),
-//                                   borderRadius: BorderRadius.circular(20),
-//                                   boxShadow: [
-//                                     BoxShadow(
-//                                       color: const Color(0xFF7B6EF6)
-//                                           .withValues(alpha: 0.4),
-//                                       blurRadius: 12,
-//                                       offset: const Offset(0, 3),
-//                                     ),
-//                                   ],
-//                                 ),
-//                                 child: const Row(
-//                                   mainAxisSize: MainAxisSize.min,
-//                                   children: [
-//                                     Icon(
-//                                       Icons.star_rounded,
-//                                       color: Colors.amberAccent,
-//                                       size: 16,
-//                                     ),
-//                                     SizedBox(width: 6),
-//                                     Text(
-//                                       'PREMIUM ACCESS',
-//                                       style: TextStyle(
-//                                         color: Colors.white,
-//                                         fontSize: 11,
-//                                         fontWeight: FontWeight.w800,
-//                                         letterSpacing: 1.2,
-//                                       ),
-//                                     ),
-//                                   ],
-//                                 ),
-//                               ),
-//
-//                               const SizedBox(height: 14),
-//
-//                               // Title & Subtitle
-//                               const Text(
-//                                 'Unlock Full AI Potential',
-//                                 textAlign: TextAlign.center,
-//                                 style: TextStyle(
-//                                   color: Colors.white,
-//                                   fontSize: 26,
-//                                   fontWeight: FontWeight.w800,
-//                                   letterSpacing: -0.5,
-//                                 ),
-//                               ),
-//                               const SizedBox(height: 8),
-//                               Text(
-//                                 'Gain deeper clarity with unlimited conversational AI, emotion breakdown & dream insights.',
-//                                 textAlign: TextAlign.center,
-//                                 style: TextStyle(
-//                                   color: const Color(0xFFAAAAAC),
-//                                   fontSize: 13.5.sp,
-//                                   height: 1.45,
-//                                 ),
-//                               ),
-//
-//                               const SizedBox(height: 20),
-//
-//                               // Features / Benefits Header
-//                               const Align(
-//                                 alignment: Alignment.centerLeft,
-//                                 child: Text(
-//                                   'INCLUDED FEATURES',
-//                                   style: TextStyle(
-//                                     color: Color(0xFF8888AA),
-//                                     fontSize: 11,
-//                                     fontWeight: FontWeight.w700,
-//                                     letterSpacing: 1.4,
-//                                   ),
-//                                 ),
-//                               ),
-//                               const SizedBox(height: 12),
-//
-//                               // Features / Benefits List Card
-//                               Container(
-//                                 padding: const EdgeInsets.symmetric(
-//                                   horizontal: 16,
-//                                   vertical: 18,
-//                                 ),
-//                                 decoration: BoxDecoration(
-//                                   color: const Color(0xFF131325),
-//                                   borderRadius: BorderRadius.circular(18),
-//                                   border: Border.all(
-//                                     color: const Color(0xFF252545),
-//                                     width: 1,
-//                                   ),
-//                                 ),
-//                                 child: Column(
-//                                   children: List.generate(
-//                                     benefits.length,
-//                                     (index) {
-//                                       final benefitText = benefits[index];
-//                                       final isLast =
-//                                           index == benefits.length - 1;
-//
-//                                       return Padding(
-//                                         padding: EdgeInsets.only(
-//                                           bottom: isLast ? 0 : 14.h,
-//                                         ),
-//                                         child: Row(
-//                                           crossAxisAlignment:
-//                                               CrossAxisAlignment.center,
-//                                           children: [
-//                                             Container(
-//                                               width: 36,
-//                                               height: 36,
-//                                               alignment: Alignment.center,
-//                                               decoration: BoxDecoration(
-//                                                 color: const Color(0xFF7B6EF6)
-//                                                     .withValues(alpha: 0.16),
-//                                                 borderRadius:
-//                                                     BorderRadius.circular(10),
-//                                                 border: Border.all(
-//                                                   color: const Color(0xFF7B6EF6)
-//                                                       .withValues(alpha: 0.3),
-//                                                   width: 0.8,
-//                                                 ),
-//                                               ),
-//                                               child: Icon(
-//                                                 _getBenefitIcon(benefitText),
-//                                                 color: const Color(0xFF9D7FF7),
-//                                                 size: 18,
-//                                               ),
-//                                             ),
-//                                             const SizedBox(width: 14),
-//                                             Expanded(
-//                                               child: Text(
-//                                                 benefitText,
-//                                                 style: TextStyle(
-//                                                   color: Colors.white,
-//                                                   fontSize: 14.sp,
-//                                                   fontWeight: FontWeight.w600,
-//                                                   letterSpacing: -0.1,
-//                                                   height: 1.3,
-//                                                 ),
-//                                               ),
-//                                             ),
-//                                           ],
-//                                         ),
-//                                       );
-//                                     },
-//                                   ),
-//                                 ),
-//                               ),
-//
-//                               const SizedBox(height: 24),
-//
-//                               // Plans Header
-//                               Row(
-//                                 mainAxisAlignment:
-//                                     MainAxisAlignment.spaceBetween,
-//                                 children: [
-//                                   const Text(
-//                                     'CHOOSE YOUR PLAN',
-//                                     style: TextStyle(
-//                                       color: Color(0xFF6666AA),
-//                                       fontSize: 11,
-//                                       fontWeight: FontWeight.w700,
-//                                       letterSpacing: 1.4,
-//                                     ),
-//                                   ),
-//                                   if (_isLoadingProducts)
-//                                     const SizedBox(
-//                                       width: 12,
-//                                       height: 12,
-//                                       child: CircularProgressIndicator(
-//                                         strokeWidth: 1.5,
-//                                         color: Color(0xFF7B6EF6),
-//                                       ),
-//                                     ),
-//                                 ],
-//                               ),
-//                               const SizedBox(height: 14),
-//
-//                               // Render plan options
-//                               ...List.generate(displayPlans.length, (index) {
-//                                 final plan = displayPlans[index];
-//                                 return Padding(
-//                                   padding: const EdgeInsets.only(
-//                                     bottom: 12,
-//                                   ),
-//                                   child: _buildPlanCard(
-//                                     index: index,
-//                                     title: plan['title'] as String,
-//                                     price: plan['price'] as String,
-//                                     billingText: plan['billingText'] as String,
-//                                     badge: plan['badge'] as String?,
-//                                   ),
-//                                 );
-//                               }),
-//
-//                               const SizedBox(height: 24),
-//                             ],
-//                           ),
-//                         ),
-//                       );
-//                     },
-//                   ),
-//                 ),
-//
-//                 // Bottom Action Button & Terms
-//                 Container(
-//                   padding: EdgeInsets.fromLTRB(
-//                     20,
-//                     12,
-//                     20,
-//                     MediaQuery.of(context).padding.bottom > 0
-//                         ? MediaQuery.of(context).padding.bottom + 8
-//                         : 16,
-//                   ),
-//                   decoration: BoxDecoration(
-//                     color: const Color(0xFF0D0D1A),
-//                     border: Border(
-//                       top: BorderSide(
-//                         color: Colors.white.withValues(alpha: 0.06),
-//                         width: 1,
-//                       ),
-//                     ),
-//                   ),
-//                   child: Column(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       SizedBox(
-//                         width: double.infinity,
-//                         height: 52,
-//                         child: ElevatedButton(
-//                           onPressed: _isProcessing ? null : () => _buySelectedProduct(),
-//                           style: ElevatedButton.styleFrom(
-//                             backgroundColor: const Color(0xFF7B6EF6),
-//                             disabledBackgroundColor: const Color(0xFF7B6EF6),
-//                             foregroundColor: Colors.white,
-//                             disabledForegroundColor: Colors.white,
-//                             elevation: 0,
-//                             shape: RoundedRectangleBorder(
-//                               borderRadius: BorderRadius.circular(14),
-//                             ),
-//                             shadowColor: const Color(0xFF7B6EF6),
-//                           ),
-//                           child: _isProcessing
-//                               ? const SizedBox(
-//                                   width: 20,
-//                                   height: 20,
-//                                   child: CircularProgressIndicator(
-//                                     color: Colors.white,
-//                                     strokeWidth: 2,
-//                                   ),
-//                                 )
-//                               : Row(
-//                                   mainAxisAlignment: MainAxisAlignment.center,
-//                                   mainAxisSize: MainAxisSize.min,
-//                                   children: [
-//                                     const Icon(
-//                                       Icons.lock_open_rounded,
-//                                       size: 18,
-//                                       color: Colors.white,
-//                                     ),
-//                                     const SizedBox(width: 8),
-//                                     Flexible(
-//                                       child: Text(
-//                                         _products.isNotEmpty &&
-//                                                 _selectedPlanIndex <
-//                                                     _products.length
-//                                             ? 'Subscribe (${_products[_selectedPlanIndex].price})'
-//                                             : _selectedPlanIndex == 1
-//                                                 ? 'Subscribe Yearly'
-//                                                 : 'Subscribe Monthly',
-//                                         style: const TextStyle(
-//                                           fontSize: 15.5,
-//                                           fontWeight: FontWeight.w700,
-//                                           letterSpacing: 0.2,
-//                                         ),
-//                                         overflow: TextOverflow.ellipsis,
-//                                         maxLines: 1,
-//                                       ),
-//                                     ),
-//                                   ],
-//                                 ),
-//                         ),
-//                       ),
-//                       const SizedBox(height: 10),
-//                       Text(
-//                         'Google Play Billing. Cancel anytime in Google Play Store settings.\nBy subscribing, you agree to our Terms & Privacy Policy.',
-//                         textAlign: TextAlign.center,
-//                         style: TextStyle(
-//                           color: const Color(0xFF666688),
-//                           fontSize: 10.5.sp,
-//                           height: 1.3,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//
-//   Widget _buildPlanCard({
-//     required int index,
-//     required String title,
-//     required String price,
-//     required String billingText,
-//     String? badge,
-//   }) {
-//     final isSelected = _selectedPlanIndex == index;
-//
-//     return GestureDetector(
-//       onTap: () {
-//         setState(() {
-//           _selectedPlanIndex = index;
-//         });
-//       },
-//       child: AnimatedContainer(
-//         duration: const Duration(milliseconds: 200),
-//         width: double.infinity,
-//         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-//         decoration: BoxDecoration(
-//           color: isSelected ? const Color(0xFF1E173D) : const Color(0xFF131325),
-//           borderRadius: BorderRadius.circular(16),
-//           border: Border.all(
-//             color: isSelected
-//                 ? const Color(0xFF9D7FF7)
-//                 : const Color(0xFF252545),
-//             width: isSelected ? 1.8 : 1,
-//           ),
-//           boxShadow: isSelected
-//               ? [
-//                   BoxShadow(
-//                     color: const Color(0xFF7B6EF6).withValues(alpha: 0.22),
-//                     blurRadius: 14,
-//                     offset: const Offset(0, 4),
-//                   ),
-//                 ]
-//               : null,
-//         ),
-//         child: Stack(
-//           clipBehavior: Clip.none,
-//           children: [
-//             Row(
-//               children: [
-//                 // Custom Radio
-//                 Container(
-//                   width: 22,
-//                   height: 22,
-//                   decoration: BoxDecoration(
-//                     shape: BoxShape.circle,
-//                     border: Border.all(
-//                       color: isSelected
-//                           ? const Color(0xFF9D7FF7)
-//                           : const Color(0xFF555577),
-//                       width: 2,
-//                     ),
-//                     color: isSelected
-//                         ? const Color(0xFF7B6EF6)
-//                         : Colors.transparent,
-//                   ),
-//                   child: isSelected
-//                       ? const Center(
-//                           child: Icon(
-//                             Icons.check_rounded,
-//                             size: 14,
-//                             color: Colors.white,
-//                           ),
-//                         )
-//                       : null,
-//                 ),
-//                 const SizedBox(width: 14),
-//
-//                 // Plan info
-//                 Expanded(
-//                   child: Column(
-//                     crossAxisAlignment: CrossAxisAlignment.start,
-//                     children: [
-//                       Row(
-//                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                         children: [
-//                           Text(
-//                             title,
-//                             style: TextStyle(
-//                               color: Colors.white,
-//                               fontSize: 15.sp,
-//                               fontWeight: FontWeight.w700,
-//                             ),
-//                           ),
-//                           Flexible(
-//                             child: Text(
-//                               price,
-//                               textAlign: TextAlign.right,
-//                               style: TextStyle(
-//                                 color: isSelected
-//                                     ? const Color(0xFFB4ACFF)
-//                                     : Colors.white,
-//                                 fontSize: 14.sp,
-//                                 fontWeight: FontWeight.w700,
-//                               ),
-//                               overflow: TextOverflow.ellipsis,
-//                             ),
-//                           ),
-//                         ],
-//                       ),
-//                       const SizedBox(height: 4),
-//                       Text(
-//                         billingText,
-//                         style: TextStyle(
-//                           color: const Color(0xFF8888AA),
-//                           fontSize: 12.sp,
-//                         ),
-//                       ),
-//                     ],
-//                   ),
-//                 ),
-//               ],
-//             ),
-//
-//             if (badge != null)
-//               Positioned(
-//                 top: -26,
-//                 right: 0,
-//                 child: Container(
-//                   padding: const EdgeInsets.symmetric(
-//                     horizontal: 10,
-//                     vertical: 3,
-//                   ),
-//                   decoration: BoxDecoration(
-//                     gradient: const LinearGradient(
-//                       colors: [Color(0xFFFF8C00), Color(0xFFFF5252)],
-//                     ),
-//                     borderRadius: BorderRadius.circular(10),
-//                     boxShadow: [
-//                       BoxShadow(
-//                         color: const Color(0xFFFF5252).withValues(alpha: 0.35),
-//                         blurRadius: 8,
-//                         offset: const Offset(0, 2),
-//                       ),
-//                     ],
-//                   ),
-//                   child: Text(
-//                     badge,
-//                     style: const TextStyle(
-//                       color: Colors.white,
-//                       fontSize: 9.5,
-//                       fontWeight: FontWeight.w800,
-//                       letterSpacing: 0.6,
-//                     ),
-//                   ),
-//                 ),
-//               ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
-
 
 
 import 'dart:async';
+import 'dart:io';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
 import 'package:dhikru_linda_flutter/features/subscription/presentation/services/perces_verficy_servis_screen.dart';
- import 'package:flutter/material.dart';
+import 'package:dhikru_linda_flutter/helpers/di.dart';
+import 'package:dhikru_linda_flutter/helpers/url_lunch.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:dhikru_linda_flutter/features/subscription/model/get_subscrition/get_subscription_model.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 
 import 'log/presces_log.dart';
+
+enum SubscriptionPlanType {
+  monthly,
+  yearly;
+
+  String get googlePlayBasePlanId {
+    switch (this) {
+      case SubscriptionPlanType.monthly:
+        return 'monthly';
+      case SubscriptionPlanType.yearly:
+        return 'annual';
+    }
+  }
+
+  String get backendPlanId {
+    switch (this) {
+      case SubscriptionPlanType.monthly:
+        return 'monthly_premium';
+      case SubscriptionPlanType.yearly:
+        return 'yearly_premium';
+    }
+  }
+
+  String get displayName {
+    switch (this) {
+      case SubscriptionPlanType.monthly:
+        return 'Monthly Plan';
+      case SubscriptionPlanType.yearly:
+        return 'Yearly Plan';
+    }
+  }
+
+  String get billingSubtitle {
+    switch (this) {
+      case SubscriptionPlanType.monthly:
+        return 'Billed monthly, cancel anytime';
+      case SubscriptionPlanType.yearly:
+        return 'Billed annually, cancel anytime';
+    }
+  }
+
+  String? get badgeText {
+    switch (this) {
+      case SubscriptionPlanType.monthly:
+        return null;
+      case SubscriptionPlanType.yearly:
+        return 'BEST VALUE';
+    }
+  }
+}
 
 class SubscriptionScreen extends StatefulWidget {
   const SubscriptionScreen({super.key});
@@ -915,12 +78,67 @@ class SubscriptionScreen extends StatefulWidget {
 }
 
 class _SubscriptionScreenState extends State<SubscriptionScreen> {
-  int _selectedPlanIndex = 0;
+  SubscriptionPlanType _selectedPlanType = SubscriptionPlanType.monthly;
+  SubscriptionPlanType? _pendingPlanType;
   bool _isProcessing = false;
-  bool _hasSetInitialPlan = false;
 
   final InAppPurchase _appPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _purchaseSubscription;
+
+  // Platform-adaptive store getters
+  String get _storeName => Platform.isIOS ? 'App Store' : 'Google Play';
+  String get _paymentPlatformName =>
+      Platform.isIOS ? 'Apple App Store' : 'Google Play Store';
+  String get _manageSubscriptionUrl => Platform.isIOS
+      ? 'https://apps.apple.com/account/subscriptions'
+      : 'https://play.google.com/store/account/subscriptions';
+  String get _manageSubscriptionTitle => 'Manage subscription on $_storeName';
+
+  String _autoRenewDisclosure(bool isPremium) {
+    if (isPremium) {
+      return Platform.isIOS
+          ? 'Managed via App Store. You can modify or cancel your subscription anytime in App Store settings.'
+          : 'Managed via Google Play Billing. You can modify or cancel your subscription anytime in Google Play Store settings.';
+    } else {
+      return Platform.isIOS
+          ? 'Payment will be charged to your Apple ID Account at confirmation of purchase. Subscription automatically renews unless cancelled in App Store settings at least 24 hours before the end of the current period.'
+          : 'Payment will be charged to your Google Play Account at confirmation of purchase. Subscription automatically renews unless cancelled in Google Play Store settings at least 24 hours before the end of the current period.';
+    }
+  }
+
+  String _formatDateTime(dynamic dateVal) {
+    if (dateVal == null) return 'Expiration information unavailable';
+    try {
+      DateTime dt;
+      if (dateVal is num) {
+        final val = dateVal.toInt();
+        dt = DateTime.fromMillisecondsSinceEpoch(
+          val < 10000000000 ? val * 1000 : val,
+          isUtc: true,
+        ).toLocal();
+      } else {
+        final str = dateVal.toString().trim();
+        if (str.isEmpty || str == 'null') {
+          return 'Expiration information unavailable';
+        }
+        dt = DateTime.parse(str).toLocal();
+      }
+      final months = [
+        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      ];
+      final day = dt.day;
+      final month = months[dt.month - 1];
+      final year = dt.year;
+      final hourInt = dt.hour == 0 ? 12 : (dt.hour > 12 ? dt.hour - 12 : dt.hour);
+      final minute = dt.minute.toString().padLeft(2, '0');
+      final period = dt.hour >= 12 ? 'PM' : 'AM';
+      return '$day $month $year, $hourInt:$minute $period';
+    } catch (_) {
+      return dateVal.toString();
+    }
+  }
+
   List<ProductDetails> _products = [];
   bool _isStoreAvailable = false;
   bool _isLoadingProducts = false;
@@ -945,7 +163,8 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       },
       onError: (error, st) {
         PLog.error('Billing stream error', error, st);
-        ToastUtil.showShortToast('Billing error: $error');
+        ToastUtil.showShortToast(
+            'Billing service encountered an issue. Please try again.');
       },
     );
     PLog.success('purchaseStream listener attached');
@@ -966,12 +185,10 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   // ---------------------------------------------------------------------------
   // AUTH TOKEN
   // ---------------------------------------------------------------------------
-  // TODO: আপনার app যেখান থেকে login token পড়ে (SharedPreferences / secure
-  // storage / আপনার existing helper), সেটা এখানে return করুন।
-  // যেমন: return await SharedPreferences.getInstance().then((p) => p.getString('token'));
   Future<String?> _getAuthToken() async {
-    return null;
+    return appData.read(kKeyAccessToken);
   }
+
 
   // ---------------------------------------------------------------------------
   // STORE + PRODUCTS
@@ -1019,15 +236,39 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         }
 
         for (final product in _products) {
-          PLog.kv('Product', {
+          final Map<String, dynamic> info = {
             'ID': product.id,
             'Title': product.title,
             'Price': product.price,
             'Raw price': product.rawPrice,
             'Currency': product.currencyCode,
             'Description': product.description,
-          });
+          };
+          if (product is GooglePlayProductDetails) {
+            info['Offer token'] = product.offerToken != null ? PLog.mask(product.offerToken) : 'null';
+            info['Subscription index'] = product.subscriptionIndex;
+            final subIndex = product.subscriptionIndex;
+            final offers = product.productDetails.subscriptionOfferDetails;
+            if (subIndex != null && offers != null && subIndex < offers.length) {
+              final offer = offers[subIndex];
+              info['Base plan ID'] = offer.basePlanId;
+              info['Offer ID'] = offer.offerId ?? 'base_plan';
+              if (offer.pricingPhases.isNotEmpty) {
+                final phase = offer.pricingPhases.first;
+                info['Billing period'] = phase.billingPeriod;
+                info['Formatted price'] = phase.formattedPrice;
+              }
+            }
+          }
+          PLog.kv('Product offer', info);
         }
+
+        final monthlyP = _findProductForPlan(SubscriptionPlanType.monthly);
+        final yearlyP = _findProductForPlan(SubscriptionPlanType.yearly);
+        PLog.info(
+          'Google Play base plan resolution: Monthly (basePlanId: monthly) found: ${monthlyP != null} (${monthlyP?.price}), '
+          'Annual (basePlanId: annual) found: ${yearlyP != null} (${yearlyP?.price})',
+        );
       }
     } catch (e, st) {
       PLog.error('Failed to load store products', e, st);
@@ -1062,19 +303,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
         case PurchaseStatus.pending:
           PLog.info('Purchase is PENDING (waiting for payment/approval)');
           if (mounted) setState(() => _isProcessing = true);
-          ToastUtil.showShortToast('Google Play purchase pending...');
+          ToastUtil.showShortToast('$_storeName purchase pending...');
           break;
 
         case PurchaseStatus.error:
+          _pendingPlanType = null;
           PLog.error(
             'Purchase ERROR: code=${purchaseDetails.error?.code}, '
                 'message=${purchaseDetails.error?.message}, '
                 'details=${purchaseDetails.error?.details}',
           );
           if (mounted) setState(() => _isProcessing = false);
-          ToastUtil.showShortToast(
-            purchaseDetails.error?.message ?? 'Purchase failed',
-          );
+          ToastUtil.showShortToast('Purchase could not be completed. Please try again.');
           if (purchaseDetails.pendingCompletePurchase) {
             PLog.step('Calling completePurchase for failed purchase');
             await _appPurchase.completePurchase(purchaseDetails);
@@ -1082,6 +322,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           break;
 
         case PurchaseStatus.canceled:
+          _pendingPlanType = null;
           PLog.warn('Purchase CANCELED by user');
           if (mounted) setState(() => _isProcessing = false);
           ToastUtil.showShortToast('Purchase was canceled');
@@ -1092,12 +333,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           break;
 
         case PurchaseStatus.purchased:
-          PLog.success('Google Play says: PURCHASED');
+          PLog.success('$_storeName says: PURCHASED');
           await _handleSuccessfulPurchase(purchaseDetails);
           break;
 
         case PurchaseStatus.restored:
-          PLog.success('Google Play says: RESTORED');
+          _pendingPlanType = null;
+          PLog.success('$_storeName says: RESTORED');
           await _handleSuccessfulPurchase(purchaseDetails);
           break;
       }
@@ -1170,6 +412,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       PLog.error('Purchase handling crashed', e, st);
       ToastUtil.showShortToast('Something went wrong. Please try again.');
     } finally {
+      _pendingPlanType = null;
       _verifyingKeys.remove(key);
       if (mounted) setState(() => _isProcessing = false);
       PLog.info('Purchase handling finished in ${total.elapsedMilliseconds} ms');
@@ -1189,11 +432,21 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
     PLog.success('Auth token found: ${PLog.mask(authToken)}');
 
+    // Send basePlanId ONLY when purchase.status == PurchaseStatus.purchased and _pendingPlanType != null.
+    // For restored purchases / app restart send basePlanId = null.
+    final String? effectiveBasePlanId =
+        (purchase.status == PurchaseStatus.purchased && _pendingPlanType != null)
+            ? _pendingPlanType!.googlePlayBasePlanId
+            : null;
+    PLog.info('Initiating backend purchase verification with basePlanId: $effectiveBasePlanId');
+
     return PurchaseVerifyService.verifyGooglePurchase(
       authToken: authToken,
       productId: purchase.productID,
       purchaseToken: purchase.verificationData.serverVerificationData,
       purchaseId: purchase.purchaseID,
+      basePlanId: effectiveBasePlanId,
+      platform: Platform.isIOS ? 'apple' : 'google',
     );
   }
 
@@ -1218,10 +471,82 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       await Future.delayed(const Duration(seconds: 3));
     } catch (e, st) {
       PLog.error('Restore failed', e, st);
-      ToastUtil.showShortToast('Restore failed: $e');
+      ToastUtil.showShortToast('Failed to restore purchases. Please try again.');
     } finally {
       if (mounted) setState(() => _isProcessing = false);
     }
+  }
+
+  // ---------------------------------------------------------------------------
+  // PLAN LOOKUP HELPERS
+  // ---------------------------------------------------------------------------
+  GooglePlayProductDetails? _findProductForPlan(SubscriptionPlanType planType) {
+    final targetBasePlanId = planType.googlePlayBasePlanId.toLowerCase();
+    final targetPeriod = planType == SubscriptionPlanType.monthly ? 'P1M' : 'P1Y';
+
+    // 1. Direct match on basePlanId from subscriptionOfferDetails
+    for (final p in _products) {
+      if (p is GooglePlayProductDetails) {
+        final subIndex = p.subscriptionIndex;
+        final offers = p.productDetails.subscriptionOfferDetails;
+        if (subIndex != null && offers != null && subIndex < offers.length) {
+          final offer = offers[subIndex];
+          if (offer.basePlanId.toLowerCase() == targetBasePlanId) {
+            return p;
+          }
+        }
+      }
+    }
+
+    // 2. Match by pricing phase billing period ('P1M' or 'P1Y')
+    for (final p in _products) {
+      if (p is GooglePlayProductDetails) {
+        final subIndex = p.subscriptionIndex;
+        final offers = p.productDetails.subscriptionOfferDetails;
+        if (subIndex != null && offers != null && subIndex < offers.length) {
+          final offer = offers[subIndex];
+          if (offer.pricingPhases.isNotEmpty) {
+            final period = offer.pricingPhases.first.billingPeriod.toUpperCase();
+            if (period.contains(targetPeriod)) {
+              return p;
+            }
+          }
+        }
+      }
+    }
+
+    // 3. Fallback partial match on basePlanId
+    for (final p in _products) {
+      if (p is GooglePlayProductDetails) {
+        final subIndex = p.subscriptionIndex;
+        final offers = p.productDetails.subscriptionOfferDetails;
+        if (subIndex != null && offers != null && subIndex < offers.length) {
+          final bId = offers[subIndex].basePlanId.toLowerCase();
+          if (planType == SubscriptionPlanType.monthly &&
+              (bId.contains('month') || bId.contains('p1m'))) {
+            return p;
+          }
+          if (planType == SubscriptionPlanType.yearly &&
+              (bId.contains('year') || bId.contains('annual') || bId.contains('p1y'))) {
+            return p;
+          }
+        }
+      }
+    }
+
+    return null;
+  }
+
+  String? _getOfferToken(GooglePlayProductDetails gpProduct) {
+    if (gpProduct.offerToken != null && gpProduct.offerToken!.isNotEmpty) {
+      return gpProduct.offerToken;
+    }
+    final subIndex = gpProduct.subscriptionIndex;
+    final offers = gpProduct.productDetails.subscriptionOfferDetails;
+    if (subIndex != null && offers != null && subIndex < offers.length) {
+      return offers[subIndex].offerIdToken;
+    }
+    return null;
   }
 
   // ---------------------------------------------------------------------------
@@ -1243,45 +568,87 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
     if (_products.isEmpty) {
       PLog.error(
-        'Cannot buy: no products loaded from Google Play. Check product ID '
-            'and that the subscription is Active in Play Console.',
+        'Cannot buy: no products loaded from $_storeName. Check product ID '
+            'and that the subscription is Active in store console.',
       );
-      ToastUtil.showShortToast('No subscription products found on Google Play');
+      ToastUtil.showShortToast('No subscription products found on $_storeName');
       return;
     }
 
     try {
       setState(() => _isProcessing = true);
 
-      // Select chosen product from Google Play
-      ProductDetails productToBuy;
-      if (_products.length > 1 && _selectedPlanIndex < _products.length) {
-        productToBuy = _products[_selectedPlanIndex];
-      } else {
-        productToBuy = _products.first;
+      // Select chosen product from Google Play based on explicit plan selection
+      final selectedPlan = _selectedPlanType;
+      final targetBasePlanId = selectedPlan.googlePlayBasePlanId;
+      PLog.info('Initiating purchase for plan: ${selectedPlan.displayName} (expected basePlanId: $targetBasePlanId)');
+
+      final matchedProduct = _findProductForPlan(selectedPlan);
+      if (matchedProduct == null) {
+        _pendingPlanType = null;
+        PLog.error('Could not find store product for basePlanId "$targetBasePlanId". Available products: ${_products.length}');
+        ToastUtil.showShortToast('Selected plan ($targetBasePlanId) is currently unavailable');
+        if (mounted) setState(() => _isProcessing = false);
+        return;
       }
 
-      PLog.kv('Launching purchase', {
-        'Selected index': _selectedPlanIndex,
-        'Product ID': productToBuy.id,
-        'Price': productToBuy.price,
-      });
+      PurchaseParam purchaseParam;
+      if (Platform.isAndroid) {
+        final offerToken = _getOfferToken(matchedProduct);
+        if (offerToken == null || offerToken.isEmpty) {
+          _pendingPlanType = null;
+          PLog.error('Missing offer token for Android subscription: basePlanId "$targetBasePlanId"');
+          ToastUtil.showShortToast('Could not retrieve offer details for ${selectedPlan.displayName}');
+          if (mounted) setState(() => _isProcessing = false);
+          return;
+        }
 
-      final purchaseParam = PurchaseParam(productDetails: productToBuy);
+        // Diagnostic validation of base plan id from offer details
+        String resolvedBasePlanId = targetBasePlanId;
+        final subIndex = matchedProduct.subscriptionIndex;
+        final offers = matchedProduct.productDetails.subscriptionOfferDetails;
+        if (subIndex != null && offers != null && subIndex < offers.length) {
+          resolvedBasePlanId = offers[subIndex].basePlanId;
+        }
+
+        PLog.kv('Launching Android Google Play Purchase', {
+          'Plan': selectedPlan.displayName,
+          'Base Plan ID': resolvedBasePlanId,
+          'Product ID': matchedProduct.id,
+          'Offer Token': '${offerToken.substring(0, offerToken.length > 15 ? 15 : offerToken.length)}...',
+          'Price': matchedProduct.price,
+        });
+
+        purchaseParam = GooglePlayPurchaseParam(
+          productDetails: matchedProduct,
+          offerToken: offerToken,
+        );
+      } else {
+        PLog.kv('Launching PurchaseParam', {
+          'Plan': selectedPlan.displayName,
+          'Product ID': matchedProduct.id,
+          'Price': matchedProduct.price,
+        });
+        purchaseParam = PurchaseParam(productDetails: matchedProduct);
+      }
+
+      _pendingPlanType = selectedPlan;
       final success = await _appPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
 
       if (!success) {
-        PLog.error('buyNonConsumable returned false → Google Play sheet not launched');
-        ToastUtil.showShortToast('Could not launch Google Play Billing sheet');
+        _pendingPlanType = null;
+        PLog.error('buyNonConsumable returned false → $_storeName sheet not launched');
+        ToastUtil.showShortToast('Could not launch $_storeName Billing sheet');
         if (mounted) setState(() => _isProcessing = false);
       } else {
-        PLog.success('Google Play billing sheet launched, waiting for result in purchaseStream');
+        PLog.success('$_storeName billing sheet launched, waiting for result in purchaseStream');
       }
     } catch (e, st) {
+      _pendingPlanType = null;
       PLog.error('Error launching purchase', e, st);
-      ToastUtil.showShortToast('Purchase error: $e');
+      ToastUtil.showShortToast('Purchase could not be completed. Please try again.');
       if (mounted) setState(() => _isProcessing = false);
     }
   }
@@ -1320,190 +687,158 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D1A),
-      body: Stack(
-        children: [
-          // Background ambient gradient glow
-          Positioned(
-            top: -100,
-            left: -50,
-            right: -50,
-            child: Container(
-              height: 380,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF7B6EF6).withValues(alpha: 0.28),
-                    const Color(0xFF9D7FF7).withValues(alpha: 0.12),
-                    Colors.transparent,
-                  ],
-                  stops: const [0.0, 0.45, 1.0],
+      body: StreamBuilder<GetSubscriptionModel>(
+        initialData: getSubscriptionRxObj.dataFetcher.valueOrNull,
+        stream: getSubscriptionRxObj.getSubscriptionStream,
+        builder: (context, snapshot) {
+          final subData = snapshot.data?.data;
+          final isPremium = subData?.isPremium ?? false;
+          final benefits = (subData?.benefits?.isNotEmpty ?? false)
+              ? subData!.benefits!
+              : [
+                  "Detailed Psychological Interpretation",
+                  "Conversational AI Chat Companion",
+                  "Subconscious Insights & Symbol Detection",
+                  "Unlimited Dreams Log",
+                ];
+
+          // Resolve Monthly Plan details
+          final gpMonthly = _findProductForPlan(SubscriptionPlanType.monthly);
+          final monthlyPrice =
+              gpMonthly != null ? gpMonthly.price : 'Price unavailable';
+
+          // Resolve Yearly Plan details
+          final gpYearly = _findProductForPlan(SubscriptionPlanType.yearly);
+          final yearlyPrice =
+              gpYearly != null ? gpYearly.price : 'Price unavailable';
+
+          final selectedProduct = _findProductForPlan(_selectedPlanType);
+          final bool isSelectedProductLoaded = selectedProduct != null;
+
+          return Stack(
+            children: [
+              // Background ambient gradient glow
+              Positioned(
+                top: -100,
+                left: -50,
+                right: -50,
+                child: Container(
+                  height: 380,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        (isPremium
+                                ? const Color(0xFFFFD700)
+                                : const Color(0xFF7B6EF6))
+                            .withValues(alpha: 0.28),
+                        const Color(0xFF9D7FF7).withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                      stops: const [0.0, 0.45, 1.0],
+                    ),
+                  ),
                 ),
               ),
-            ),
-          ),
 
-          SafeArea(
-            bottom: false,
-            child: Column(
-              children: [
-                // Top Navigation Bar
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      GestureDetector(
-                        onTap: () => Navigator.maybePop(context),
-                        child: Container(
-                          width: 36,
-                          height: 36,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.15),
-                              width: 1,
-                            ),
-                          ),
-                          child: const Icon(
-                            Icons.close_rounded,
-                            color: Colors.white,
-                            size: 18,
-                          ),
-                        ),
+              SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    // Top Navigation Bar
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-                      // Store connection indicator badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _isStoreAvailable
-                              ? const Color(0xFF4CAF50).withValues(alpha: 0.15)
-                              : Colors.amber.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: _isStoreAvailable
-                                ? const Color(0xFF4CAF50).withValues(alpha: 0.4)
-                                : Colors.amber.withValues(alpha: 0.4),
-                            width: 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 6,
-                              height: 6,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          GestureDetector(
+                            onTap: () => Navigator.maybePop(context),
+                            child: Container(
+                              width: 36,
+                              height: 36,
+                              alignment: Alignment.center,
                               decoration: BoxDecoration(
-                                color: _isStoreAvailable
-                                    ? const Color(0xFF4CAF50)
-                                    : Colors.amber,
+                                color: Colors.white.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.15),
+                                  width: 1,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.close_rounded,
+                                color: Colors.white,
+                                size: 18,
                               ),
                             ),
-                            const SizedBox(width: 5),
-                            Text(
-                              _isStoreAvailable ? 'Store Ready' : 'Connecting...',
-                              style: TextStyle(
-                                color: _isStoreAvailable
-                                    ? const Color(0xFF81C784)
-                                    : Colors.amber,
-                                fontSize: 10.5.sp,
-                                fontWeight: FontWeight.w600,
+                          ),
+                          // Store / Premium status indicator badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isPremium
+                                  ? const Color(0xFFFFD700).withValues(alpha: 0.15)
+                                  : _isStoreAvailable
+                                      ? const Color(0xFF4CAF50).withValues(alpha: 0.15)
+                                      : Colors.amber.withValues(alpha: 0.15),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isPremium
+                                    ? const Color(0xFFFFD700).withValues(alpha: 0.5)
+                                    : _isStoreAvailable
+                                        ? const Color(0xFF4CAF50).withValues(alpha: 0.4)
+                                        : Colors.amber.withValues(alpha: 0.4),
+                                width: 1,
                               ),
                             ),
-                          ],
-                        ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 6,
+                                  height: 6,
+                                  decoration: BoxDecoration(
+                                    color: isPremium
+                                        ? const Color(0xFFFFD700)
+                                        : _isStoreAvailable
+                                            ? const Color(0xFF4CAF50)
+                                            : Colors.amber,
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  isPremium
+                                      ? 'PRO ACTIVE'
+                                      : _isStoreAvailable
+                                          ? 'Store Ready'
+                                          : 'Connecting...',
+                                  style: TextStyle(
+                                    color: isPremium
+                                        ? const Color(0xFFFFD700)
+                                        : _isStoreAvailable
+                                            ? const Color(0xFF81C784)
+                                            : Colors.amber,
+                                    fontSize: 10.5.sp,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
 
-                // Main Scrollable Content
-                Expanded(
-                  child: StreamBuilder<GetSubscriptionModel>(
-                    initialData: getSubscriptionRxObj.dataFetcher.valueOrNull,
-                    stream: getSubscriptionRxObj.getSubscriptionStream,
-                    builder: (context, snapshot) {
-                      final subData = snapshot.data?.data;
-                      final apiPlans = subData?.plans ?? [];
-                      final benefits = (subData?.benefits?.isNotEmpty ?? false)
-                          ? subData!.benefits!
-                          : [
-                        "Detailed Psychological Interpretation",
-                        "Conversational AI Chat Companion",
-                        "Subconscious Insights & Symbol Detection",
-                        "Unlimited Dreams Log",
-                      ];
-
-                      // Build plan display items from Google Play products or API plans
-                      final List<Map<String, dynamic>> displayPlans = [];
-                      if (_products.isNotEmpty) {
-                        for (int i = 0; i < _products.length; i++) {
-                          final p = _products[i];
-                          final isYearly = i == 1 ||
-                              p.title.toLowerCase().contains('year') ||
-                              p.description.toLowerCase().contains('year');
-                          displayPlans.add({
-                            'title': isYearly ? 'Yearly Plan' : 'Monthly Plan',
-                            'price': p.price,
-                            'billingText': isYearly
-                                ? 'Billed annually, best value savings'
-                                : 'Billed monthly, cancel anytime',
-                            'badge': isYearly ? 'BEST VALUE • SAVE 33%' : null,
-                            'product': p,
-                          });
-                        }
-                      } else if (apiPlans.isNotEmpty) {
-                        for (int i = 0; i < apiPlans.length; i++) {
-                          final plan = apiPlans[i];
-                          final isYearly =
-                              plan.period?.toLowerCase().contains('year') ??
-                                  false;
-                          displayPlans.add({
-                            'title': plan.name ??
-                                (isYearly ? 'Yearly Plan' : 'Monthly Plan'),
-                            'price':
-                            '\$${(plan.price ?? 0).toStringAsFixed(2)} / ${plan.period ?? ''}',
-                            'billingText': isYearly
-                                ? 'Billed annually, best value savings'
-                                : 'Billed monthly, cancel anytime',
-                            'badge': isYearly ? 'BEST VALUE • SAVE 33%' : null,
-                            'product': null,
-                          });
-                        }
-                      } else {
-                        displayPlans.add({
-                          'title': 'Monthly Plan',
-                          'price': '\$4.99 / month',
-                          'billingText': 'Billed monthly, cancel anytime',
-                          'badge': null,
-                          'product': null,
-                        });
-                        displayPlans.add({
-                          'title': 'Yearly Plan',
-                          'price': '\$35.99 / year',
-                          'billingText': 'Billed annually, best value savings',
-                          'badge': 'BEST VALUE • SAVE 33%',
-                          'product': null,
-                        });
-                      }
-
-                      // Auto-select yearly plan if available on initial load
-                      if (!_hasSetInitialPlan && displayPlans.length > 1) {
-                        _hasSetInitialPlan = true;
-                        _selectedPlanIndex = 1;
-                        PLog.info('Auto-selected plan index 1 (yearly)');
-                      }
-
-                      return RefreshIndicator(
+                    // Main Scrollable Content
+                    Expanded(
+                      child: RefreshIndicator(
                         color: const Color(0xFF7B6EF6),
                         backgroundColor: const Color(0xFF131325),
                         onRefresh: () async {
@@ -1531,37 +866,46 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   vertical: 6,
                                 ),
                                 decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    colors: [
-                                      Color(0xFF7B6EF6),
-                                      Color(0xFF9D7FF7),
-                                    ],
+                                  gradient: LinearGradient(
+                                    colors: isPremium
+                                        ? const [
+                                            Color(0xFFFFD700),
+                                            Color(0xFFFF9900),
+                                          ]
+                                        : const [
+                                            Color(0xFF7B6EF6),
+                                            Color(0xFF9D7FF7),
+                                          ],
                                   ),
                                   borderRadius: BorderRadius.circular(20),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: const Color(0xFF7B6EF6)
+                                      color: (isPremium
+                                              ? const Color(0xFFFFD700)
+                                              : const Color(0xFF7B6EF6))
                                           .withValues(alpha: 0.4),
                                       blurRadius: 12,
                                       offset: const Offset(0, 3),
                                     ),
                                   ],
                                 ),
-                                child: const Row(
+                                child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Icon(
-                                      Icons.star_rounded,
-                                      color: Colors.amberAccent,
+                                      isPremium
+                                          ? Icons.workspace_premium_rounded
+                                          : Icons.star_rounded,
+                                      color: isPremium ? Colors.black : Colors.amberAccent,
                                       size: 16,
                                     ),
-                                    SizedBox(width: 6),
+                                    const SizedBox(width: 6),
                                     Text(
-                                      'PREMIUM ACCESS',
+                                      isPremium ? 'PRO ACCESS ACTIVE' : 'PREMIUM ACCESS',
                                       style: TextStyle(
-                                        color: Colors.white,
+                                        color: isPremium ? Colors.black : Colors.white,
                                         fontSize: 11,
-                                        fontWeight: FontWeight.w800,
+                                        fontWeight: FontWeight.w900,
                                         letterSpacing: 1.2,
                                       ),
                                     ),
@@ -1572,10 +916,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               const SizedBox(height: 14),
 
                               // Title & Subtitle
-                              const Text(
-                                'Unlock Full AI Potential',
+                              Text(
+                                isPremium
+                                    ? 'You Are A Premium Member'
+                                    : 'Unlock Full AI Potential',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.white,
                                   fontSize: 26,
                                   fontWeight: FontWeight.w800,
@@ -1584,7 +930,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Gain deeper clarity with unlimited conversational AI, emotion breakdown & dream insights.',
+                                isPremium
+                                    ? 'Your subscription is active with full access to AI interpretations, symbol insights & unlimited logs.'
+                                    : 'Gain deeper clarity with unlimited conversational AI, emotion breakdown & dream insights.',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: const Color(0xFFAAAAAC),
@@ -1595,12 +943,378 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
                               const SizedBox(height: 20),
 
+                              if (isPremium) ...[
+                                Builder(
+                                  builder: (context) {
+                                    final isTestSub =
+                                        kDebugMode && (subData?.isTest == true);
+                                    final isAutoRenew =
+                                        subData?.autoRenewing ?? true;
+                                    final statusRaw =
+                                        subData?.status?.toLowerCase() ??
+                                            'active';
+                                    final isCanceledSub = statusRaw ==
+                                            'canceled' ||
+                                        (!isAutoRenew && statusRaw != 'pending');
+
+                                    final isYearlySub = (subData?.basePlanId
+                                                ?.toString()
+                                                .toLowerCase()
+                                                .contains('year') ==
+                                            true) ||
+                                        (subData?.basePlanId
+                                                ?.toString()
+                                                .toLowerCase()
+                                                .contains('annual') ==
+                                            true);
+                                    final planName = isYearlySub
+                                        ? 'Annual Plan'
+                                        : 'Monthly Plan';
+
+                                    final String? priceDisplay = () {
+                                      if (isYearlySub && gpYearly != null) {
+                                        return gpYearly.price;
+                                      }
+                                      if (!isYearlySub && gpMonthly != null) {
+                                        return gpMonthly.price;
+                                      }
+                                      return null;
+                                    }();
+
+                                    String badgeText = 'ACTIVE';
+                                    Color badgeColor = const Color(0xFF4CAF50);
+                                    Color badgeTextColor = const Color(0xFF81C784);
+
+                                    if (isTestSub) {
+                                      badgeText = 'TEST SUBSCRIPTION';
+                                      badgeColor = const Color(0xFFFFB74D);
+                                      badgeTextColor = const Color(0xFFFFCC80);
+                                    } else if (isCanceledSub) {
+                                      badgeText = 'CANCELED';
+                                      badgeColor = const Color(0xFFFF8A65);
+                                      badgeTextColor = const Color(0xFFFFAB91);
+                                    } else if (statusRaw == 'pending') {
+                                      badgeText = 'PENDING';
+                                      badgeColor = const Color(0xFF29B6F6);
+                                      badgeTextColor = const Color(0xFF81D4FA);
+                                    }
+
+                                    return Container(
+                                      width: double.infinity,
+                                      padding: const EdgeInsets.all(20),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [Color(0xFF1B1438), Color(0xFF0F0B26)],
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: const Color(0xFFFFD700).withValues(alpha: 0.35),
+                                          width: 1.5,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                                            blurRadius: 20,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Expanded(
+                                                child: Row(
+                                                  children: [
+                                                    Container(
+                                                      padding: const EdgeInsets.all(8),
+                                                      decoration: BoxDecoration(
+                                                        color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.workspace_premium_rounded,
+                                                        color: Color(0xFFFFD700),
+                                                        size: 24,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                    Expanded(
+                                                      child: Column(
+                                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                                        children: [
+                                                          const Text(
+                                                            'DreamTrace AI Premium',
+                                                            style: TextStyle(
+                                                              color: Colors.white,
+                                                              fontSize: 16,
+                                                              fontWeight: FontWeight.w800,
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            subData?.productId?.toString() ?? 'dreamtrace_ai_premium',
+                                                            style: const TextStyle(
+                                                              color: Color(0xFF8888AA),
+                                                              fontSize: 12,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: badgeColor.withValues(alpha: 0.2),
+                                                  borderRadius: BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: badgeColor,
+                                                    width: 1,
+                                                  ),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Container(
+                                                      width: 6,
+                                                      height: 6,
+                                                      decoration: BoxDecoration(
+                                                        color: badgeColor,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Text(
+                                                      badgeText,
+                                                      style: TextStyle(
+                                                        color: badgeTextColor,
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w800,
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 16),
+                                          const Divider(color: Color(0xFF2A2250), height: 1),
+                                          const SizedBox(height: 14),
+
+                                          // Subscription Plan
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                'Subscription Plan',
+                                                style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                              ),
+                                              Text(
+                                                planName,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+
+                                          // Subscription Price Paid
+                                          if (priceDisplay != null) ...[
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                const Text(
+                                                  'Subscription Price',
+                                                  style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                                ),
+                                                Text(
+                                                  priceDisplay,
+                                                  style: const TextStyle(
+                                                    color: Color(0xFFFFD700),
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                          ],
+
+                                          // Status Banner for Canceled / Test Subscriptions
+                                          if (isCanceledSub) ...[
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                const Text(
+                                                  'Subscription Status',
+                                                  style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                                ),
+                                                Flexible(
+                                                  child: Text(
+                                                    'Canceled — access available until ${subData?.expiresAt != null ? _formatDateTime(subData?.expiresAt) : 'expiry'}',
+                                                    textAlign: TextAlign.end,
+                                                    style: const TextStyle(
+                                                      color: Color(0xFFFFAB91),
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                          ],
+
+                                          // Purchase Date
+                                          if (subData?.purchaseAt != null) ...[
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                const Text(
+                                                  'Purchase Date',
+                                                  style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                                ),
+                                                Text(
+                                                  _formatDateTime(subData?.purchaseAt),
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                          ],
+
+                                          // Next Renewal Date or Expiration Date
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                isAutoRenew ? 'Next Renewal Date' : 'Expiration Date',
+                                                style: const TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                              ),
+                                              Text(
+                                                _formatDateTime(subData?.expiresAt),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+
+                                          // Auto-Renewal Status
+                                          if (subData?.autoRenewing != null) ...[
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                const Text(
+                                                  'Auto-Renewal',
+                                                  style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                                ),
+                                                Text(
+                                                  isAutoRenew ? 'Enabled' : 'Disabled',
+                                                  style: TextStyle(
+                                                    color: isAutoRenew ? const Color(0xFF81C784) : const Color(0xFFFF8A65),
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                          ],
+
+                                          // Test Mode Indicator
+                                          if (isTestSub) ...[
+                                            const Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                Text(
+                                                  'Testing Environment',
+                                                  style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                                ),
+                                                Text(
+                                                  'Test Subscription (License Tester)',
+                                                  style: TextStyle(
+                                                    color: Color(0xFFFFCC80),
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                          ],
+
+                                          // Transaction ID
+                                          if (subData?.transactionId != null) ...[
+                                            Row(
+                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              children: [
+                                                const Text(
+                                                  'Transaction ID',
+                                                  style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                                ),
+                                                Text(
+                                                  subData?.transactionId?.toString() ?? '',
+                                                  style: const TextStyle(
+                                                    color: Color(0xFFB4ACFF),
+                                                    fontSize: 12,
+                                                    fontFamily: 'monospace',
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                          ],
+
+                                          // Payment Platform
+                                          Row(
+                                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                'Payment Platform',
+                                                style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
+                                              ),
+                                              Text(
+                                                _paymentPlatformName,
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 13,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+
                               // Features / Benefits Header
-                              const Align(
+                              Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  'INCLUDED FEATURES',
-                                  style: TextStyle(
+                                  isPremium ? 'YOUR UNLOCKED BENEFITS' : 'INCLUDED FEATURES',
+                                  style: const TextStyle(
                                     color: Color(0xFF8888AA),
                                     fontSize: 11,
                                     fontWeight: FontWeight.w700,
@@ -1620,44 +1334,51 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   color: const Color(0xFF131325),
                                   borderRadius: BorderRadius.circular(18),
                                   border: Border.all(
-                                    color: const Color(0xFF252545),
+                                    color: isPremium
+                                        ? const Color(0xFFFFD700).withValues(alpha: 0.25)
+                                        : const Color(0xFF252545),
                                     width: 1,
                                   ),
                                 ),
                                 child: Column(
                                   children: List.generate(
                                     benefits.length,
-                                        (index) {
+                                    (index) {
                                       final benefitText = benefits[index];
-                                      final isLast =
-                                          index == benefits.length - 1;
+                                      final isLast = index == benefits.length - 1;
 
                                       return Padding(
                                         padding: EdgeInsets.only(
                                           bottom: isLast ? 0 : 14.h,
                                         ),
                                         child: Row(
-                                          crossAxisAlignment:
-                                          CrossAxisAlignment.center,
+                                          crossAxisAlignment: CrossAxisAlignment.center,
                                           children: [
                                             Container(
                                               width: 36,
                                               height: 36,
                                               alignment: Alignment.center,
                                               decoration: BoxDecoration(
-                                                color: const Color(0xFF7B6EF6)
+                                                color: (isPremium
+                                                        ? const Color(0xFFFFD700)
+                                                        : const Color(0xFF7B6EF6))
                                                     .withValues(alpha: 0.16),
-                                                borderRadius:
-                                                BorderRadius.circular(10),
+                                                borderRadius: BorderRadius.circular(10),
                                                 border: Border.all(
-                                                  color: const Color(0xFF7B6EF6)
+                                                  color: (isPremium
+                                                          ? const Color(0xFFFFD700)
+                                                          : const Color(0xFF7B6EF6))
                                                       .withValues(alpha: 0.3),
                                                   width: 0.8,
                                                 ),
                                               ),
                                               child: Icon(
-                                                _getBenefitIcon(benefitText),
-                                                color: const Color(0xFF9D7FF7),
+                                                isPremium
+                                                    ? Icons.check_circle_rounded
+                                                    : _getBenefitIcon(benefitText),
+                                                color: isPremium
+                                                    ? const Color(0xFFFFD700)
+                                                    : const Color(0xFF9D7FF7),
                                                 size: 18,
                                               ),
                                             ),
@@ -1684,189 +1405,285 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
                               const SizedBox(height: 24),
 
-                              // Plans Header
-                              Row(
-                                mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
-                                children: [
-                                  const Text(
-                                    'CHOOSE YOUR PLAN',
-                                    style: TextStyle(
-                                      color: Color(0xFF6666AA),
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 1.4,
-                                    ),
-                                  ),
-                                  if (_isLoadingProducts)
-                                    const SizedBox(
-                                      width: 12,
-                                      height: 12,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 1.5,
-                                        color: Color(0xFF7B6EF6),
+                              if (!isPremium) ...[
+                                // Plans Header
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'CHOOSE YOUR PLAN',
+                                      style: TextStyle(
+                                        color: Color(0xFF6666AA),
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 1.4,
                                       ),
                                     ),
-                                ],
-                              ),
-                              const SizedBox(height: 14),
+                                    if (_isLoadingProducts)
+                                      const SizedBox(
+                                        width: 12,
+                                        height: 12,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 1.5,
+                                          color: Color(0xFF7B6EF6),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                const SizedBox(height: 14),
 
-                              // Render plan options
-                              ...List.generate(displayPlans.length, (index) {
-                                final plan = displayPlans[index];
-                                return Padding(
-                                  padding: const EdgeInsets.only(
-                                    bottom: 12,
-                                  ),
+                                // Render plan options
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
                                   child: _buildPlanCard(
-                                    index: index,
-                                    title: plan['title'] as String,
-                                    price: plan['price'] as String,
-                                    billingText: plan['billingText'] as String,
-                                    badge: plan['badge'] as String?,
+                                    planType: SubscriptionPlanType.monthly,
+                                    title: SubscriptionPlanType.monthly.displayName,
+                                    price: monthlyPrice,
+                                    billingText: SubscriptionPlanType.monthly.billingSubtitle,
+                                    badge: SubscriptionPlanType.monthly.badgeText,
                                   ),
-                                );
-                              }),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: _buildPlanCard(
+                                    planType: SubscriptionPlanType.yearly,
+                                    title: SubscriptionPlanType.yearly.displayName,
+                                    price: yearlyPrice,
+                                    billingText: SubscriptionPlanType.yearly.billingSubtitle,
+                                    badge: SubscriptionPlanType.yearly.badgeText,
+                                  ),
+                                ),
 
-                              const SizedBox(height: 24),
+                                const SizedBox(height: 24),
+                              ],
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Bottom Action Button & Terms
-                Container(
-                  padding: EdgeInsets.fromLTRB(
-                    20,
-                    12,
-                    20,
-                    MediaQuery.of(context).padding.bottom > 0
-                        ? MediaQuery.of(context).padding.bottom + 8
-                        : 16,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF0D0D1A),
-                    border: Border(
-                      top: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.06),
-                        width: 1,
                       ),
                     ),
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _isProcessing ? null : () => _buySelectedProduct(),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF7B6EF6),
-                            disabledBackgroundColor: const Color(0xFF7B6EF6),
-                            foregroundColor: Colors.white,
-                            disabledForegroundColor: Colors.white,
-                            elevation: 0,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            shadowColor: const Color(0xFF7B6EF6),
+
+                    // Bottom Action Button & Terms
+                    Container(
+                      padding: EdgeInsets.fromLTRB(
+                        20,
+                        12,
+                        20,
+                        MediaQuery.of(context).padding.bottom > 0
+                            ? MediaQuery.of(context).padding.bottom + 8
+                            : 16,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF0D0D1A),
+                        border: Border(
+                          top: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.06),
+                            width: 1,
                           ),
-                          child: _isProcessing
-                              ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                              : Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.lock_open_rounded,
-                                size: 18,
-                                color: Colors.white,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _isProcessing
+                                  ? null
+                                  : (isPremium
+                                      ? () {
+                                          ToastUtil.showShortToast(
+                                              'Your Premium subscription is currently active!');
+                                        }
+                                      : (!isSelectedProductLoaded
+                                          ? null
+                                          : () => _buySelectedProduct())),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isPremium
+                                    ? const Color(0xFF2E7D32)
+                                    : const Color(0xFF7B6EF6),
+                                disabledBackgroundColor: isPremium
+                                    ? const Color(0xFF2E7D32)
+                                    : const Color(0xFF3B3860),
+                                foregroundColor: Colors.white,
+                                disabledForegroundColor: Colors.white70,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                shadowColor: isPremium
+                                    ? const Color(0xFF4CAF50)
+                                    : const Color(0xFF7B6EF6),
                               ),
-                              const SizedBox(width: 8),
-                              Flexible(
+                              child: _isProcessing
+                                  ? const SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  : Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          isPremium
+                                              ? Icons.check_circle_rounded
+                                              : Icons.lock_open_rounded,
+                                          size: 18,
+                                          color: Colors.white,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Flexible(
+                                          child: Text(
+                                            isPremium
+                                                ? 'Subscription Active (PRO)'
+                                                : (!isSelectedProductLoaded
+                                                    ? 'Price unavailable'
+                                                    : (_selectedPlanType == SubscriptionPlanType.yearly
+                                                        ? 'Subscribe Yearly ($yearlyPrice)'
+                                                        : 'Subscribe Monthly ($monthlyPrice)')),
+                                            style: const TextStyle(
+                                              fontSize: 15.5,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.2,
+                                            ),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          if (isPremium) ...[
+                            TextButton(
+                              onPressed: () {
+                                urlLunch(_manageSubscriptionUrl);
+                              },
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(0, 32),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                              ),
+                              child: Text(
+                                _manageSubscriptionTitle,
+                                style: TextStyle(
+                                  color: const Color(0xFFFFD700),
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ] else ...[
+                            TextButton(
+                              onPressed: _isProcessing ? null : _restorePurchases,
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(0, 32),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                              ),
+                              child: Text(
+                                'Restore purchases',
+                                style: TextStyle(
+                                  color: const Color(0xFF9D7FF7),
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
+                          Text(
+                            _autoRenewDisclosure(isPremium),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: const Color(0xFF666688),
+                              fontSize: 10.5.sp,
+                              height: 1.35,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const TermsAndConditionScreen(),
+                                    ),
+                                  );
+                                },
                                 child: Text(
-                                  _products.isNotEmpty &&
-                                      _selectedPlanIndex <
-                                          _products.length
-                                      ? 'Subscribe (${_products[_selectedPlanIndex].price})'
-                                      : _selectedPlanIndex == 1
-                                      ? 'Subscribe Yearly'
-                                      : 'Subscribe Monthly',
-                                  style: const TextStyle(
-                                    fontSize: 15.5,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0.2,
+                                  'Terms of Service',
+                                  style: TextStyle(
+                                    color: const Color(0xFF9D7FF7),
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: const Color(0xFF9D7FF7),
                                   ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
+                                ),
+                              ),
+                              Text(
+                                '  •  ',
+                                style: TextStyle(
+                                  color: const Color(0xFF666688),
+                                  fontSize: 11.sp,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => const PrivacyPolicyScreen(),
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  'Privacy Policy',
+                                  style: TextStyle(
+                                    color: const Color(0xFF9D7FF7),
+                                    fontSize: 11.sp,
+                                    fontWeight: FontWeight.w600,
+                                    decoration: TextDecoration.underline,
+                                    decorationColor: const Color(0xFF9D7FF7),
+                                  ),
                                 ),
                               ),
                             ],
                           ),
-                        ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
-                      TextButton(
-                        onPressed: _isProcessing ? null : _restorePurchases,
-                        style: TextButton.styleFrom(
-                          minimumSize: const Size(0, 32),
-                          padding: const EdgeInsets.symmetric(horizontal: 12),
-                        ),
-                        child: Text(
-                          'Restore purchases',
-                          style: TextStyle(
-                            color: const Color(0xFF9D7FF7),
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Google Play Billing. Cancel anytime in Google Play Store settings.\nBy subscribing, you agree to our Terms & Privacy Policy.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: const Color(0xFF666688),
-                          fontSize: 10.5.sp,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildPlanCard({
-    required int index,
+    required SubscriptionPlanType planType,
     required String title,
     required String price,
     required String billingText,
     String? badge,
   }) {
-    final isSelected = _selectedPlanIndex == index;
+    final isSelected = _selectedPlanType == planType;
 
     return GestureDetector(
       onTap: () {
-        PLog.info('Plan selected: index=$index, title=$title, price=$price');
+        PLog.info('Plan selected by user: ${planType.displayName} ($title), price: $price');
         setState(() {
-          _selectedPlanIndex = index;
+          _selectedPlanType = planType;
         });
       },
       child: AnimatedContainer(

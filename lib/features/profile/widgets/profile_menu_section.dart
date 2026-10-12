@@ -16,10 +16,12 @@ const Color _redAccent = Color(0xFFFF4B4B);
 
 class ProfileMenuSection extends StatelessWidget {
   final bool showRemoteConfig;
+  final bool isPremium;
 
   const ProfileMenuSection({
     super.key,
     this.showRemoteConfig = false,
+    this.isPremium = false,
   });
 
   @override
@@ -35,9 +37,12 @@ class ProfileMenuSection extends StatelessWidget {
         child: Column(
           children: [
             _buildMenuItem(
-              icon: Icons.workspace_premium_outlined,
-              iconColor: Colors.white70,
+              icon: isPremium ? Icons.workspace_premium_rounded : Icons.workspace_premium_outlined,
+              iconColor: isPremium ? const Color(0xFFFFD700) : Colors.white70,
               label: 'Subscription',
+              subtitle: isPremium ? 'PRO Active' : null,
+              subtitleColor: const Color(0xFFFFD700),
+              showArrow: true,
               onTap: () {
                 Navigator.push(
                   context,

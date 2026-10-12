@@ -34,13 +34,22 @@ Future<void> showCustomImagePicker({
                   source: ImageSource.gallery,
                 );
                 if (image != null) {
+                  final path = image.path.toLowerCase();
+                  final isVideo = path.endsWith('.mp4') ||
+                      path.endsWith('.mov') ||
+                      path.endsWith('.avi') ||
+                      path.endsWith('.mkv') ||
+                      path.endsWith('.webm') ||
+                      path.endsWith('.3gp');
+                  if (isVideo) {
+                    ToastUtil.showShortToast("Please select a valid image file.");
+                    if (context.mounted) Navigator.pop(context);
+                    return;
+                  }
                   onImagePicked(image);
+                  ToastUtil.showShortToast("Image selected successfully.");
                 }
-                final success = true;
-                if (success) {
-                  ToastUtil.showShortToast("Image uploaded successfully.");
-                }
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
             ),
             ListTile(
@@ -57,13 +66,22 @@ Future<void> showCustomImagePicker({
                   source: ImageSource.camera,
                 );
                 if (image != null) {
+                  final path = image.path.toLowerCase();
+                  final isVideo = path.endsWith('.mp4') ||
+                      path.endsWith('.mov') ||
+                      path.endsWith('.avi') ||
+                      path.endsWith('.mkv') ||
+                      path.endsWith('.webm') ||
+                      path.endsWith('.3gp');
+                  if (isVideo) {
+                    ToastUtil.showShortToast("Please select a valid image file.");
+                    if (context.mounted) Navigator.pop(context);
+                    return;
+                  }
                   onImagePicked(image);
+                  ToastUtil.showShortToast("Image selected successfully.");
                 }
-                final success = true;
-                if (success) {
-                  ToastUtil.showShortToast("Image uploaded successfully.");
-                }
-                Navigator.pop(context);
+                if (context.mounted) Navigator.pop(context);
               },
             ),
           ],

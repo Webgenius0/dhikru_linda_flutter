@@ -1,20 +1,31 @@
+import 'dart:io';
+import 'package:dhikru_linda_flutter/features/subscription/data/api.dart';
+import 'package:dhikru_linda_flutter/features/subscription/model/verify_google_subscription_model.dart';
+import 'package:dhikru_linda_flutter/networks/endpoints.dart';
 import 'package:dio/dio.dart';
 
 import '../log/presces_log.dart';
 
 /// Sends the Google Play purchase token to your backend for verification.
 class PurchaseVerifyService {
-  // TODO: backend developer-এর দেওয়া আসল endpoint অনুযায়ী ঠিক করুন
-  static const String _verifyUrl =
-      'https://feranpage.thesyndicates.team/api/subscription/verify-google';
-
-  static final Dio _dio = Dio(
-    BaseOptions(
-      connectTimeout: const Duration(seconds: 20),
-      receiveTimeout: const Duration(seconds: 30),
-      headers: {'Accept': 'application/json', 'Accept-Language': 'en'},
-    ),
-  );
+  /// Returns full VerifyResponse if needed by caller
+  static Future<VerifyResponse> verifySubscription({
+    required String productId,
+    required String purchaseToken,
+    String? purchaseId,
+    String? authToken,
+    String? basePlanId,
+    String? platform,
+  }) async {
+    return GetSubscriptionApi.instance.verifyGoogleSubscriptionApi(
+      productId: productId,
+      purchaseToken: purchaseToken,
+      purchaseId: purchaseId,
+      authToken: authToken,
+      basePlanId: basePlanId,
+      platform: platform,
+    );
+  }
 
   /// Returns true only if the backend confirms the purchase is valid
   /// and the subscription is activated for this user.
@@ -23,56 +34,52 @@ class PurchaseVerifyService {
     required String productId,
     required String purchaseToken,
     String? purchaseId,
+    String? basePlanId,
+    String? platform,
   }) async {
     PLog.section('BACKEND VERIFY REQUEST');
 
     final stopwatch = Stopwatch()..start();
+    final verifyUrl = "$url${Endpoints.verifyGoogleSubscription()}";
+    final devicePlatform = platform ?? (Platform.isIOS ? 'apple' : 'google');
 
     PLog.kv('Request', {
-      'URL': _verifyUrl,
+      'URL': verifyUrl,
       'Method': 'POST',
-      'platform': 'google',
+      'platform': devicePlatform,
       'product_id': productId,
+      'base_plan_id': basePlanId ?? 'unspecified',
       'purchase_id': purchaseId,
       'purchase_token': PLog.mask(purchaseToken),
       'auth_token': PLog.mask(authToken),
     });
 
     try {
-      final response = await _dio.post(
-        _verifyUrl,
-        data: {
-          'platform': 'google',
-          'product_id': productId,
-          'purchase_token': purchaseToken,
-          'purchase_id': purchaseId,
-        },
-        options: Options(headers: {'Authorization': 'Bearer $authToken'}),
+      final response = await GetSubscriptionApi.instance.verifyGoogleSubscriptionApi(
+        productId: productId,
+        purchaseToken: purchaseToken,
+        purchaseId: purchaseId,
+        authToken: authToken,
+        basePlanId: basePlanId,
+        platform: devicePlatform,
       );
 
       stopwatch.stop();
       PLog.kv('Response', {
-        'HTTP status': response.statusCode,
+        'Success': response.success,
+        'IsPremium': response.isPremium,
+        'BasePlanId': response.basePlanId,
+        'ExpiresAt': response.expiresAt?.toIso8601String(),
         'Time': '${stopwatch.elapsedMilliseconds} ms',
-        'Body': response.data,
+        'Message': response.message,
       });
 
-      final body = response.data;
-      final httpOk = response.statusCode == 200 || response.statusCode == 201;
-
-      if (!httpOk) {
-        PLog.error('Backend returned non-success HTTP status: ${response.statusCode}');
+      if (!response.success || !response.isPremium) {
+        PLog.error('Backend returned success=false or is_premium=false: ${response.message}');
         return false;
       }
 
-      if (body is Map && body['success'] == false) {
-        PLog.error(
-          'Backend said success=false. message: ${body['message']}',
-        );
-        return false;
-      }
-
-      PLog.success('Backend verified the purchase');
+      PLog.success('Backend verified the purchase successfully!');
       return true;
     } on DioException catch (e, st) {
       stopwatch.stop();
@@ -90,14 +97,14 @@ class PurchaseVerifyService {
       } else if (code == 403) {
         PLog.warn(
           '403 → backend may not have Play Console permission yet '
-              '(service account permission can take a few hours).',
+          '(service account permission can take a few hours).',
         );
       } else if (code == 404) {
         PLog.warn('404 → endpoint URL is wrong or not deployed yet.');
       } else if (code == 422) {
         PLog.warn('422 → backend validation failed. Check request fields above.');
       } else if (code != null && code >= 500) {
-        PLog.warn('$code → backend/server error. Send the response body above to backend developer.');
+        PLog.warn('$code → backend/server error. Send response body to backend developer.');
       } else if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
         PLog.warn('Timeout → slow network or server not responding.');
@@ -108,6 +115,7 @@ class PurchaseVerifyService {
       PLog.error('Verify request failed', e, st);
       return false;
     } catch (e, st) {
+      stopwatch.stop();
       PLog.error('Unexpected verify error', e, st);
       return false;
     }

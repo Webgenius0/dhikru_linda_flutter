@@ -4,3 +4,4 @@ export 'insights_theme_frequency_card.dart';
 export 'insights_recurring_symbols.dart';
 export 'insights_subconscious_evolution_card.dart';
 export 'insights_premium_card.dart';
+export 'insights_locked_view.dart';
