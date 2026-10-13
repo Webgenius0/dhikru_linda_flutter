@@ -5,9 +5,8 @@ import 'dart:io';
 import 'package:dhikru_linda_flutter/constants/app_constants.dart';
 import 'package:dhikru_linda_flutter/features/subscription/presentation/services/perces_verficy_servis_screen.dart';
 import 'package:dhikru_linda_flutter/helpers/di.dart';
+import 'package:dhikru_linda_flutter/helpers/ui_helpers.dart';
 import 'package:dhikru_linda_flutter/helpers/url_lunch.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +29,15 @@ enum SubscriptionPlanType {
         return 'monthly';
       case SubscriptionPlanType.yearly:
         return 'annual';
+    }
+  }
+
+  String get appleProductId {
+    switch (this) {
+      case SubscriptionPlanType.monthly:
+        return 'dreamtrace_ai_monthly';
+      case SubscriptionPlanType.yearly:
+        return 'dreamtrace_ai_annual';
     }
   }
 
@@ -97,12 +105,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   String _autoRenewDisclosure(bool isPremium) {
     if (isPremium) {
       return Platform.isIOS
-          ? 'Managed via App Store. You can modify or cancel your subscription anytime in App Store settings.'
-          : 'Managed via Google Play Billing. You can modify or cancel your subscription anytime in Google Play Store settings.';
+          ? 'Managed via App Store. Cancel anytime in your App Store account settings at least 24 hours before the renewal date.'
+          : 'Managed via Google Play. Cancel anytime in your Google Play account settings at least 24 hours before the renewal date.';
     } else {
-      return Platform.isIOS
-          ? 'Payment will be charged to your Apple ID Account at confirmation of purchase. Subscription automatically renews unless cancelled in App Store settings at least 24 hours before the end of the current period.'
-          : 'Payment will be charged to your Google Play Account at confirmation of purchase. Subscription automatically renews unless cancelled in Google Play Store settings at least 24 hours before the end of the current period.';
+      if (Platform.isIOS) {
+        return 'Subscription auto-renews until cancelled. Cancel anytime in your App Store account settings at least 24 hours before the renewal date. Payment is charged to your Apple ID account at confirmation of purchase.';
+      } else if (Platform.isAndroid) {
+        return 'Subscription auto-renews until cancelled. Cancel anytime in your Google Play account settings at least 24 hours before the renewal date. Payment is charged to your Google Play account at confirmation of purchase.';
+      } else {
+        return 'Subscription auto-renews until cancelled. Cancel anytime in your App Store or Google Play account settings at least 24 hours before the renewal date. Payment is charged to your Apple ID / Google Play account at confirmation of purchase.';
+      }
     }
   }
 
@@ -194,7 +206,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   // STORE + PRODUCTS
   // ---------------------------------------------------------------------------
   Future<void> _initStoreAndLoadProducts() async {
-    PLog.section('GOOGLE PLAY STORE CHECK');
+    PLog.section(Platform.isIOS ? 'APPLE APP STORE CHECK' : 'GOOGLE PLAY STORE CHECK');
     try {
       if (mounted) setState(() => _isLoadingProducts = true);
 
@@ -204,17 +216,24 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
       if (!available) {
         PLog.error(
-          'Google Play Billing NOT available. Possible reasons: emulator without '
-              'Play Store, old Play Store version, no Google account, or app not '
-              'installed from a Play-enabled device.',
+          Platform.isIOS
+              ? 'StoreKit is NOT available. Possible reasons: In-App Purchases restricted in Screen Time, or simulator/device cannot reach App Store.'
+              : 'Google Play Billing NOT available. Possible reasons: emulator without Play Store, old Play Store version, no Google account, or app not installed from a Play-enabled device.',
         );
         if (mounted) setState(() => _isLoadingProducts = false);
         return;
       }
       PLog.success('Billing service available');
 
-      const productIds = <String>{'dreamtrace_ai_premium'};
-      PLog.step('Querying product details: $productIds');
+      final Set<String> productIds = Platform.isIOS
+          ? const <String>{
+              'dreamtrace_ai_monthly',
+              'dreamtrace_ai_annual',
+            }
+          : const <String>{
+              'dreamtrace_ai_premium',
+            };
+      PLog.step('Querying product details: $productIds on $_storeName');
 
       final response = await _appPurchase.queryProductDetails(productIds);
 
@@ -226,12 +245,12 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
             _products = response.productDetails;
           });
         }
-        PLog.success('Found ${_products.length} product(s) in Google Play');
+        PLog.success('Found ${_products.length} product(s) in $_storeName');
 
         if (response.notFoundIDs.isNotEmpty) {
           PLog.warn(
-            'Product IDs NOT found in Play Console: ${response.notFoundIDs}. '
-                'Check product status is Active and app is published to a testing track.',
+            'Product IDs NOT found in $_storeName: ${response.notFoundIDs}. '
+            '${Platform.isIOS ? "Check that products are in App Store Connect with matching IDs, Paid Apps Agreement is active, and a Sandbox account is configured." : "Check product status is Active and app is published to a testing track."}',
           );
         }
 
@@ -265,10 +284,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
         final monthlyP = _findProductForPlan(SubscriptionPlanType.monthly);
         final yearlyP = _findProductForPlan(SubscriptionPlanType.yearly);
-        PLog.info(
-          'Google Play base plan resolution: Monthly (basePlanId: monthly) found: ${monthlyP != null} (${monthlyP?.price}), '
-          'Annual (basePlanId: annual) found: ${yearlyP != null} (${yearlyP?.price})',
-        );
+        if (Platform.isIOS) {
+          PLog.info(
+            'Apple StoreKit resolution: Monthly (dreamtrace_ai_monthly) found: ${monthlyP != null} (${monthlyP?.price ?? "N/A"}), '
+            'Annual (dreamtrace_ai_annual) found: ${yearlyP != null} (${yearlyP?.price ?? "N/A"})',
+          );
+        } else {
+          PLog.info(
+            'Google Play base plan resolution: Monthly (basePlanId: monthly) found: ${monthlyP != null} (${monthlyP?.price ?? "N/A"}), '
+            'Annual (basePlanId: annual) found: ${yearlyP != null} (${yearlyP?.price ?? "N/A"})',
+          );
+        }
       }
     } catch (e, st) {
       PLog.error('Failed to load store products', e, st);
@@ -374,14 +400,14 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
       });
 
       PLog.step('1/4 Verifying purchase with backend');
-      final verified = await _verifyPurchaseWithBackend(purchase);
+      final result = await _verifyPurchaseWithBackend(purchase);
 
-      if (verified) {
+      if (result.isSuccess) {
         PLog.success('2/4 Backend verification PASSED');
 
         // Complete/acknowledge ONLY after the backend confirmed it
         if (purchase.pendingCompletePurchase) {
-          PLog.step('3/4 Calling completePurchase (acknowledge to Google Play)');
+          PLog.step('3/4 Calling completePurchase (acknowledge to $_storeName)');
           await _appPurchase.completePurchase(purchase);
           PLog.success('3/4 completePurchase done');
         } else {
@@ -396,17 +422,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
         PLog.success('🎉 PREMIUM ACTIVATED (${total.elapsedMilliseconds} ms)');
         ToastUtil.showLongToast('🎉 Premium activated!');
+      } else if (result.isExpiredOrInactive) {
+        PLog.warn(
+          'Purchase (${purchase.purchaseID}) is expired or inactive according to backend. '
+          'Completing purchase to clear stale transaction from $_storeName queue.',
+        );
+        if (purchase.pendingCompletePurchase) {
+          await _appPurchase.completePurchase(purchase);
+          PLog.info('Stale purchase completed and cleared.');
+        }
+
+        if (_pendingPlanType != null) {
+          ToastUtil.showLongToast(
+            result.message?.isNotEmpty == true
+                ? result.message!
+                : 'Subscription is no longer active or has expired.',
+          );
+        }
       } else {
-        // completePurchase NOT called: Play will deliver this purchase again
+        // completePurchase NOT called: Store will deliver this purchase again
         // on next app start / restore, so verification can be retried.
         PLog.error(
           'Backend verification FAILED. completePurchase was NOT called, so '
-              'this purchase can be retried (reopen app or tap Restore). '
-              'NOTE: Google auto-refunds unacknowledged purchases after 3 days.',
+          'this purchase can be retried (reopen app or tap Restore). '
+          'NOTE: Google auto-refunds unacknowledged purchases after 3 days.',
         );
-        ToastUtil.showLongToast(
-          'Purchase verification failed. Please tap "Restore purchases" or try again.',
-        );
+        if (_pendingPlanType != null) {
+          ToastUtil.showLongToast(
+            'Purchase verification failed. Please tap "Restore purchases" or try again.',
+          );
+        }
       }
     } catch (e, st) {
       PLog.error('Purchase handling crashed', e, st);
@@ -419,32 +464,41 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     }
   }
 
-  Future<bool> _verifyPurchaseWithBackend(PurchaseDetails purchase) async {
+  Future<PurchaseVerificationResult> _verifyPurchaseWithBackend(
+      PurchaseDetails purchase) async {
     PLog.step('Reading auth token');
     final authToken = await _getAuthToken();
 
     if (authToken == null || authToken.isEmpty) {
       PLog.error(
         'Auth token is missing → cannot verify. Fix _getAuthToken() so it '
-            'returns the logged-in user\'s token.',
+        'returns the logged-in user\'s token.',
       );
-      return false;
+      return PurchaseVerificationResult.failure('Authentication token missing');
     }
     PLog.success('Auth token found: ${PLog.mask(authToken)}');
 
-    // Send basePlanId ONLY when purchase.status == PurchaseStatus.purchased and _pendingPlanType != null.
-    // For restored purchases / app restart send basePlanId = null.
-    final String? effectiveBasePlanId =
-        (purchase.status == PurchaseStatus.purchased && _pendingPlanType != null)
-            ? _pendingPlanType!.googlePlayBasePlanId
-            : null;
-    PLog.info('Initiating backend purchase verification with basePlanId: $effectiveBasePlanId');
+    // Determine plan type: from user selection or infer from productID
+    String? effectiveBasePlanId;
+    if (_pendingPlanType != null) {
+      effectiveBasePlanId = _pendingPlanType!.googlePlayBasePlanId;
+    } else if (purchase.productID.contains('annual') ||
+        purchase.productID.contains('yearly')) {
+      effectiveBasePlanId = 'annual';
+    } else if (purchase.productID.contains('monthly')) {
+      effectiveBasePlanId = 'monthly';
+    }
 
-    return PurchaseVerifyService.verifyGooglePurchase(
+    PLog.info(
+      'Initiating backend purchase verification with basePlanId: $effectiveBasePlanId',
+    );
+
+    return PurchaseVerifyService.verifyPurchase(
       authToken: authToken,
       productId: purchase.productID,
       purchaseToken: purchase.verificationData.serverVerificationData,
       purchaseId: purchase.purchaseID,
+      transactionId: purchase.purchaseID,
       basePlanId: effectiveBasePlanId,
       platform: Platform.isIOS ? 'apple' : 'google',
     );
@@ -480,7 +534,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
   // ---------------------------------------------------------------------------
   // PLAN LOOKUP HELPERS
   // ---------------------------------------------------------------------------
-  GooglePlayProductDetails? _findProductForPlan(SubscriptionPlanType planType) {
+  ProductDetails? _findProductForPlan(SubscriptionPlanType planType) {
+    if (Platform.isIOS) {
+      final appleId = planType.appleProductId;
+      for (final p in _products) {
+        if (p.id == appleId) {
+          return p;
+        }
+      }
+      return null;
+    }
+
     final targetBasePlanId = planType.googlePlayBasePlanId.toLowerCase();
     final targetPeriod = planType == SubscriptionPlanType.monthly ? 'P1M' : 'P1Y';
 
@@ -578,22 +642,36 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
     try {
       setState(() => _isProcessing = true);
 
-      // Select chosen product from Google Play based on explicit plan selection
+      // Select chosen product based on explicit plan selection
       final selectedPlan = _selectedPlanType;
-      final targetBasePlanId = selectedPlan.googlePlayBasePlanId;
-      PLog.info('Initiating purchase for plan: ${selectedPlan.displayName} (expected basePlanId: $targetBasePlanId)');
+      PLog.info('Initiating purchase for plan: ${selectedPlan.displayName}');
 
       final matchedProduct = _findProductForPlan(selectedPlan);
       if (matchedProduct == null) {
         _pendingPlanType = null;
-        PLog.error('Could not find store product for basePlanId "$targetBasePlanId". Available products: ${_products.length}');
-        ToastUtil.showShortToast('Selected plan ($targetBasePlanId) is currently unavailable');
+        PLog.error(
+          Platform.isIOS
+              ? 'Could not find store product for Apple product ID "${selectedPlan.appleProductId}". Available products: ${_products.length}'
+              : 'Could not find store product for basePlanId "${selectedPlan.googlePlayBasePlanId}". Available products: ${_products.length}',
+        );
+        ToastUtil.showShortToast(
+          Platform.isIOS
+              ? 'Selected plan (${selectedPlan.displayName}) is currently unavailable from App Store'
+              : 'Selected plan (${selectedPlan.googlePlayBasePlanId}) is currently unavailable',
+        );
         if (mounted) setState(() => _isProcessing = false);
         return;
       }
 
       PurchaseParam purchaseParam;
       if (Platform.isAndroid) {
+        if (matchedProduct is! GooglePlayProductDetails) {
+          PLog.error('Matched product is not GooglePlayProductDetails on Android');
+          if (mounted) setState(() => _isProcessing = false);
+          return;
+        }
+
+        final targetBasePlanId = selectedPlan.googlePlayBasePlanId;
         final offerToken = _getOfferToken(matchedProduct);
         if (offerToken == null || offerToken.isEmpty) {
           _pendingPlanType = null;
@@ -624,7 +702,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
           offerToken: offerToken,
         );
       } else {
-        PLog.kv('Launching PurchaseParam', {
+        PLog.kv('Launching Apple App Store Purchase', {
           'Plan': selectedPlan.displayName,
           'Product ID': matchedProduct.id,
           'Price': matchedProduct.price,
@@ -703,14 +781,16 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                 ];
 
           // Resolve Monthly Plan details
-          final gpMonthly = _findProductForPlan(SubscriptionPlanType.monthly);
-          final monthlyPrice =
-              gpMonthly != null ? gpMonthly.price : 'Price unavailable';
+          final monthlyProduct = _findProductForPlan(SubscriptionPlanType.monthly);
+          final monthlyPrice = monthlyProduct != null
+              ? monthlyProduct.price
+              : (_isLoadingProducts ? 'Loading...' : 'Price unavailable');
 
           // Resolve Yearly Plan details
-          final gpYearly = _findProductForPlan(SubscriptionPlanType.yearly);
-          final yearlyPrice =
-              gpYearly != null ? gpYearly.price : 'Price unavailable';
+          final yearlyProduct = _findProductForPlan(SubscriptionPlanType.yearly);
+          final yearlyPrice = yearlyProduct != null
+              ? yearlyProduct.price
+              : (_isLoadingProducts ? 'Loading...' : 'Price unavailable');
 
           final selectedProduct = _findProductForPlan(_selectedPlanType);
           final bool isSelectedProductLoaded = selectedProduct != null;
@@ -775,63 +855,44 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               ),
                             ),
                           ),
-                          // Store / Premium status indicator badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isPremium
-                                  ? const Color(0xFFFFD700).withValues(alpha: 0.15)
-                                  : _isStoreAvailable
-                                      ? const Color(0xFF4CAF50).withValues(alpha: 0.15)
-                                      : Colors.amber.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isPremium
-                                    ? const Color(0xFFFFD700).withValues(alpha: 0.5)
-                                    : _isStoreAvailable
-                                        ? const Color(0xFF4CAF50).withValues(alpha: 0.4)
-                                        : Colors.amber.withValues(alpha: 0.4),
-                                width: 1,
+                          // Show PRO ACTIVE badge only when premium is active
+                          if (isPremium)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFFD700).withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: const Color(0xFFFFD700).withValues(alpha: 0.5),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 6,
+                                    height: 6,
+                                    decoration: const BoxDecoration(
+                                      color: Color(0xFFFFD700),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'PRO ACTIVE',
+                                    style: TextStyle(
+                                      color: const Color(0xFFFFD700),
+                                      fontSize: 10.5.sp,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 6,
-                                  height: 6,
-                                  decoration: BoxDecoration(
-                                    color: isPremium
-                                        ? const Color(0xFFFFD700)
-                                        : _isStoreAvailable
-                                            ? const Color(0xFF4CAF50)
-                                            : Colors.amber,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  isPremium
-                                      ? 'PRO ACTIVE'
-                                      : _isStoreAvailable
-                                          ? 'Store Ready'
-                                          : 'Connecting...',
-                                  style: TextStyle(
-                                    color: isPremium
-                                        ? const Color(0xFFFFD700)
-                                        : _isStoreAvailable
-                                            ? const Color(0xFF81C784)
-                                            : Colors.amber,
-                                    fontSize: 10.5.sp,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                         ],
                       ),
                     ),
@@ -972,11 +1033,11 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                         : 'Monthly Plan';
 
                                     final String? priceDisplay = () {
-                                      if (isYearlySub && gpYearly != null) {
-                                        return gpYearly.price;
+                                      if (isYearlySub && yearlyProduct != null) {
+                                        return yearlyProduct.price;
                                       }
-                                      if (!isYearlySub && gpMonthly != null) {
-                                        return gpMonthly.price;
+                                      if (!isYearlySub && monthlyProduct != null) {
+                                        return monthlyProduct.price;
                                       }
                                       return null;
                                     }();
@@ -1184,12 +1245,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                   'Purchase Date',
                                                   style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
                                                 ),
-                                                Text(
-                                                  _formatDateTime(subData?.purchaseAt),
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 13,
-                                                    fontWeight: FontWeight.w600,
+                                                const SizedBox(width: 8),
+                                                Flexible(
+                                                  child: Text(
+                                                    _formatDateTime(subData?.purchaseAt),
+                                                    textAlign: TextAlign.end,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      color: Colors.white,
+                                                      fontSize: 13,
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -1205,12 +1271,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                 isAutoRenew ? 'Next Renewal Date' : 'Expiration Date',
                                                 style: const TextStyle(color: Color(0xFF8888AA), fontSize: 13),
                                               ),
-                                              Text(
-                                                _formatDateTime(subData?.expiresAt),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 13,
-                                                  fontWeight: FontWeight.w700,
+                                              const SizedBox(width: 8),
+                                              Flexible(
+                                                child: Text(
+                                                  _formatDateTime(subData?.expiresAt),
+                                                  textAlign: TextAlign.end,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -1226,6 +1297,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                   'Auto-Renewal',
                                                   style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
                                                 ),
+                                                const SizedBox(width: 8),
                                                 Text(
                                                   isAutoRenew ? 'Enabled' : 'Disabled',
                                                   style: TextStyle(
@@ -1241,19 +1313,35 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
 
                                           // Test Mode Indicator
                                           if (isTestSub) ...[
-                                            const Row(
+                                            Row(
                                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                               children: [
-                                                Text(
-                                                  'Testing Environment',
+                                                const Text(
+                                                  'Environment',
                                                   style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
                                                 ),
-                                                Text(
-                                                  'Test Subscription (License Tester)',
-                                                  style: TextStyle(
-                                                    color: Color(0xFFFFCC80),
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w600,
+                                                const SizedBox(width: 8),
+                                                Flexible(
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(0xFFFFCC80).withValues(alpha: 0.15),
+                                                      borderRadius: BorderRadius.circular(6),
+                                                      border: Border.all(
+                                                        color: const Color(0xFFFFCC80).withValues(alpha: 0.4),
+                                                        width: 1,
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      Platform.isIOS ? 'StoreKit Sandbox' : 'Google Play Tester',
+                                                      textAlign: TextAlign.end,
+                                                      overflow: TextOverflow.ellipsis,
+                                                      style: const TextStyle(
+                                                        color: Color(0xFFFFCC80),
+                                                        fontSize: 11,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
                                                   ),
                                                 ),
                                               ],
@@ -1270,17 +1358,22 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                   'Transaction ID',
                                                   style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
                                                 ),
-                                                Text(
-                                                  subData?.transactionId?.toString() ?? '',
-                                                  style:   TextStyle(
-                                                    color: Color(0xFFB4ACFF),
-                                                    fontSize: 12.sp,
-                                                    fontFamily: 'monospace',
+                                                const SizedBox(width: 8),
+                                                Flexible(
+                                                  child: Text(
+                                                    subData?.transactionId?.toString() ?? '',
+                                                    textAlign: TextAlign.end,
+                                                    overflow: TextOverflow.ellipsis,
+                                                    style: TextStyle(
+                                                      color: const Color(0xFFB4ACFF),
+                                                      fontSize: 12.sp,
+                                                      fontFamily: 'monospace',
+                                                    ),
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                              SizedBox(height: 4.h),
+                                            SizedBox(height: 4.h),
                                           ],
 
                                           // Payment Platform
@@ -1291,12 +1384,17 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                 'Payment Platform',
                                                 style: TextStyle(color: Color(0xFF8888AA), fontSize: 13),
                                               ),
-                                              Text(
-                                                _paymentPlatformName,
-                                                style:   TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 13.sp,
-                                                  fontWeight: FontWeight.w600,
+                                              const SizedBox(width: 8),
+                                              Flexible(
+                                                child: Text(
+                                                  _paymentPlatformName,
+                                                  textAlign: TextAlign.end,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontSize: 13.sp,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -1469,7 +1567,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         12,
                         20,
                         MediaQuery.of(context).padding.bottom > 0
-                            ? MediaQuery.of(context).padding.bottom + 1
+                            ? MediaQuery.of(context).padding.bottom + 3
                             : 16,
                       ),
                       decoration: BoxDecoration(
@@ -1540,11 +1638,13 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                           child: Text(
                                             isPremium
                                                 ? 'Subscription Active (PRO)'
-                                                : (!isSelectedProductLoaded
-                                                    ? 'Price unavailable'
-                                                    : (_selectedPlanType == SubscriptionPlanType.yearly
-                                                        ? 'Subscribe Yearly ($yearlyPrice)'
-                                                        : 'Subscribe Monthly ($monthlyPrice)')),
+                                                : (_isLoadingProducts
+                                                    ? 'Loading plans...'
+                                                    : (!isSelectedProductLoaded
+                                                        ? 'Price unavailable'
+                                                        : (_selectedPlanType == SubscriptionPlanType.yearly
+                                                            ? 'Subscribe Yearly ($yearlyPrice)'
+                                                            : 'Subscribe Monthly ($monthlyPrice)'))),
                                             style: const TextStyle(
                                               fontSize: 15.5,
                                               fontWeight: FontWeight.w700,
@@ -1610,12 +1710,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const TermsAndConditionScreen(),
-                                    ),
-                                  );
+                                  urlLunch(kTermsAndConditionsUrl);
                                 },
                                 child: Text(
                                   'Terms of Service',
@@ -1637,12 +1732,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               ),
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => const PrivacyPolicyScreen(),
-                                    ),
-                                  );
+                                  urlLunch(kPrivacyPolicyUrl);
                                 },
                                 child: Text(
                                   'Privacy Policy',
@@ -1657,6 +1747,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               ),
                             ],
                           ),
+                          UIHelper.verticalSpace(7.h),
                         ],
                       ),
                     ),

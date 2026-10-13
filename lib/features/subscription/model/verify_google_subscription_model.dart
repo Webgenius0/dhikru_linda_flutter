@@ -5,6 +5,8 @@ class GoogleVerifyRequest {
   final String productId;
   final String purchaseToken;
   final String? purchaseId;
+  final String? transactionId;
+  final String? originalTransactionId;
   final String? basePlanId;
 
   GoogleVerifyRequest({
@@ -12,16 +14,26 @@ class GoogleVerifyRequest {
     required this.productId,
     required this.purchaseToken,
     this.purchaseId,
+    this.transactionId,
+    this.originalTransactionId,
     this.basePlanId,
   }) : platform = platform ?? (Platform.isIOS ? 'apple' : 'google');
 
-  Map<String, dynamic> toJson() => {
-        'platform': platform,
-        'product_id': productId,
-        'purchase_token': purchaseToken,
-        'purchase_id': purchaseId,
-        'base_plan_id': basePlanId,
-      };
+  Map<String, dynamic> toJson() {
+    final isApple = platform == 'apple';
+    final resolvedTxId = transactionId ?? purchaseId;
+    return {
+      'platform': platform,
+      'product_id': productId,
+      'purchase_token': purchaseToken,
+      if (isApple && resolvedTxId != null) 'transaction_id': resolvedTxId,
+      if (isApple && resolvedTxId != null) 'purchase_id': resolvedTxId,
+      if (!isApple && resolvedTxId != null) 'purchase_id': resolvedTxId,
+      if (originalTransactionId != null)
+        'original_transaction_id': originalTransactionId,
+      if (basePlanId != null) 'base_plan_id': basePlanId,
+    };
+  }
 }
 
 class VerifyResponse {
