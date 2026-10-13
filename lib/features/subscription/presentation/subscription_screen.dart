@@ -941,7 +941,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 ),
                               ),
 
-                              const SizedBox(height: 20),
+                                SizedBox(height: 10.h),
 
                               if (isPremium) ...[
                                 Builder(
@@ -1272,15 +1272,15 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                                 ),
                                                 Text(
                                                   subData?.transactionId?.toString() ?? '',
-                                                  style: const TextStyle(
+                                                  style:   TextStyle(
                                                     color: Color(0xFFB4ACFF),
-                                                    fontSize: 12,
+                                                    fontSize: 12.sp,
                                                     fontFamily: 'monospace',
                                                   ),
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(height: 8),
+                                              SizedBox(height: 4.h),
                                           ],
 
                                           // Payment Platform
@@ -1293,9 +1293,9 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                               ),
                                               Text(
                                                 _paymentPlatformName,
-                                                style: const TextStyle(
+                                                style:   TextStyle(
                                                   color: Colors.white,
-                                                  fontSize: 13,
+                                                  fontSize: 13.sp,
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                               ),
@@ -1306,7 +1306,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                     );
                                   },
                                 ),
-                                const SizedBox(height: 24),
+                                  SizedBox(height: 5.h),
                               ],
 
                               // Features / Benefits Header
@@ -1322,7 +1322,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                                SizedBox(height: 5.h),
 
                               // Features / Benefits List Card
                               Container(
@@ -1403,18 +1403,18 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                 ),
                               ),
 
-                              const SizedBox(height: 24),
+                                SizedBox(height: 14.h),
 
                               if (!isPremium) ...[
                                 // Plans Header
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Text(
+                                      Text(
                                       'CHOOSE YOUR PLAN',
                                       style: TextStyle(
                                         color: Color(0xFF6666AA),
-                                        fontSize: 11,
+                                        fontSize: 11.sp,
                                         fontWeight: FontWeight.w700,
                                         letterSpacing: 1.4,
                                       ),
@@ -1430,7 +1430,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                       ),
                                   ],
                                 ),
-                                const SizedBox(height: 14),
+                                  SizedBox(height: 10.h),
 
                                 // Render plan options
                                 Padding(
@@ -1454,7 +1454,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                   ),
                                 ),
 
-                                const SizedBox(height: 24),
+                                  SizedBox(height: 14.h),
                               ],
                             ],
                           ),
@@ -1469,7 +1469,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         12,
                         20,
                         MediaQuery.of(context).padding.bottom > 0
-                            ? MediaQuery.of(context).padding.bottom + 8
+                            ? MediaQuery.of(context).padding.bottom + 1
                             : 16,
                       ),
                       decoration: BoxDecoration(
@@ -1486,7 +1486,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                         children: [
                           SizedBox(
                             width: double.infinity,
-                            height: 52,
+                            height: 45.h,
                             child: ElevatedButton(
                               onPressed: _isProcessing
                                   ? null
@@ -1535,7 +1535,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                           size: 18,
                                           color: Colors.white,
                                         ),
-                                        const SizedBox(width: 8),
+                                          SizedBox(width: 4.h),
                                         Flexible(
                                           child: Text(
                                             isPremium
@@ -1558,7 +1558,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                                     ),
                             ),
                           ),
-                          const SizedBox(height: 6),
+                            SizedBox(height: 1.h),
                           if (isPremium) ...[
                             TextButton(
                               onPressed: () {
@@ -1594,7 +1594,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 8),
+                            SizedBox(height: 2.h),
                           Text(
                             _autoRenewDisclosure(isPremium),
                             textAlign: TextAlign.center,
@@ -1604,7 +1604,7 @@ class _SubscriptionScreenState extends State<SubscriptionScreen> {
                               height: 1.35,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                            SizedBox(height: 4.h),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [

@@ -584,14 +584,9 @@ class _LoginScreenState extends State<LoginScreen>
 
   // --------------- Social Buttons Widget ---------------
   Widget _buildSocialButtons() {
-    final bool isAndroid = Platform.isAndroid;
     final bool isApple = Platform.isIOS || Platform.isMacOS;
 
-    if (isAndroid) {
-      return _buildGoogleButton();
-    } else if (isApple) {
-      return _buildAppleButton();
-    } else {
+    if (isApple) {
       return Row(
         children: [
           Expanded(child: _buildGoogleButton()),
@@ -599,6 +594,8 @@ class _LoginScreenState extends State<LoginScreen>
           Expanded(child: _buildAppleButton()),
         ],
       );
+    } else {
+      return _buildGoogleButton();
     }
   }
 
