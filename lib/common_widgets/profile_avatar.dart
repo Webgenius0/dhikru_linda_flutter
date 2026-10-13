@@ -45,11 +45,27 @@ class ProfileAvatar extends StatelessWidget {
     final double size = (radius * 2).r;
 
     if (imageFile != null) {
+      final path = imageFile!.path.toLowerCase();
+      final isVideoOrNonImage = path.endsWith('.mp4') ||
+          path.endsWith('.mov') ||
+          path.endsWith('.avi') ||
+          path.endsWith('.mkv') ||
+          path.endsWith('.webm') ||
+          path.endsWith('.3gp') ||
+          path.endsWith('.mp3') ||
+          path.endsWith('.wav') ||
+          path.endsWith('.pdf');
+
+      if (isVideoOrNonImage) {
+        return _buildPlaceholder(size);
+      }
+
       return Image.file(
         imageFile!,
         width: size,
         height: size,
         fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(size),
       );
     }
 

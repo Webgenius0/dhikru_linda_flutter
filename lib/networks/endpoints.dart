@@ -1,7 +1,7 @@
 // ignore_for_file: constant_identifier_names, unnecessary_string_interpolations
 
-// const String url = "https://dashboard.thrivearc.ai/api"; // real url
-  const String url = "https://feranpage.thesyndicates.team/api";
+  const String url = "https://dashboard.thrivearc.ai/api"; // real url
+//   const String url = "https://feranpage.thesyndicates.team/api";
 
 const String imageUrl = url;
 
@@ -124,4 +124,9 @@ final class Endpoints {
   // -------------------Get Subscription Status start-----------------
   static String getSubscriptionStatus() => "/subscription/status";
   // -------------------Get Subscription Status end-------------------
+
+  // -------------------Verify Google Subscription start-----------------
+  static String verifyGoogleSubscription() => "/subscription/verify-google";
+  // -------------------Verify Google Subscription end-------------------
 }
+

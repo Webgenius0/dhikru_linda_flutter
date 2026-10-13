@@ -2,14 +2,15 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
 import 'package:dhikru_linda_flutter/features/auth/gogle/services_screeen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
+import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dio/dio.dart' show DioException, DioExceptionType;
 import 'package:firebase_auth/firebase_auth.dart' show FirebaseAuthException;
-import 'package:flutter/cupertino.dart'
-    show
+import 'package:flutter/cupertino.dart' show
         CupertinoActivityIndicator,
         CupertinoAlertDialog,
         CupertinoDialogAction,
@@ -39,6 +40,7 @@ class _LoginScreenState extends State<LoginScreen>
   bool _isLoading = false;
   bool _isGoogleLoading = false;
   bool _isAppleLoading = false;
+  bool _agreeToTerms = false;
 
   // --------------- Animation ---------------
   late final AnimationController _animController;
@@ -237,7 +239,7 @@ class _LoginScreenState extends State<LoginScreen>
                       SizedBox(height: 24.h),
 
                       // --------------- Social Login Buttons ---------------
-                        _buildSocialButtons(),
+                      _buildSocialButtons(),
 
                       SizedBox(height: 40.h),
 
@@ -385,6 +387,14 @@ class _LoginScreenState extends State<LoginScreen>
   void _onGoogleSignIn() async {
     if (_isGoogleLoading || _isLoading || _isAppleLoading) return;
 
+    if (!_agreeToTerms) {
+      final agreed = await _showTermsConsentBottomSheet(providerName: 'Google');
+      if (agreed != true) return;
+      if (mounted) {
+        setState(() => _agreeToTerms = true);
+      }
+    }
+
     // 1. Quick internet check before launching Google Sign-In
     final isOnline = await _hasInternetConnection();
     if (!isOnline) {
@@ -467,6 +477,14 @@ class _LoginScreenState extends State<LoginScreen>
 
   void _onAppleSignIn() async {
     if (_isAppleLoading || _isGoogleLoading || _isLoading) return;
+
+    if (!_agreeToTerms) {
+      final agreed = await _showTermsConsentBottomSheet(providerName: 'Apple');
+      if (agreed != true) return;
+      if (mounted) {
+        setState(() => _agreeToTerms = true);
+      }
+    }
 
     final isOnline = await _hasInternetConnection();
     if (!isOnline) {
@@ -673,6 +691,234 @@ class _LoginScreenState extends State<LoginScreen>
                 ],
               ),
       ),
+    );
+  }
+
+  // --------------- Terms & Conditions & Privacy Policy Consent Bottom Sheet ---------------
+  Future<bool?> _showTermsConsentBottomSheet({required String providerName}) {
+    return showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext sheetContext) {
+        bool localAgreed = false;
+        return StatefulBuilder(
+          builder: (context, setSheetState) {
+            return Container(
+              padding: EdgeInsets.only(
+                left: 24.w,
+                right: 24.w,
+                top: 16.h,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 28.h,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFF16132F),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(24.r),
+                ),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  // Handle
+                  Container(
+                    width: 40.w,
+                    height: 4.h,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(2.r),
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+
+                  // Title
+                  Text(
+                    'Terms & Conditions',
+                    style: GoogleFonts.cormorantGaramond(
+                      color: Colors.white,
+                      fontSize: 24.sp,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 8.h),
+
+                  Text(
+                    'Please review and agree to our Terms & Conditions and Privacy Policy to continue with $providerName.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withValues(alpha: 0.65),
+                      fontSize: 13.sp,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  SizedBox(height: 22.h),
+
+                  // Checkbox Row
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () {
+                          setSheetState(() {
+                            localAgreed = !localAgreed;
+                          });
+                        },
+                        child: Container(
+                          width: 22.w,
+                          height: 22.w,
+                          decoration: BoxDecoration(
+                            color: localAgreed
+                                ? const Color(0xFF8B7AE8)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(4.r),
+                            border: Border.all(
+                              color: localAgreed
+                                  ? const Color(0xFF8B7AE8)
+                                  : Colors.white.withValues(alpha: 0.4),
+                              width: 1.5,
+                            ),
+                          ),
+                          child: localAgreed
+                              ? Icon(
+                                  Icons.check,
+                                  color: Colors.white,
+                                  size: 14.sp,
+                                )
+                              : null,
+                        ),
+                      ),
+                      SizedBox(width: 12.w),
+                      Expanded(
+                        child: Wrap(
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                setSheetState(() {
+                                  localAgreed = !localAgreed;
+                                });
+                              },
+                              child: Text(
+                                'I agree to the ',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white.withValues(alpha: 0.7),
+                                  fontSize: 12.5.sp,
+                                  fontWeight: FontWeight.w400,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const TermsAndConditionScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'Terms & Conditions',
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF8B7AE8),
+                                  fontSize: 12.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: const Color(0xFF8B7AE8),
+                                ),
+                              ),
+                            ),
+                            Text(
+                              ' and ',
+                              style: GoogleFonts.inter(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 12.5.sp,
+                                fontWeight: FontWeight.w400,
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => const PrivacyPolicyScreen(),
+                                  ),
+                                );
+                              },
+                              child: Text(
+                                'Privacy Policy',
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF8B7AE8),
+                                  fontSize: 12.5.sp,
+                                  fontWeight: FontWeight.w600,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: const Color(0xFF8B7AE8),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 26.h),
+
+                  // Confirm button (active only when checkbox is selected)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50.h,
+                    child: ElevatedButton(
+                      onPressed: localAgreed
+                          ? () => Navigator.of(sheetContext).pop(true)
+                          : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF8B7AE8),
+                        disabledBackgroundColor:
+                            const Color(0xFF8B7AE8).withValues(alpha: 0.35),
+                        disabledForegroundColor:
+                            Colors.white.withValues(alpha: 0.45),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(30.r),
+                        ),
+                      ),
+                      child: Text(
+                        'Continue with $providerName',
+                        style: GoogleFonts.inter(
+                          color: localAgreed
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.45),
+                          fontSize: 14.5.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 10.h),
+
+                  // Cancel button
+                  TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(false),
+                    child: Text(
+                      'Cancel',
+                      style: GoogleFonts.inter(
+                        color: Colors.white.withValues(alpha: 0.55),
+                        fontSize: 13.5.sp,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 

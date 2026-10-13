@@ -15,6 +15,7 @@ class CustomProfileHeaderWidget extends StatelessWidget {
   final File? imageFile;
   final String? imageUrl;
   final bool isLoading;
+  final bool isPremium;
 
   const CustomProfileHeaderWidget({
     super.key,
@@ -26,6 +27,7 @@ class CustomProfileHeaderWidget extends StatelessWidget {
     this.imageFile,
     this.imageUrl,
     this.isLoading = false,
+    this.isPremium = false,
   });
 
   static const Color _bg = Color(0xFF0B0F14);
@@ -81,46 +83,100 @@ class CustomProfileHeaderWidget extends StatelessWidget {
       children: [
         SizedBox(height: 10.h),
 
-        // ── Glowing Profile Avatar ──
+        // ── Glowing Profile Avatar with PRO Badge ──
         Center(
           child: GestureDetector(
-            child: Container(
-              padding: EdgeInsets.all(4.w),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: _accentPurple.withOpacity(0.35),
-                    blurRadius: 20,
-                    spreadRadius: 4,
-                  ),
-                ],
-                gradient: const LinearGradient(
-                  colors: [_accentPurple, Color(0xFF4A90E2)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-              child: isLoading
-                  ? Shimmer.fromColors(
-                      baseColor: Colors.white.withOpacity(0.05),
-                      highlightColor: Colors.white.withOpacity(0.1),
-                      child: Container(
-                        width: 108.r,
-                        height: 108.r,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Container(
+                  padding: EdgeInsets.all(4.w),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: isPremium
+                            ? const Color(0xFFFFD700).withValues(alpha: 0.45)
+                            : _accentPurple.withValues(alpha: 0.35),
+                        blurRadius: 20,
+                        spreadRadius: 4,
                       ),
-                    )
-                  : ProfileAvatar(
-                      radius: 54.r,
-                      imageFile: imageFile,
-                      imageUrl: imageUrl,
-                      borderColor: _bg,
-                      borderWidth: 3,
+                    ],
+                    gradient: LinearGradient(
+                      colors: isPremium
+                          ? const [Color(0xFFFFD700), Color(0xFFFFA500)]
+                          : const [_accentPurple, Color(0xFF4A90E2)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
+                  ),
+                  child: isLoading
+                      ? Shimmer.fromColors(
+                          baseColor: Colors.white.withValues(alpha: 0.05),
+                          highlightColor: Colors.white.withValues(alpha: 0.1),
+                          child: Container(
+                            width: 108.r,
+                            height: 108.r,
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        )
+                      : ProfileAvatar(
+                          radius: 54.r,
+                          imageFile: imageFile,
+                          imageUrl: imageUrl,
+                          borderColor: _bg,
+                          borderWidth: 3,
+                        ),
+                ),
+                if (isPremium)
+                  Positioned(
+                    bottom: 2.h,
+                    right: 2.w,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 8.w,
+                        vertical: 3.h,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFFD700), Color(0xFFFF8C00)],
+                        ),
+                        borderRadius: BorderRadius.circular(12.r),
+                        border: Border.all(color: _bg, width: 2),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.5),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.workspace_premium_rounded,
+                            color: Colors.black,
+                            size: 13.sp,
+                          ),
+                          SizedBox(width: 3.w),
+                          Text(
+                            'PRO',
+                            style: GoogleFonts.inter(
+                              color: Colors.black,
+                              fontSize: 10.sp,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -130,8 +186,8 @@ class CustomProfileHeaderWidget extends StatelessWidget {
         // ── Name ──
         isLoading
             ? Shimmer.fromColors(
-                baseColor: Colors.white.withOpacity(0.05),
-                highlightColor: Colors.white.withOpacity(0.1),
+                baseColor: Colors.white.withValues(alpha: 0.05),
+                highlightColor: Colors.white.withValues(alpha: 0.1),
                 child: Container(
                   width: 160.w,
                   height: 24.h,
@@ -143,19 +199,67 @@ class CustomProfileHeaderWidget extends StatelessWidget {
               )
             : Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const BouncingScrollPhysics(),
-                  child: Text(
-                    name ?? '',
-                    maxLines: 1,
-                    style: GoogleFonts.inter(
-                      color: Colors.white,
-                      fontSize: 24.sp,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Text(
+                        name ?? '',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.inter(
+                          color: Colors.white,
+                          fontSize: 24.sp,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (isPremium) ...[
+                      SizedBox(width: 8.w),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 3.h,
+                        ),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFFFFD700), Color(0xFFFF9900)],
+                          ),
+                          borderRadius: BorderRadius.circular(8.r),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFFFD700).withValues(
+                                alpha: 0.4,
+                              ),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.star_rounded,
+                              color: Colors.black,
+                              size: 11.sp,
+                            ),
+                            SizedBox(width: 2.w),
+                            Text(
+                              'PRO',
+                              style: GoogleFonts.inter(
+                                color: Colors.black,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
 
@@ -164,8 +268,8 @@ class CustomProfileHeaderWidget extends StatelessWidget {
         // ── Email ──
         isLoading
             ? Shimmer.fromColors(
-                baseColor: Colors.white.withOpacity(0.05),
-                highlightColor: Colors.white.withOpacity(0.1),
+                baseColor: Colors.white.withValues(alpha: 0.05),
+                highlightColor: Colors.white.withValues(alpha: 0.1),
                 child: Container(
                   width: 200.w,
                   height: 14.h,
@@ -188,8 +292,8 @@ class CustomProfileHeaderWidget extends StatelessWidget {
           SizedBox(height: 8.h),
           isLoading
               ? Shimmer.fromColors(
-                  baseColor: Colors.white.withOpacity(0.05),
-                  highlightColor: Colors.white.withOpacity(0.1),
+                  baseColor: Colors.white.withValues(alpha: 0.05),
+                  highlightColor: Colors.white.withValues(alpha: 0.1),
                   child: Container(
                     width: 180.w,
                     height: 12.h,
@@ -202,7 +306,7 @@ class CustomProfileHeaderWidget extends StatelessWidget {
               : Text(
                   detailsText,
                   style: GoogleFonts.inter(
-                    color: _mutedText.withOpacity(0.85),
+                    color: _mutedText.withValues(alpha: 0.85),
                     fontSize: 13.sp,
                     fontWeight: FontWeight.w500,
                   ),
