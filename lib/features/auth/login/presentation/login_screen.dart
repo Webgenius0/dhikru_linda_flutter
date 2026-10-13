@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
 import 'package:dhikru_linda_flutter/features/auth/gogle/services_screeen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
+import 'package:dhikru_linda_flutter/helpers/url_lunch.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/helpers/toast.dart';
@@ -584,14 +584,9 @@ class _LoginScreenState extends State<LoginScreen>
 
   // --------------- Social Buttons Widget ---------------
   Widget _buildSocialButtons() {
-    final bool isAndroid = Platform.isAndroid;
     final bool isApple = Platform.isIOS || Platform.isMacOS;
 
-    if (isAndroid) {
-      return _buildGoogleButton();
-    } else if (isApple) {
-      return _buildAppleButton();
-    } else {
+    if (isApple) {
       return Row(
         children: [
           Expanded(child: _buildGoogleButton()),
@@ -599,6 +594,8 @@ class _LoginScreenState extends State<LoginScreen>
           Expanded(child: _buildAppleButton()),
         ],
       );
+    } else {
+      return _buildGoogleButton();
     }
   }
 
@@ -815,12 +812,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const TermsAndConditionScreen(),
-                                  ),
-                                );
+                                urlLunch(kTermsAndConditionsUrl);
                               },
                               child: Text(
                                 'Terms & Conditions',
@@ -843,12 +835,7 @@ class _LoginScreenState extends State<LoginScreen>
                             ),
                             GestureDetector(
                               onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => const PrivacyPolicyScreen(),
-                                  ),
-                                );
+                                urlLunch(kPrivacyPolicyUrl);
                               },
                               child: Text(
                                 'Privacy Policy',

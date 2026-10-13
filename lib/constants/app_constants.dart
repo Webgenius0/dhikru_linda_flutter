@@ -151,3 +151,8 @@ class DefaultValue {
   static const double kDefaultDouble = 0.0;
   static const String kDefaultString = '';
 }
+
+// ------------------- Legal URLs -------------------
+const String kPrivacyPolicyUrl = 'https://dashboard.thrivearc.ai/privacy-policy';
+const String kTermsAndConditionsUrl = 'https://dashboard.thrivearc.ai/terms-and-conditions';
+

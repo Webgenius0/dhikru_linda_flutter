@@ -11,3 +11,4 @@ export 'journal_search_bar.dart';
 export 'journal_filter_chips.dart';
 export 'journal_shimmer_dream_card.dart';
 export 'journal_dream_card.dart';
+export 'journal_empty_state.dart';

@@ -1,6 +1,6 @@
 import 'package:dhikru_linda_flutter/common_widgets/custom_logo_widget.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
+import 'package:dhikru_linda_flutter/helpers/url_lunch.dart';
 import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
 import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
@@ -430,12 +430,7 @@ class _RegisterScreenState extends State<RegisterScreen>
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const TermsAndConditionScreen(),
-                    ),
-                  );
+                  urlLunch(kTermsAndConditionsUrl);
                 },
                 child: Text(
                   'Terms & Conditions',
@@ -458,12 +453,7 @@ class _RegisterScreenState extends State<RegisterScreen>
               ),
               GestureDetector(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const PrivacyPolicyScreen(),
-                    ),
-                  );
+                  urlLunch(kPrivacyPolicyUrl);
                 },
                 child: Text(
                   'Privacy Policy',

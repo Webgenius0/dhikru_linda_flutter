@@ -58,7 +58,15 @@ class PLog {
   /// copy/paste logs to other people.
   static String mask(String? value, {int show = 6}) {
     if (value == null || value.isEmpty) return '<empty>';
-    if (value.length <= show * 2) return '***(${value.length})';
-    return '${value.substring(0, show)}…${value.substring(value.length - show)} (len ${value.length})';
+    final trimmed = value.trim();
+    final bearerMatch =
+        RegExp(r'^(Bearer\s+)(.+)$', caseSensitive: false).firstMatch(trimmed);
+    if (bearerMatch != null) {
+      final prefix = bearerMatch.group(1)!;
+      final token = bearerMatch.group(2)!;
+      return '$prefix${mask(token, show: show)}';
+    }
+    if (trimmed.length <= show * 2) return '***(${trimmed.length})';
+    return '${trimmed.substring(0, show)}…${trimmed.substring(trimmed.length - show)} (len ${trimmed.length})';
   }
 }

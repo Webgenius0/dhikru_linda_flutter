@@ -48,14 +48,18 @@ final class SendJournalMessageRx
 
   @override
   handleErrorWithReturn(dynamic error) {
-    debugPrint("=== sendJournalMessage error: $error");
+    if (kDebugMode) {
+      debugPrint("=== sendJournalMessage error: $error");
+    }
     if (error is DioException) {
-      debugPrint(
-        "=== sendJournalMessage response status: ${error.response?.statusCode}",
-      );
-      debugPrint(
-        "=== sendJournalMessage response data: ${error.response?.data}",
-      );
+      if (kDebugMode) {
+        debugPrint(
+          "=== sendJournalMessage response status: ${error.response?.statusCode}",
+        );
+        debugPrint(
+          "=== sendJournalMessage response data: ${error.response?.data}",
+        );
+      }
 
       if (error.response?.statusCode == 403) {
         final resData = error.response?.data;

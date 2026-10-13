@@ -1,6 +1,7 @@
 import 'package:dhikru_linda_flutter/features/profile/model/privacy_policy_model.dart';
 import 'package:dhikru_linda_flutter/helpers/html_markdown_converter.dart';
 import 'package:dhikru_linda_flutter/helpers/url_lunch.dart';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -179,6 +180,24 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
               },
             ),
           ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => urlLunch(kPrivacyPolicyUrl),
+            child: Container(
+              width: 40.w,
+              height: 40.w,
+              decoration: BoxDecoration(
+                color: _cardBg,
+                shape: BoxShape.circle,
+                border: Border.all(color: _borderColor, width: 1),
+              ),
+              child: const Icon(
+                Icons.open_in_browser_rounded,
+                color: Colors.white70,
+                size: 20,
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -242,19 +261,38 @@ class _PrivacyPolicyScreenState extends State<PrivacyPolicyScreen> {
                 ),
               ),
               SizedBox(height: 20.h),
-              ElevatedButton.icon(
-                onPressed: () => privacyPolicyRxObj.getPrivacyPolicy(),
-                icon: const Icon(Icons.refresh_rounded, size: 18),
-                label: const Text('Try Again'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _accentColor,
-                  foregroundColor: Colors.white,
-                  elevation: 0,
-                  padding: EdgeInsets.symmetric(horizontal: 22.w, vertical: 11.h),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12.r),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () => privacyPolicyRxObj.getPrivacyPolicy(),
+                    icon: const Icon(Icons.refresh_rounded, size: 18),
+                    label: const Text('Try Again'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _accentColor,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 11.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(width: 12.w),
+                  OutlinedButton.icon(
+                    onPressed: () => urlLunch(kPrivacyPolicyUrl),
+                    icon: const Icon(Icons.open_in_new_rounded, size: 16),
+                    label: const Text('Open Online'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: const BorderSide(color: _borderColor),
+                      padding: EdgeInsets.symmetric(horizontal: 18.w, vertical: 11.h),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
