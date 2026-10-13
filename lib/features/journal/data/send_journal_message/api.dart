@@ -21,16 +21,22 @@ final class SendJournalMessageApi {
         "message": message,
       };
 
-      debugPrint("=== SEND MESSAGE API URL: ${Endpoints.sendJournalMessage(journalId: journalId)}");
-      debugPrint("=== SEND MESSAGE API REQUEST BODY: $data");
+      if (kDebugMode) {
+        debugPrint(
+            "=== SEND MESSAGE API URL: ${Endpoints.sendJournalMessage(journalId: journalId)}");
+        debugPrint("=== SEND MESSAGE API REQUEST BODY: $data");
+      }
 
       Response response = await postHttp(
         Endpoints.sendJournalMessage(journalId: journalId),
         data,
       );
 
-      debugPrint("=== SEND MESSAGE API RESPONSE STATUS: ${response.statusCode}");
-      debugPrint("=== SEND MESSAGE API RESPONSE BODY: ${response.data}");
+      if (kDebugMode) {
+        debugPrint(
+            "=== SEND MESSAGE API RESPONSE STATUS: ${response.statusCode}");
+        debugPrint("=== SEND MESSAGE API RESPONSE BODY: ${response.data}");
+      }
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final resData = response.data is Map<String, dynamic>

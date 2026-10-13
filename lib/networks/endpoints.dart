@@ -128,5 +128,9 @@ final class Endpoints {
   // -------------------Verify Google Subscription start-----------------
   static String verifyGoogleSubscription() => "/subscription/verify-google";
   // -------------------Verify Google Subscription end-------------------
+
+  // -------------------Verify Apple Subscription start-----------------
+  static String verifyAppleSubscription() => "/subscription/verify-apple";
+  // -------------------Verify Apple Subscription end-------------------
 }
 

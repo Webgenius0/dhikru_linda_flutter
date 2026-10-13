@@ -70,5 +70,16 @@
 	<string>This app requires speech recognition permission to convert your dream description voice recordings into text.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>This app requires microphone permission to record your dream description voice.</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.388524370985-fd60dk31qtds79tkdbe47rlhqvl91jij</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -40,10 +40,16 @@ final class SaveJournalResponseRx extends RxResponseInt<SaveJournalResponseModel
 
   @override
   handleErrorWithReturn(dynamic error) {
-    debugPrint("=== saveJournalResponse error: $error");
+    if (kDebugMode) {
+      debugPrint("=== saveJournalResponse error: $error");
+    }
     if (error is DioException) {
-      debugPrint("=== saveJournalResponse response status: ${error.response?.statusCode}");
-      debugPrint("=== saveJournalResponse response data: ${error.response?.data}");
+      if (kDebugMode) {
+        debugPrint(
+            "=== saveJournalResponse response status: ${error.response?.statusCode}");
+        debugPrint(
+            "=== saveJournalResponse response data: ${error.response?.data}");
+      }
 
       if (error.response?.statusCode == 403) {
         final resData = error.response?.data;

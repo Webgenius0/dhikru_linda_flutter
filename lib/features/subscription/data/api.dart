@@ -32,20 +32,28 @@ final class GetSubscriptionApi {
     }
   }
 
-  Future<VerifyResponse> verifyGoogleSubscriptionApi({
+  Future<VerifyResponse> verifySubscriptionApi({
     required String productId,
     required String purchaseToken,
     String? purchaseId,
+    String? transactionId,
+    String? originalTransactionId,
     String? authToken,
     String? basePlanId,
     String? platform,
   }) async {
     try {
+      final isApple = (platform == 'apple') || (platform == null && Platform.isIOS);
+      final resolvedPlatform = isApple ? 'apple' : 'google';
+      final resolvedTxId = transactionId ?? purchaseId;
+
       final request = GoogleVerifyRequest(
-        platform: platform ?? (Platform.isIOS ? 'apple' : 'google'),
+        platform: resolvedPlatform,
         productId: productId,
         purchaseToken: purchaseToken,
-        purchaseId: purchaseId,
+        purchaseId: resolvedTxId,
+        transactionId: resolvedTxId,
+        originalTransactionId: originalTransactionId,
         basePlanId: basePlanId,
       );
 
@@ -55,9 +63,12 @@ final class GetSubscriptionApi {
           : null;
 
       final payload = request.toJson()..removeWhere((k, v) => v == null);
+      final endpoint = isApple
+          ? Endpoints.verifyAppleSubscription()
+          : Endpoints.verifyGoogleSubscription();
 
       Response response = await DioSingleton.instance.dio.post(
-        Endpoints.verifyGoogleSubscription(),
+        endpoint,
         data: payload,
         options: options,
       );
@@ -70,6 +81,28 @@ final class GetSubscriptionApi {
     } catch (error) {
       rethrow;
     }
+  }
+
+  Future<VerifyResponse> verifyGoogleSubscriptionApi({
+    required String productId,
+    required String purchaseToken,
+    String? purchaseId,
+    String? transactionId,
+    String? originalTransactionId,
+    String? authToken,
+    String? basePlanId,
+    String? platform,
+  }) {
+    return verifySubscriptionApi(
+      productId: productId,
+      purchaseToken: purchaseToken,
+      purchaseId: purchaseId,
+      transactionId: transactionId,
+      originalTransactionId: originalTransactionId,
+      authToken: authToken,
+      basePlanId: basePlanId,
+      platform: platform,
+    );
   }
 }
 

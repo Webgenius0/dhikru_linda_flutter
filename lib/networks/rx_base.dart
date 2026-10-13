@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'package:flutter/foundation.dart';
 
 import 'package:rxdart/subjects.dart';
 
@@ -20,7 +21,9 @@ abstract class RxResponseInt<T> {
   }
 
   dynamic handleErrorWithReturn(dynamic error) {
-    log(error.toString());
+    if (kDebugMode) {
+      log(error.toString());
+    }
     dataFetcher.sink.addError(error);
     throw error;
   }
