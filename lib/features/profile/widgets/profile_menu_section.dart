@@ -5,9 +5,9 @@ import 'package:dhikru_linda_flutter/common_widgets/custom_delete_account_widget
 import 'package:dhikru_linda_flutter/common_widgets/custom_logout_widget.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/change_password_screen.dart';
 import 'package:dhikru_linda_flutter/features/profile/presentation/help_and_support_screen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/privacy_policy_screen.dart';
-import 'package:dhikru_linda_flutter/features/profile/presentation/terms_and_condition_screen.dart';
 import 'package:dhikru_linda_flutter/features/subscription/presentation/subscription_screen.dart';
+import 'package:dhikru_linda_flutter/constants/app_constants.dart';
+import 'package:dhikru_linda_flutter/helpers/url_lunch.dart';
 
 const Color _cardBg = Color(0xFF111720);
 const Color _dividerColor = Color(0xFF1E2730);
@@ -59,12 +59,7 @@ class ProfileMenuSection extends StatelessWidget {
               iconColor: Colors.white70,
               label: 'Privacy Policy',
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PrivacyPolicyScreen(),
-                  ),
-                );
+                urlLunch(kPrivacyPolicyUrl);
               },
             ),
             _buildDivider(),
@@ -74,12 +69,7 @@ class ProfileMenuSection extends StatelessWidget {
               iconColor: Colors.white70,
               label: 'Terms & Conditions',
               onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const TermsAndConditionScreen(),
-                  ),
-                );
+                urlLunch(kTermsAndConditionsUrl);
               },
             ),
             _buildDivider(),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:dhikru_linda_flutter/constants/app_constants.dart';
@@ -74,7 +75,15 @@ class PurchaseManager {
         onStatusChanged?.call(true);
       }
     } catch (e) {
-      debugPrint("Verification failed: $e. Google Play will allow retry.");
+      if (Platform.isIOS && purchase.pendingCompletePurchase) {
+        final errStr = e.toString().toLowerCase();
+        if (errStr.contains('400') ||
+            errStr.contains('expired') ||
+            errStr.contains('not active')) {
+          await _iap.completePurchase(purchase);
+        }
+      }
+      debugPrint("Verification failed: $e.");
     }
   }
 

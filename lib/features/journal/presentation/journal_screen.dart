@@ -3,6 +3,8 @@ import 'package:dhikru_linda_flutter/features/journal/model/get_all_journal_mode
 import 'package:dhikru_linda_flutter/networks/api_acess.dart';
 import 'package:dhikru_linda_flutter/features/journal/widgets/journal_widgets.dart';
 import 'package:dhikru_linda_flutter/features/journal/presentation/journal_detail_screen.dart';
+import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
+import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
 
 class JournalScreen extends StatefulWidget {
   final VoidCallback? onGoHome;
@@ -16,7 +18,6 @@ class JournalScreen extends StatefulWidget {
 
 class _JournalScreenState extends State<JournalScreen> {
   static const Color _bgColor = Color(0xFF0D0D1A);
-  static const Color _subtleText = Color(0xFF8888AA);
 
   int? _selectedTagId;
   final TextEditingController _searchController = TextEditingController();
@@ -117,48 +118,74 @@ class _JournalScreenState extends State<JournalScreen> {
                         return ListView.separated(
                           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 25),
                           itemCount: journalList.isEmpty ? 4 : journalList.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          separatorBuilder: (_, _) => const SizedBox(height: 12),
                           itemBuilder: (context, index) => const JournalShimmerDreamCard(),
                         );
                       }
 
-                      final String query = _searchController.text.toLowerCase();
+                      final String query = _searchController.text.toLowerCase().trim();
                       final filteredList = journalList.where((item) {
                         final titleMatch = (item.title ?? '').toLowerCase().contains(query);
                         return titleMatch;
                       }).toList();
 
                       if (filteredList.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No journal entries found.',
-                            style: TextStyle(color: _subtleText, fontSize: 14),
-                          ),
+                        final bool hasSearchQuery = query.isNotEmpty;
+                        final bool hasTagFilter = _selectedTagId != null;
+
+                        return JournalEmptyState(
+                          isSearch: hasSearchQuery,
+                          isFilter: !hasSearchQuery && hasTagFilter,
+                          searchQuery: _searchController.text,
+                          onClearSearch: () {
+                            _searchController.clear();
+                          },
+                          onClearFilter: () {
+                            setState(() {
+                              _selectedTagId = null;
+                            });
+                            getAllJournalRxObj.getJournalEntries();
+                          },
+                          onRecordDream: () async {
+                            await NavigationService.navigateTo(Routes.newDrimeEnterScreen);
+                            getAllJournalRxObj.getJournalEntries(tagId: _selectedTagId);
+                          },
+                          onRefresh: () async {
+                            await getAllJournalRxObj.getJournalEntries(tagId: _selectedTagId);
+                          },
                         );
                       }
 
-                      return ListView.separated(
-                        padding: const EdgeInsets.only(left: 20, right: 20, bottom: 35),
-                        itemCount: filteredList.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final item = filteredList[index];
-                          final dreamMap = MoodHelper.mapDatumToDreamMap(item);
-                          return JournalDreamCard(
-                            dream: dreamMap,
-                            onTagTap: _filterByTagName,
-                            index: index,
-                            onTap: (updatedDream) async {
-                              await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => JournalDetailScreen(dream: updatedDream),
-                                ),
-                              );
-                              _searchController.clear();
-                            },
-                          );
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          await getAllJournalRxObj.getJournalEntries(tagId: _selectedTagId);
                         },
+                        color: const Color(0xFF9D87F5),
+                        backgroundColor: const Color(0xFF161628),
+                        child: ListView.separated(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 35),
+                          itemCount: filteredList.length,
+                          separatorBuilder: (_, _) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final item = filteredList[index];
+                            final dreamMap = MoodHelper.mapDatumToDreamMap(item);
+                            return JournalDreamCard(
+                              dream: dreamMap,
+                              onTagTap: _filterByTagName,
+                              index: index,
+                              onTap: (updatedDream) async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => JournalDetailScreen(dream: updatedDream),
+                                  ),
+                                );
+                                _searchController.clear();
+                              },
+                            );
+                          },
+                        ),
                       );
                     },
                   );
