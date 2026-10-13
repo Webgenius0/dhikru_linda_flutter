@@ -42,7 +42,10 @@ class _InterpretationScrenState extends State<InterpretationScren> {
       final args = ModalRoute.of(context)?.settings.arguments;
       if (args is Data) {
         _dreamData = args;
-        if (_dreamData!.userResponse != null &&
+        if (_dreamData!.messages != null && _dreamData!.messages!.isNotEmpty) {
+          _messages.clear();
+          _messages.addAll(_dreamData!.messages!);
+        } else if (_dreamData!.userResponse != null &&
             _dreamData!.userResponse!.isNotEmpty) {
           _messages.add(
             ChatMessage(
@@ -111,10 +114,21 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                           ),
                           const SizedBox(height: 28),
                           InterpretationSymbolTags(dreamData: _dreamData),
-                          if (_messages.isNotEmpty) ...[
-                            const SizedBox(height: 28),
-                            InterpretationChatBubbles(messages: _messages),
-                          ],
+                          ValueListenableBuilder<bool>(
+                            valueListenable: sendJournalMessageRxObj.isLoading,
+                            builder: (context, isAiThinking, _) {
+                              if (_messages.isEmpty && !isAiThinking) {
+                                return const SizedBox.shrink();
+                              }
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 28),
+                                child: InterpretationChatBubbles(
+                                  messages: _messages,
+                                  isAiThinking: isAiThinking,
+                                ),
+                              );
+                            },
+                          ),
                           const SizedBox(height: 28),
                           InterpretationRespondSection(
                             controller: _respondController,
@@ -175,6 +189,15 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                     );
                     return;
                   }
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (_scrollController.hasClients) {
+                      _scrollController.animateTo(
+                        _scrollController.position.maxScrollExtent,
+                        duration: const Duration(milliseconds: 300),
+                        curve: Curves.easeOut,
+                      );
+                    }
+                  });
                   final response = await sendJournalMessageRxObj.sendMessage(
                     journalId: journalId,
                     message: text,
@@ -184,6 +207,7 @@ class _InterpretationScrenState extends State<InterpretationScren> {
                     setState(() {
                       if (response.data?.messages != null &&
                           response.data!.messages!.isNotEmpty) {
+                        _messages.clear();
                         _messages.addAll(response.data!.messages!);
                       } else {
                         if (response.data?.userMessage != null) {

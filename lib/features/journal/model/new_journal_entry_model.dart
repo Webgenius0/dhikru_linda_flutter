@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dhikru_linda_flutter/features/journal/model/send_journal_message_model.dart';
 
 class NewJournalEntryModel {
     bool? success;
@@ -54,6 +55,7 @@ class Data {
     List<String>? symbolTags;
     List<EmotionalLandscape>? emotionalLandscape;
     List<CareReflection>? careReflection;
+    List<ChatMessage>? messages;
     DateTime? createdAt;
 
     Data({
@@ -71,6 +73,7 @@ class Data {
         this.symbolTags,
         this.emotionalLandscape,
         this.careReflection,
+        this.messages,
         this.createdAt,
     });
 
@@ -89,6 +92,7 @@ class Data {
         List<String>? symbolTags,
         List<EmotionalLandscape>? emotionalLandscape,
         List<CareReflection>? careReflection,
+        List<ChatMessage>? messages,
         DateTime? createdAt,
     }) => 
         Data(
@@ -106,6 +110,7 @@ class Data {
             symbolTags: symbolTags ?? this.symbolTags,
             emotionalLandscape: emotionalLandscape ?? this.emotionalLandscape,
             careReflection: careReflection ?? this.careReflection,
+            messages: messages ?? this.messages,
             createdAt: createdAt ?? this.createdAt,
         );
 
@@ -128,7 +133,8 @@ class Data {
         symbolTags: json["symbol_tags"] == null ? [] : List<String>.from(json["symbol_tags"]!.map((x) => x)),
         emotionalLandscape: json["emotional_landscape"] == null ? [] : List<EmotionalLandscape>.from(json["emotional_landscape"]!.map((x) => EmotionalLandscape.fromJson(x))),
         careReflection: json["care_reflection"] == null ? [] : List<CareReflection>.from(json["care_reflection"]!.map((x) => CareReflection.fromJson(x))),
-        createdAt: json["created_at"] == null ? null : DateTime.parse(json["created_at"]),
+        messages: json["messages"] == null ? [] : List<ChatMessage>.from(json["messages"]!.map((x) => ChatMessage.fromJson(x))),
+        createdAt: json["created_at"] == null ? null : DateTime.tryParse(json["created_at"].toString()),
     );
 
     Map<String, dynamic> toJson() => {
@@ -146,6 +152,7 @@ class Data {
         "symbol_tags": symbolTags == null ? [] : List<dynamic>.from(symbolTags!.map((x) => x)),
         "emotional_landscape": emotionalLandscape == null ? [] : List<dynamic>.from(emotionalLandscape!.map((x) => x.toJson())),
         "care_reflection": careReflection == null ? [] : List<dynamic>.from(careReflection!.map((x) => x.toJson())),
+        "messages": messages == null ? [] : List<dynamic>.from(messages!.map((x) => x.toJson())),
         "created_at": createdAt?.toIso8601String(),
     };
 }
