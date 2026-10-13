@@ -1,116 +1,3 @@
-// import 'dart:convert';
-// import 'dart:developer';
-
-// import 'package:flutter/foundation.dart';
-
-// import 'package:dio/dio.dart';
-// import 'package:dhikru_linda_flutter/constants/app_constants.dart';
-// import 'package:dhikru_linda_flutter/helpers/all_routes.dart';
-// import 'package:dhikru_linda_flutter/helpers/di.dart';
-// import 'package:dhikru_linda_flutter/helpers/navigation_service.dart';
-// import 'package:dhikru_linda_flutter/helpers/toast.dart';
-
-// import '../exception_handler/data_source.dart';
-
-// final class Logger extends Interceptor {
-//   @override
-//   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-//     log("= = = Dio Request = = =");
-//     log("${options.headers}");
-//     log("${options.data}");
-//     log("${options.contentType}");
-//     log("${options.extra}");
-//     log("${options.baseUrl}${options.path}");
-//     return super.onRequest(options, handler);
-//   }
-
-//   @override
-//   void onResponse(Response response, ResponseInterceptorHandler handler) {
-//     log("= = = Dio Success Response = = =");
-//     log(json.encode(response.data));
-//     log("${response.requestOptions}");
-//     log("${response.statusCode}");
-//     log("${response.statusMessage}");
-//     log("${response.headers}");
-//     log("${response.extra}");
-
-//     if (response.data is Map<String, dynamic>) {
-//       final data = response.data as Map<String, dynamic>;
-//       final code = data['code'];
-//       final message = data['message']?.toString() ?? '';
-//       final msgLower = message.toLowerCase();
-//       final isPremiumRestriction = code == 403 ||
-//           (data['success'] == false &&
-//               (code == 403 ||
-//                   msgLower.contains('premium') ||
-//                   msgLower.contains('upgrade') ||
-//                   msgLower.contains('companion') ||
-//                   msgLower.contains('unlock')));
-
-//       if (isPremiumRestriction) {
-//         if (message.isNotEmpty) {
-//           ToastUtil.showShortToast(message, forceShow: true);
-//         }
-//         NavigationService.navigateTo(Routes.subscriptionScreen);
-//       }
-//     }
-
-//     return super.onResponse(response, handler);
-//   }
-
-//   @override
-//   void onError(DioException err, ErrorInterceptorHandler handler) {
-//     if (kDebugMode) {
-//       log("= = = Dio Error Response = = =");
-//       log('Error Response: ${err.response}');
-//       log('Error Message: ${err.message}');
-//       log('Error Type: ${err.type}');
-//       log('Error: ${err.error}');
-//       log('Error Req option: ${err.requestOptions}');
-//     }
-
-//     if (err.response?.statusCode == 401) {
-//       final isLoggedIn = appData.read(kKeyIsLoggedIn) ?? false;
-//       if (isLoggedIn) {
-//         appData.write(kKeyIsLoggedIn, false);
-//         appData.remove(kKeyAccessToken);
-//         appData.remove(kKeyName);
-//         appData.remove(kKeyEmail);
-//         ToastUtil.showShortToast("Session expired. Please log in again.");
-//         NavigationService.navigateToUntilReplacement(Routes.logInScreen);
-//       }
-//     } else if (err.response?.statusCode == 403) {
-//       final responseData = err.response?.data;
-//       String? msg;
-//       if (responseData is Map<String, dynamic>) {
-//         msg = responseData['message']?.toString();
-//       }
-//       if (msg != null && msg.isNotEmpty) {
-//         ToastUtil.showShortToast(msg, forceShow: true);
-//       }
-//       NavigationService.navigateTo(Routes.subscriptionScreen);
-//     } else if (err.response?.data is Map<String, dynamic>) {
-//       final data = err.response!.data as Map<String, dynamic>;
-//       final code = data['code'];
-//       final message = data['message']?.toString() ?? '';
-//       final msgLower = message.toLowerCase();
-//       if (code == 403 ||
-//           msgLower.contains('premium') ||
-//           msgLower.contains('upgrade') ||
-//           msgLower.contains('companion') ||
-//           msgLower.contains('unlock')) {
-//         if (message.isNotEmpty) {
-//           ToastUtil.showShortToast(message, forceShow: true);
-//         }
-//         NavigationService.navigateTo(Routes.subscriptionScreen);
-//       }
-//     }
-
-//     ErrorHandler.handle(err).failure;
-//     return super.onError(err, handler);
-//   }
-// }
-
 import 'dart:convert';
 import 'dart:developer';
 
@@ -120,6 +7,53 @@ import 'package:flutter/foundation.dart';
 import '../exception_handler/data_source.dart';
 import '../stream_cleaner.dart';
 
+/// Interceptor that handles session expiration / unauthenticated responses.
+/// Active in both debug and release builds to preserve core authentication flow.
+final class AuthInterceptor extends Interceptor {
+  static bool _isHandlingUnauth = false;
+
+  void _handleUnauthenticatedSession() async {
+    if (_isHandlingUnauth) return;
+    _isHandlingUnauth = true;
+
+    try {
+      await totalDataClean();
+    } catch (e) {
+      if (kDebugMode) {
+        log('Error handling unauthenticated session: $e');
+      }
+    } finally {
+      Future.delayed(const Duration(seconds: 3), () {
+        _isHandlingUnauth = false;
+      });
+    }
+  }
+
+  @override
+  void onError(DioException err, ErrorInterceptorHandler handler) {
+    final statusCode = err.response?.statusCode;
+    final responseData = err.response?.data;
+    final String? message = responseData is Map
+        ? responseData['message']?.toString()
+        : null;
+
+    final bool isUnauthenticated =
+        statusCode == 401 ||
+        message == "Unauthenticated." ||
+        message == "token_not_valid" ||
+        (message != null && message.toLowerCase().contains("unauthenticated"));
+
+    if (isUnauthenticated) {
+      _handleUnauthenticatedSession();
+    }
+
+    ErrorHandler.handle(err).failure;
+    return super.onError(err, handler);
+  }
+}
+
+/// Secure Dio logging interceptor that runs only in debug mode and
+/// masks sensitive tokens, passwords, and purchase credentials.
 final class Logger extends Interceptor {
   // ANSI color codes
   static const String _reset = '\x1B[0m';
@@ -130,6 +64,96 @@ final class Logger extends Interceptor {
   static const String _blue = '\x1B[34m';
   static const String _white = '\x1B[37m';
   static const String _magenta = '\x1B[35m';
+
+  static bool _isSensitiveKey(String key) {
+    final normalized = key.toLowerCase().replaceAll(RegExp(r'[-_]'), '');
+    const sensitiveKeys = {
+      'authorization',
+      'purchasetoken',
+      'password',
+      'passwordconfirmation',
+      'token',
+      'accesstoken',
+      'refreshtoken',
+      'authtoken',
+      'bearer',
+      'secret',
+      'clientsecret',
+    };
+    return sensitiveKeys.contains(normalized);
+  }
+
+  /// Masks sensitive strings (tokens, passwords, keys) showing only the first
+  /// 6 and last 6 characters (e.g. "Bearer eyJ0eX…Yq5TVw" or "abc123…xyz789").
+  static String _maskSensitiveString(String value, {int show = 6}) {
+    if (value.isEmpty) return value;
+
+    final trimmed = value.trim();
+    final bearerMatch = RegExp(r'^(Bearer\s+)(.+)$', caseSensitive: false).firstMatch(trimmed);
+    if (bearerMatch != null) {
+      final prefix = bearerMatch.group(1)!;
+      final token = bearerMatch.group(2)!;
+      return '$prefix${_maskSubString(token, show: show)}';
+    }
+
+    return _maskSubString(trimmed, show: show);
+  }
+
+  static String _maskSubString(String str, {int show = 6}) {
+    if (str.length <= show) {
+      return '***';
+    }
+    if (str.length <= show * 2) {
+      final half = (str.length / 2).floor();
+      return '${str.substring(0, half)}…';
+    }
+    return '${str.substring(0, show)}…${str.substring(str.length - show)}';
+  }
+
+  /// Recursively masks sensitive fields in Maps, Lists, or JSON strings.
+  static dynamic _maskSensitiveData(dynamic data) {
+    if (data == null) return null;
+
+    if (data is Map) {
+      final Map<String, dynamic> masked = {};
+      data.forEach((key, value) {
+        final keyStr = key.toString();
+        if (_isSensitiveKey(keyStr)) {
+          if (value is String) {
+            masked[keyStr] = _maskSensitiveString(value);
+          } else if (value is List) {
+            masked[keyStr] = value
+                .map((item) =>
+                    item != null ? _maskSensitiveString(item.toString()) : null)
+                .toList();
+          } else if (value != null) {
+            masked[keyStr] = _maskSensitiveString(value.toString());
+          } else {
+            masked[keyStr] = null;
+          }
+        } else {
+          masked[keyStr] = _maskSensitiveData(value);
+        }
+      });
+      return masked;
+    } else if (data is List) {
+      return data.map((item) => _maskSensitiveData(item)).toList();
+    } else if (data is String) {
+      final trimmed = data.trim();
+      if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+        try {
+          final decoded = json.decode(data);
+          final masked = _maskSensitiveData(decoded);
+          return const JsonEncoder.withIndent('  ').convert(masked);
+        } catch (_) {
+          return data;
+        }
+      }
+      return data;
+    }
+    return data;
+  }
 
   String _prettyPrintJson(dynamic json) {
     try {
@@ -161,7 +185,8 @@ final class Logger extends Interceptor {
     }
 
     log('$prefixColor║$_yellow Response Data:$_reset');
-    final prettyData = _prettyPrintJson(data);
+    final maskedData = _maskSensitiveData(data);
+    final prettyData = _prettyPrintJson(maskedData);
     for (var line in prettyData.split('\n')) {
       log('$prefixColor║$_white   $line$_reset');
     }
@@ -176,7 +201,9 @@ final class Logger extends Interceptor {
       buffer.writeln('  "fields": {');
       for (int i = 0; i < formData.fields.length; i++) {
         final field = formData.fields[i];
-        buffer.write('    "${field.key}": "${field.value}"');
+        final isSensitive = _isSensitiveKey(field.key);
+        final val = isSensitive ? _maskSensitiveString(field.value) : field.value;
+        buffer.write('    "${field.key}": "$val"');
         if (i < formData.fields.length - 1 || formData.files.isNotEmpty) {
           buffer.writeln(',');
         } else {
@@ -213,6 +240,8 @@ final class Logger extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    if (!kDebugMode) return super.onRequest(options, handler);
+
     log(
       '$_cyan╔══════════════════════════════════════════════════════════════════════════════$_reset',
     );
@@ -225,9 +254,19 @@ final class Logger extends Interceptor {
 
     if (options.headers.isNotEmpty) {
       log('$_cyan║$_yellow Headers:$_reset');
-      final prettyHeaders = _prettyPrintJson(options.headers);
+      final maskedHeaders = _maskSensitiveData(options.headers);
+      final prettyHeaders = _prettyPrintJson(maskedHeaders);
       for (var line in prettyHeaders.split('\n')) {
         log('$_cyan║$_magenta   $line$_reset');
+      }
+    }
+
+    if (options.queryParameters.isNotEmpty) {
+      log('$_cyan║$_yellow Query Parameters:$_reset');
+      final maskedParams = _maskSensitiveData(options.queryParameters);
+      final prettyParams = _prettyPrintJson(maskedParams);
+      for (var line in prettyParams.split('\n')) {
+        log('$_cyan║$_white   $line$_reset');
       }
     }
 
@@ -237,7 +276,8 @@ final class Logger extends Interceptor {
       if (options.data is FormData) {
         bodyString = _formatFormData(options.data as FormData);
       } else {
-        bodyString = _prettyPrintJson(options.data);
+        final maskedBody = _maskSensitiveData(options.data);
+        bodyString = _prettyPrintJson(maskedBody);
       }
       for (var line in bodyString.split('\n')) {
         log('$_cyan║$_white   $line$_reset');
@@ -256,6 +296,8 @@ final class Logger extends Interceptor {
 
   @override
   void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (!kDebugMode) return super.onResponse(response, handler);
+
     log(
       '$_green╔══════════════════════════════════════════════════════════════════════════════$_reset',
     );
@@ -267,11 +309,9 @@ final class Logger extends Interceptor {
       '$_green║$_white Status: $_blue${response.statusCode}$_white ${response.statusMessage}$_reset',
     );
 
-    // Headers are a special type, just convert to string
-    if (response.headers.toString().isNotEmpty) {
-      log(
-        '$_green║$_yellow Headers: $_magenta${response.headers.toString()}$_reset',
-      );
+    if (response.headers.map.isNotEmpty) {
+      final maskedHeaders = _maskSensitiveData(response.headers.map);
+      log('$_green║$_yellow Headers: $_magenta$maskedHeaders$_reset');
     }
 
     _logResponseData(response, _green);
@@ -282,42 +322,8 @@ final class Logger extends Interceptor {
     return super.onResponse(response, handler);
   }
 
-  static bool _isHandlingUnauth = false;
-
-  void _handleUnauthenticatedSession() async {
-    if (_isHandlingUnauth) return;
-    _isHandlingUnauth = true;
-
-    try {
-      await totalDataClean();
-      // NavigationService.navigateToReplacementUntil(Routes.loginScreen);
-    } catch (e) {
-      log('Error handling unauthenticated session: $e');
-    } finally {
-      Future.delayed(const Duration(seconds: 3), () {
-        _isHandlingUnauth = false;
-      });
-    }
-  }
-
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    final statusCode = err.response?.statusCode;
-    final responseData = err.response?.data;
-    final String? message = responseData is Map
-        ? responseData['message']?.toString()
-        : null;
-
-    final bool isUnauthenticated =
-        statusCode == 401 ||
-        message == "Unauthenticated." ||
-        message == "token_not_valid" ||
-        (message != null && message.toLowerCase().contains("unauthenticated"));
-
-    if (isUnauthenticated) {
-      _handleUnauthenticatedSession();
-    }
-
     if (kDebugMode) {
       log(
         '$_red╔══════════════════════════════════════════════════════════════════════════════$_reset',
@@ -340,7 +346,8 @@ final class Logger extends Interceptor {
           );
         } else {
           log('$_red║$_yellow Response Data:$_reset');
-          final prettyData = _prettyPrintJson(response.data);
+          final maskedData = _maskSensitiveData(response.data);
+          final prettyData = _prettyPrintJson(maskedData);
           for (var line in prettyData.split('\n')) {
             log('$_red║$_white   $line$_reset');
           }
@@ -359,7 +366,6 @@ final class Logger extends Interceptor {
       );
     }
 
-    ErrorHandler.handle(err).failure;
     return super.onError(err, handler);
   }
 }

@@ -50,13 +50,17 @@ class VerifyResponse {
     return VerifyResponse(
       success: json['success'] == true,
       message: json['message']?.toString() ?? '',
-      isPremium: data['is_premium'] == true,
-      platform: data['platform']?.toString(),
-      productId: data['product_id']?.toString(),
-      basePlanId: data['base_plan_id']?.toString() ?? data['plan_id']?.toString(),
+      isPremium: data['is_premium'] == true || json['is_premium'] == true,
+      platform: data['platform']?.toString() ?? json['platform']?.toString(),
+      productId: data['product_id']?.toString() ?? json['product_id']?.toString(),
+      basePlanId: data['base_plan_id']?.toString() ??
+          json['base_plan_id']?.toString() ??
+          data['plan_id']?.toString(),
       expiresAt: data['expires_at'] != null
           ? DateTime.tryParse(data['expires_at'].toString())
-          : null,
+          : (json['expires_at'] != null
+              ? DateTime.tryParse(json['expires_at'].toString())
+              : null),
       code: json['code'] is int ? json['code'] as int : null,
     );
   }

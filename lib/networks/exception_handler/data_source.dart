@@ -3,6 +3,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 
 import 'error_response.dart';
@@ -80,7 +81,9 @@ final class ErrorHandler implements Exception {
       // dio error so its an error from response of the API or from dio itself
       failure = _handleError(error);
     } else {
-      log(error.toString());
+      if (kDebugMode) {
+        log(error.toString());
+      }
       // default error
       failure = DataSource.DEFAULT.getFailure();
     }

@@ -25,7 +25,10 @@ final class DioSingleton {
         NetworkConstants.APP_KEY: NetworkConstants.APP_KEY_VALUE,
       },
     );
-    dio = Dio(options)..interceptors.add(Logger());
+    dio = Dio(options)..interceptors.add(AuthInterceptor());
+    if (kDebugMode) {
+      dio.interceptors.add(Logger());
+    }
   }
 
   void update(String auth) {
@@ -44,7 +47,10 @@ final class DioSingleton {
       connectTimeout: const Duration(milliseconds: 100000),
       receiveTimeout: const Duration(milliseconds: 100000),
     );
-    dio = Dio(options)..interceptors.add(Logger());
+    dio = Dio(options)..interceptors.add(AuthInterceptor());
+    if (kDebugMode) {
+      dio.interceptors.add(Logger());
+    }
   }
 
   void updateLanguage(String countryCode) {
@@ -64,7 +70,10 @@ final class DioSingleton {
       connectTimeout: const Duration(milliseconds: 100000),
       receiveTimeout: const Duration(milliseconds: 100000),
     );
-    dio = Dio(options)..interceptors.add(Logger());
+    dio = Dio(options)..interceptors.add(AuthInterceptor());
+    if (kDebugMode) {
+      dio.interceptors.add(Logger());
+    }
   }
 }
 
