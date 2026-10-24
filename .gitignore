@@ -23,7 +23,6 @@ migrate_working_dir/
 
 # Flutter/Dart/Pub related
 **/doc/api/
-temp_auto_push.bat
 **/ios/Flutter/.last_build_id
 .dart_tool/
 .flutter-plugins-dependencies
@@ -44,11 +43,13 @@ app.*.map.json
 /android/app/release
 
 # Environment & Sensitive Credentials
-.env*
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 macos/Runner/GoogleService-Info.plist
 
 .gitignore
 branch_structure.json
+temp_auto_push.bat
 temp_interactive_push.bat
+config.bat
+node_modules
